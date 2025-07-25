@@ -85,6 +85,30 @@ if (!NEXTJS_URL) {
 // Add runtime configuration to the workflow action definition
 workflowActionDefinition.actionUrl = `${NEXTJS_URL}${appConfig.webhookPath}`;
 
+// Generate action name with version and conditional timestamp
+const baseActionName = workflowActionDefinition.labels.en.actionName;
+const version = 'v1.0.0';
+const isDevelopment = NEXTJS_URL.includes('localhost') || NEXTJS_URL.includes('ngrok');
+
+let finalActionName = `${baseActionName} ${version}`;
+let finalDescription = workflowActionDefinition.labels.en.actionDescription;
+
+// Only add timestamp and environment info in development mode
+if (isDevelopment) {
+  const now = new Date();
+  const timestamp = now.toISOString().slice(0, 16).replace('T', ' '); // 2025-01-25 14:30
+  const environment = NEXTJS_URL.includes('localhost') ? 'Dev' : 'Dev-Tunnel';
+  
+  finalActionName = `${baseActionName} ${version} (${environment} - ${timestamp})`;
+  finalDescription = `${workflowActionDefinition.labels.en.actionDescription} (${version}) - Registered: ${timestamp}`;
+} else {
+  finalDescription = `${workflowActionDefinition.labels.en.actionDescription} (${version})`;
+}
+
+// Update the action name and description
+workflowActionDefinition.labels.en.actionName = finalActionName;
+workflowActionDefinition.labels.en.actionDescription = finalDescription;
+
 async function registerWorkflowAction() {
   
   console.log(`🚀 Registering ${workflowActionDefinition.labels?.en?.actionName || 'workflow action'} with HubSpot...`);
@@ -122,6 +146,9 @@ async function registerWorkflowAction() {
       console.log('2. Navigate to Automation → Workflows');
       console.log('3. Create a new workflow or edit existing one');
       console.log(`4. Look for "${workflowActionDefinition.labels?.en?.actionName || 'Format Date'}" in Custom Actions`);
+      console.log('\n💡 Management Commands:');
+      console.log(`   List all actions: node scripts/list-workflow-actions.js ${appName}`);
+      console.log(`   Delete this action: node scripts/delete-workflow-action.js ${appName} ${result.id}`);
       
       return result;
     } else {
