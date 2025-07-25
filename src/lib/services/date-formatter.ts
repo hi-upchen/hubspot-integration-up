@@ -5,6 +5,61 @@ import type { DateFormat } from '../types';
  * Supports various input formats and outputs to multiple target formats
  */
 
+/**
+ * Constants used throughout the date formatting system
+ */
+const DATE_CONSTANTS = {
+  MONTH_NAMES: [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ] as const,
+  
+  SHORT_MONTH_NAMES: [
+    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
+  ] as const,
+  
+  YEAR_BOUNDARY: 50,
+  MIN_TIMESTAMP_LENGTH: 8,
+  MAX_UNIX_TIMESTAMP: 4102444800,
+  MIN_YEAR: 1000,
+  MAX_YEAR: 10000
+} as const;
+
+/**
+ * Validates that a parsed Date object matches the expected component values
+ * This prevents JavaScript Date constructor from silently "correcting" invalid dates
+ */
+function validateParsedDate(
+  date: Date, 
+  expectedYear: number, 
+  expectedMonth: number, 
+  expectedDay: number, 
+  formatName: string
+): void {
+  if (isNaN(date.getTime()) || 
+      date.getFullYear() !== expectedYear ||
+      date.getMonth() !== expectedMonth - 1 ||
+      date.getDate() !== expectedDay) {
+    throw new Error(`Invalid date values in ${formatName} format`);
+  }
+}
+
+/**
+ * Validates and sanitizes string input for date parsing
+ * Only throws for auto-detection, other formats handle their own empty validation
+ */
+function validateAndSanitizeInput(input: string, formatName: string): string {
+  const trimmed = input.trim();
+  
+  // Only auto-detection should throw for empty input immediately
+  // Other format parsers have their own specific error handling
+  if (!trimmed && formatName === 'auto-detection') {
+    throw new Error('Unable to auto-detect date format');
+  }
+  
+  return trimmed;
+}
 
 /**
  * Converts 2-digit year to 4-digit year following standard conventions
@@ -13,7 +68,7 @@ import type { DateFormat } from '../types';
 function parseYear(yearStr: string): number {
   const year = parseInt(yearStr);
   if (year < 100) {
-    return year < 50 ? 2000 + year : 1900 + year;
+    return year < DATE_CONSTANTS.YEAR_BOUNDARY ? 2000 + year : 1900 + year;
   }
   return year;
 }
@@ -22,7 +77,11 @@ function parseYear(yearStr: string): number {
  * Parses US format date string (MM/DD/YYYY or MM/DD/YY)
  */
 function parseUSFormat(dateValue: string): Date {
-  const cleanValue = dateValue.trim();
+  const cleanValue = validateAndSanitizeInput(dateValue, 'US');
+  
+  if (!cleanValue) {
+    throw new Error('Invalid US format. Expected MM/DD/YYYY or MM/DD/YY');
+  }
   
   // Check for spaces around separators (invalid format like "12 / 25 / 2025")
   if (cleanValue.includes(' /') || cleanValue.includes('/ ')) {
@@ -34,18 +93,14 @@ function parseUSFormat(dateValue: string): Date {
     throw new Error('Invalid US format. Expected MM/DD/YYYY or MM/DD/YY');
   }
   
-  const [month, day, year] = parts;
+  const [monthStr, dayStr, yearStr] = parts;
+  const month = parseInt(monthStr);
+  const day = parseInt(dayStr);
+  const fullYear = parseYear(yearStr);
   
-  const fullYear = parseYear(year);
-  const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+  const date = new Date(fullYear, month - 1, day);
   
-  // Strict validation: ensure the Date constructor didn't "correct" invalid values
-  if (isNaN(date.getTime()) || 
-      date.getFullYear() !== fullYear ||
-      date.getMonth() !== parseInt(month) - 1 ||
-      date.getDate() !== parseInt(day)) {
-    throw new Error('Invalid date values in US format');
-  }
+  validateParsedDate(date, fullYear, month, day, 'US');
   
   return date;
 }
@@ -54,22 +109,25 @@ function parseUSFormat(dateValue: string): Date {
  * Parses UK format date string (DD/MM/YYYY or DD/MM/YY)
  */
 function parseUKFormat(dateValue: string): Date {
-  const parts = dateValue.split('/');
+  const cleanValue = validateAndSanitizeInput(dateValue, 'UK');
+  
+  if (!cleanValue) {
+    throw new Error('Invalid UK format. Expected DD/MM/YYYY or DD/MM/YY');
+  }
+  
+  const parts = cleanValue.split('/');
   if (parts.length !== 3) {
     throw new Error('Invalid UK format. Expected DD/MM/YYYY or DD/MM/YY');
   }
   
-  const [day, month, year] = parts;
-  const fullYear = parseYear(year);
-  const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+  const [dayStr, monthStr, yearStr] = parts;
+  const day = parseInt(dayStr);
+  const month = parseInt(monthStr);
+  const fullYear = parseYear(yearStr);
   
-  // Strict validation: ensure the Date constructor didn't "correct" invalid values
-  if (isNaN(date.getTime()) || 
-      date.getFullYear() !== fullYear ||
-      date.getMonth() !== parseInt(month) - 1 ||
-      date.getDate() !== parseInt(day)) {
-    throw new Error('Invalid date values in UK format');
-  }
+  const date = new Date(fullYear, month - 1, day);
+  
+  validateParsedDate(date, fullYear, month, day, 'UK');
   
   return date;
 }
@@ -78,22 +136,21 @@ function parseUKFormat(dateValue: string): Date {
  * Parses EU format date string (DD.MM.YYYY or DD.MM.YY)
  */
 function parseEUFormat(dateValue: string): Date {
-  const parts = dateValue.split('.');
+  const cleanValue = validateAndSanitizeInput(dateValue, 'EU');
+  
+  const parts = cleanValue.split('.');
   if (parts.length !== 3) {
     throw new Error('Invalid EU format. Expected DD.MM.YYYY or DD.MM.YY');
   }
   
-  const [day, month, year] = parts;
-  const fullYear = parseYear(year);
-  const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+  const [dayStr, monthStr, yearStr] = parts;
+  const day = parseInt(dayStr);
+  const month = parseInt(monthStr);
+  const fullYear = parseYear(yearStr);
   
-  // Strict validation: ensure the Date constructor didn't "correct" invalid values
-  if (isNaN(date.getTime()) || 
-      date.getFullYear() !== fullYear ||
-      date.getMonth() !== parseInt(month) - 1 ||
-      date.getDate() !== parseInt(day)) {
-    throw new Error('Invalid date values in EU format');
-  }
+  const date = new Date(fullYear, month - 1, day);
+  
+  validateParsedDate(date, fullYear, month, day, 'EU');
   
   return date;
 }
@@ -102,22 +159,21 @@ function parseEUFormat(dateValue: string): Date {
  * Parses Taiwan format date string (YYYY年MM月DD日)
  */
 function parseTaiwanFormat(dateValue: string): Date {
-  const match = dateValue.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
+  const cleanValue = validateAndSanitizeInput(dateValue, 'Taiwan');
+  
+  const match = cleanValue.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
   if (!match) {
     throw new Error('Invalid Taiwan format. Expected YYYY年MM月DD日');
   }
   
-  const [, year, month, day] = match;
-  const fullYear = parseInt(year);
-  const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+  const [, yearStr, monthStr, dayStr] = match;
+  const fullYear = parseInt(yearStr);
+  const month = parseInt(monthStr);
+  const day = parseInt(dayStr);
   
-  // Strict validation: ensure the Date constructor didn't "correct" invalid values
-  if (isNaN(date.getTime()) || 
-      date.getFullYear() !== fullYear ||
-      date.getMonth() !== parseInt(month) - 1 ||
-      date.getDate() !== parseInt(day)) {
-    throw new Error('Invalid date values in Taiwan format');
-  }
+  const date = new Date(fullYear, month - 1, day);
+  
+  validateParsedDate(date, fullYear, month, day, 'Taiwan');
   
   return date;
 }
@@ -126,86 +182,74 @@ function parseTaiwanFormat(dateValue: string): Date {
  * Parses Korea format date string (YYYY년 MM월 DD일)
  */
 function parseKoreaFormat(dateValue: string): Date {
-  const match = dateValue.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
+  const cleanValue = validateAndSanitizeInput(dateValue, 'Korea');
+  
+  const match = cleanValue.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
   if (!match) {
     throw new Error('Invalid Korea format. Expected YYYY년 MM월 DD일');
   }
   
-  const [, year, month, day] = match;
-  const fullYear = parseInt(year);
-  const date = new Date(fullYear, parseInt(month) - 1, parseInt(day));
+  const [, yearStr, monthStr, dayStr] = match;
+  const fullYear = parseInt(yearStr);
+  const month = parseInt(monthStr);
+  const day = parseInt(dayStr);
   
-  // Strict validation: ensure the Date constructor didn't "correct" invalid values
-  if (isNaN(date.getTime()) || 
-      date.getFullYear() !== fullYear ||
-      date.getMonth() !== parseInt(month) - 1 ||
-      date.getDate() !== parseInt(day)) {
-    throw new Error('Invalid date values in Korea format');
-  }
+  const date = new Date(fullYear, month - 1, day);
+  
+  validateParsedDate(date, fullYear, month, day, 'Korea');
   
   return date;
 }
 
 /**
  * Auto-detects date format and parses accordingly
+ * Optimized with early pattern matching to reduce expensive parsing attempts
  */
 function autoDetectAndParse(dateValue: string): Date {
-  // Trim whitespace from input
-  const cleanValue = dateValue.trim();
+  const cleanValue = validateAndSanitizeInput(dateValue, 'auto-detection');
   
-  if (!cleanValue) {
-    throw new Error('Unable to auto-detect date format');
+  // Early pattern-based detection for common formats to avoid expensive parsing
+  // Taiwan format: contains Chinese characters
+  if (/\d{4}年\d{1,2}月\d{1,2}日/.test(cleanValue)) {
+    return parseTaiwanFormat(cleanValue);
   }
   
-  const formats = [
-    // Taiwan format - check first to avoid Unix timestamp confusion
-    () => parseTaiwanFormat(cleanValue),
-    // Korea format - check early to avoid Unix timestamp confusion
-    () => parseKoreaFormat(cleanValue),
-    // ISO DateTime formats (includes ISO dates like 2025-01-01)
-    () => {
-      const date = new Date(cleanValue);
-      // Validate that it's a reasonable ISO format (contains dashes or T, but not just a negative number)
-      // Must have either T for datetime or at least YYYY-MM pattern for dates
-      if (!isNaN(date.getTime()) && 
-          (cleanValue.includes('T') || /^\d{4}-\d{1,2}/.test(cleanValue))) {
-        return date;
-      }
-      throw new Error('Not ISO format');
-    },
-    // US format MM/DD/YYYY
-    () => parseUSFormat(cleanValue),
-    // UK format DD/MM/YYYY  
-    () => parseUKFormat(cleanValue),
-    // EU format DD.MM.YYYY
-    () => parseEUFormat(cleanValue),
-    // Unix timestamp - check last and be more strict
-    () => {
-      // Only consider pure numeric strings as potential Unix timestamps (no negative signs)
-      if (!/^\d+$/.test(cleanValue)) {
-        throw new Error('Not a Unix timestamp');
-      }
-      const timestamp = parseInt(cleanValue);
-      // Unix timestamps should be either 0 (epoch) or reasonably long (at least 8 digits for dates after 1973)
-      // and within reasonable range (1970-2100). Exclude short numbers like "2025" which
-      // are more likely to be years than timestamps unless they're the special case of 0
-      if ((timestamp !== 0 && cleanValue.length < 8) || timestamp < 0 || timestamp > 4102444800) {
-        throw new Error('Unix timestamp out of range');
-      }
+  // Korea format: contains Korean characters
+  if (/\d{4}년\s*\d{1,2}월\s*\d{1,2}일/.test(cleanValue)) {
+    return parseKoreaFormat(cleanValue);
+  }
+  
+  // ISO DateTime format: contains T or YYYY-MM pattern
+  if (cleanValue.includes('T') || /^\d{4}-\d{1,2}/.test(cleanValue)) {
+    const date = new Date(cleanValue);
+    if (!isNaN(date.getTime())) {
+      return date;
+    }
+  }
+  
+  // Unix timestamp: pure numeric string with length constraints
+  if (/^\d+$/.test(cleanValue)) {
+    const timestamp = parseInt(cleanValue);
+    if ((timestamp === 0 || cleanValue.length >= DATE_CONSTANTS.MIN_TIMESTAMP_LENGTH) && 
+        timestamp >= 0 && 
+        timestamp <= DATE_CONSTANTS.MAX_UNIX_TIMESTAMP) {
       return new Date(timestamp * 1000);
-    },
-    // Fallback to generic Date constructor for other formats
-    // But be more strict - don't accept simple year numbers, single words, or partial dates
+    }
+  }
+  
+  // Try format-specific parsers for ambiguous patterns
+  const formatAttempts = [
+    () => parseUSFormat(cleanValue),   // US format MM/DD/YYYY
+    () => parseUKFormat(cleanValue),   // UK format DD/MM/YYYY  
+    () => parseEUFormat(cleanValue),   // EU format DD.MM.YYYY
     () => {
-      // Reject simple 4-digit years, single words, very short strings, or negative numbers
+      // Fallback to generic Date constructor with strict validation
       if (/^\d{1,4}$/.test(cleanValue) || /^-\d+$/.test(cleanValue) || cleanValue.length < 4) {
         throw new Error('Not a valid date format');
       }
-      // Must contain date separators but not start with them
       if (!/[\s\/\.\,\:]/.test(cleanValue) && !/\d+\-\d+/.test(cleanValue)) {
         throw new Error('Not a valid date format');
       }
-      // Reject incomplete date formats like "1/2" (missing year)
       if (/^\d{1,2}\/\d{1,2}$/.test(cleanValue) || /^\d{1,2}\.\d{1,2}$/.test(cleanValue)) {
         throw new Error('Incomplete date format');
       }
@@ -217,10 +261,12 @@ function autoDetectAndParse(dateValue: string): Date {
     }
   ];
   
-  for (const formatFn of formats) {
+  for (const formatFn of formatAttempts) {
     try {
       const date = formatFn();
-      if (!isNaN(date.getTime()) && date.getFullYear() > 1000 && date.getFullYear() < 10000) {
+      if (!isNaN(date.getTime()) && 
+          date.getFullYear() > DATE_CONSTANTS.MIN_YEAR && 
+          date.getFullYear() < DATE_CONSTANTS.MAX_YEAR) {
         return date;
       }
     } catch {
@@ -286,22 +332,12 @@ function applyCustomFormat(date: Date, pattern: string): string {
   const month = date.getMonth() + 1;
   const day = date.getDate();
   
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  
-  const shortMonthNames = [
-    'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-    'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'
-  ];
-  
   // Process tokens in order from longest to shortest to avoid conflicts
   // This prevents 'D' from matching inside 'DD' or 'Date'
   return pattern
     .replace(/YYYY/g, year.toString())
-    .replace(/MMMM/g, monthNames[month - 1])
-    .replace(/MMM/g, shortMonthNames[month - 1])
+    .replace(/MMMM/g, DATE_CONSTANTS.MONTH_NAMES[month - 1])
+    .replace(/MMM/g, DATE_CONSTANTS.SHORT_MONTH_NAMES[month - 1])
     .replace(/MM/g, month.toString().padStart(2, '0'))
     .replace(/\bM\b/g, month.toString()) // Single M token (non-padded month)
     .replace(/DD/g, day.toString().padStart(2, '0'))
@@ -321,11 +357,6 @@ function applyPredefinedFormat(date: Date, format: DateFormat): string {
   const month = date.getMonth() + 1;
   const day = date.getDate();
   
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
-  
   switch (format) {
     case 'US_STANDARD':
       return `${month.toString().padStart(2, '0')}/${day.toString().padStart(2, '0')}/${year}`;
@@ -334,9 +365,9 @@ function applyPredefinedFormat(date: Date, format: DateFormat): string {
     case 'ISO_STANDARD':
       return `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;
     case 'US_WRITTEN':
-      return `${monthNames[month - 1]} ${day}, ${year}`;
+      return `${DATE_CONSTANTS.MONTH_NAMES[month - 1]} ${day}, ${year}`;
     case 'EU_WRITTEN':
-      return `${day} ${monthNames[month - 1]} ${year}`;
+      return `${day} ${DATE_CONSTANTS.MONTH_NAMES[month - 1]} ${year}`;
     case 'TAIWAN_STANDARD':
       return `${year}年${month.toString().padStart(2, '0')}月${day.toString().padStart(2, '0')}日`;
     case 'HONG_KONG_STANDARD':
