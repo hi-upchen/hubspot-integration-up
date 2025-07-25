@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { formatDate } from '@/lib/services/date-formatter';
-import { hubspotClientManager } from '@/lib/hubspot/client';
-import type { WorkflowRequest, WorkflowResponse, DateFormat } from '@/lib/types';
+import { processDateFormatterWebhook } from '@/lib/services/webhook-handler';
+import type { WorkflowRequest } from '@/lib/types';
 
 /**
  * HubSpot Workflow Activity endpoint for date formatting
@@ -15,105 +14,10 @@ export async function POST(request: NextRequest) {
     // Parse the workflow request from HubSpot
     const workflowRequest: WorkflowRequest = await request.json();
     
-    const {
-      origin,
-      inputFields
-    } = workflowRequest;
+    // Process the request using extracted business logic
+    const result = await processDateFormatterWebhook(workflowRequest);
     
-    // Extract portalId from origin (HubSpot's actual structure)
-    const portalId = origin?.portalId;
-
-    // Validate required fields
-    if (!portalId) {
-      return NextResponse.json({
-        error: 'Portal ID is required'
-      }, { status: 400 });
-    }
-
-    if (!inputFields?.sourceDateField) {
-      return NextResponse.json({
-        error: 'Source date field is required'
-      }, { status: 400 });
-    }
-
-    if (!inputFields?.sourceFormat) {
-      return NextResponse.json({
-        error: 'Source format is required'
-      }, { status: 400 });
-    }
-
-    if (!inputFields?.targetFormat) {
-      return NextResponse.json({
-        error: 'Target format is required'
-      }, { status: 400 });
-    }
-
-    // Validate custom format if needed
-    if (inputFields.targetFormat === 'CUSTOM' && !inputFields.customTargetFormat) {
-      return NextResponse.json({
-        error: 'Custom target format is required when target format is CUSTOM'
-      }, { status: 400 });
-    }
-
-    // Authenticate with HubSpot (verify portal has valid installation)
-    try {
-      await hubspotClientManager.getClient(portalId);
-    } catch {
-      return NextResponse.json({
-        error: 'Portal not authorized or installation not found',
-        details: 'Please reinstall the app for this HubSpot portal'
-      }, { status: 401 });
-    }
-
-    // Get date value directly from inputFields (HubSpot pre-resolves the value)
-    const dateValue = inputFields.sourceDateField;
-    
-    // Note: HubSpot workflow actions receive pre-resolved values, 
-    // no need to resolve dynamic tokens like {{contact.createdate}}
-
-    // Check if date value is empty
-    if (!dateValue || dateValue.trim() === '') {
-      return NextResponse.json({
-        outputFields: {
-          formattedDate: '',
-          originalDate: dateValue,
-          format: inputFields.targetFormat,
-          error: 'Source date field is empty'
-        }
-      });
-    }
-
-    // Format the date
-    let formattedDate: string;
-    try {
-      formattedDate = formatDate(
-        dateValue,
-        inputFields.sourceFormat,
-        inputFields.targetFormat as DateFormat,
-        inputFields.customTargetFormat
-      );
-    } catch (error) {
-      // Return error in output fields so workflow can continue
-      return NextResponse.json({
-        outputFields: {
-          formattedDate: dateValue, // Return original value on error
-          originalDate: dateValue,
-          format: inputFields.targetFormat,
-          error: error instanceof Error ? error.message : 'Date formatting failed'
-        }
-      });
-    }
-
-    // Return successful response
-    const response: WorkflowResponse = {
-      outputFields: {
-        formattedDate,
-        originalDate: dateValue,
-        format: inputFields.targetFormat
-      }
-    };
-
-    return NextResponse.json(response);
+    return NextResponse.json(result.data, { status: result.status });
 
   } catch (error) {
     console.error('Date formatter webhook error:', error);
