@@ -1,0 +1,3 @@
+// TODO: Implement URL Shortener workflow action configuration
+// This file will contain the HubSpot workflow action definition for URL shortening
+// Similar structure to date-formatter.json but with URL shortening specific fields

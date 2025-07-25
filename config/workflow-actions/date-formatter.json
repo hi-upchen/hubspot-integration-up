@@ -1,0 +1,215 @@
+{
+  "actionDefinitionId": "date-formatter-action",
+  "published": true,
+  "objectTypes": ["0-1", "0-2", "0-3", "0-5"],
+  "inputFields": [
+    {
+      "typeDefinition": {
+        "name": "sourceDateField",
+        "type": "string",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "text",
+        "options": [],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      },
+      "supportedValueTypes": ["STATIC_VALUE"],
+      "isRequired": true,
+      "includeEmptyIfValueAbsent": false,
+      "automationFieldType": null,
+      "allowedObjectTypes": null
+    },
+    {
+      "typeDefinition": {
+        "name": "sourceFormat",
+        "type": "enumeration",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "select",
+        "options": [
+          { "label": "Auto-detect", "value": "AUTO" },
+          { "label": "HubSpot DateTime (2025-01-24T10:30:00Z)", "value": "HUBSPOT_DATETIME" },
+          { "label": "ISO Date (2025-01-24)", "value": "ISO_DATE" },
+          { "label": "US Format (01/24/2025)", "value": "US_FORMAT" },
+          { "label": "UK Format (24/01/2025)", "value": "UK_FORMAT" },
+          { "label": "EU Format (24.01.2025)", "value": "EU_FORMAT" },
+          { "label": "Unix Timestamp (1737715800)", "value": "UNIX_TIMESTAMP" },
+          { "label": "Written Date (January 24, 2025)", "value": "WRITTEN_DATE" },
+          { "label": "Taiwan Format (2025年01月24日)", "value": "TAIWAN_FORMAT" },
+          { "label": "Korea Format (2025년 01월 24일)", "value": "KOREA_FORMAT" }
+        ],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      },
+      "supportedValueTypes": ["STATIC_VALUE"],
+      "isRequired": true,
+      "includeEmptyIfValueAbsent": false,
+      "automationFieldType": null,
+      "allowedObjectTypes": null
+    },
+    {
+      "typeDefinition": {
+        "name": "targetFormat",
+        "type": "enumeration",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "select",
+        "options": [
+          { "label": "US Format (01/24/2025)", "value": "US_STANDARD" },
+          { "label": "UK Format (24/01/2025)", "value": "UK_STANDARD" },
+          { "label": "ISO Format (2025-01-24)", "value": "ISO_STANDARD" },
+          { "label": "US Written (January 24, 2025)", "value": "US_WRITTEN" },
+          { "label": "EU Written (24 January 2025)", "value": "EU_WRITTEN" },
+          { "label": "Taiwan Format (2025年01月24日)", "value": "TAIWAN_STANDARD" },
+          { "label": "Hong Kong Format (24/01/2025)", "value": "HONG_KONG_STANDARD" },
+          { "label": "Korea Format (2025년 01월 24일)", "value": "KOREA_STANDARD" },
+          { "label": "Custom Format", "value": "CUSTOM" }
+        ],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      },
+      "supportedValueTypes": ["STATIC_VALUE"],
+      "isRequired": true,
+      "includeEmptyIfValueAbsent": false,
+      "automationFieldType": null,
+      "allowedObjectTypes": null
+    },
+    {
+      "typeDefinition": {
+        "name": "customTargetFormat",
+        "type": "string",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "text",
+        "options": [],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      },
+      "supportedValueTypes": ["STATIC_VALUE"],
+      "isRequired": false,
+      "includeEmptyIfValueAbsent": false,
+      "automationFieldType": null,
+      "allowedObjectTypes": null,
+      "dependentFieldFilters": [
+        {
+          "formFieldName": "targetFormat",
+          "responseType": "EQUAL",
+          "filterType": "ENUMERATION",
+          "enumeration": "CUSTOM"
+        }
+      ]
+    }
+  ],
+  "objectRequestOptions": {
+    "properties": []
+  },
+  "labels": {
+    "en": {
+      "inputFieldLabels": {
+        "sourceDateField": "Date field",
+        "sourceFormat": "Source format",
+        "targetFormat": "Target format",
+        "customTargetFormat": "Custom format pattern"
+      },
+      "inputFieldDescriptions": {
+        "sourceDateField": "Enter dynamic token for any date or string field (e.g., {{contact.createdate}})",
+        "sourceFormat": "How is the source date formatted?",
+        "targetFormat": "Choose the desired output format",
+        "customTargetFormat": "Enter custom format pattern when Custom Format is selected (e.g., DD-MM-YYYY)"
+      },
+      "outputFieldLabels": {
+        "formattedDate": "Formatted date",
+        "originalDate": "Original date",
+        "format": "Applied format",
+        "error": "Error message"
+      },
+      "actionName": "Format Date",
+      "actionDescription": "Format dates from various formats to your desired output format",
+      "appDisplayName": "Date Formatter",
+      "actionCardContent": "Format date"
+    }
+  },
+  "outputFields": [
+    {
+      "typeDefinition": {
+        "name": "formattedDate",
+        "type": "string",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "text",
+        "options": [],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      }
+    },
+    {
+      "typeDefinition": {
+        "name": "originalDate",
+        "type": "string",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "text",
+        "options": [],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      }
+    },
+    {
+      "typeDefinition": {
+        "name": "format",
+        "type": "string",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "text",
+        "options": [],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      }
+    },
+    {
+      "typeDefinition": {
+        "name": "error",
+        "type": "string",
+        "schema": {
+          "format": null,
+          "type": "STRING"
+        },
+        "fieldType": "text",
+        "options": [],
+        "optionsUrl": null,
+        "referencedObjectType": null,
+        "externalOptions": false,
+        "externalOptionsReferenceType": null
+      }
+    }
+  ]
+}
