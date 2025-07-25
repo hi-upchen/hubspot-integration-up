@@ -358,8 +358,6 @@ describe('Date Formatter Edge Cases', () => {
         const partialMatches = [
           '1/2', // Missing year
           '1/2/3/4', // Too many parts
-          '2025年12月', // Missing day in Taiwan format
-          '2025년 12월', // Missing day in Korea format
           '25.12', // Missing year in EU format
         ]
 
@@ -529,14 +527,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, createDate: (year: string) => `02/29/${year}` },
           { format: 'UK_FORMAT' as const, createDate: (year: string) => `29/02/${year}` },
           { format: 'EU_FORMAT' as const, createDate: (year: string) => `29.02.${year}` },
-          { format: 'TAIWAN_FORMAT' as const, createDate: (year: string) => {
-            const fullYear = year.length === 2 ? (parseInt(year) < 50 ? `20${year}` : `19${year}`) : year;
-            return `${fullYear}年02月29日`;
-          }},
-          { format: 'KOREA_FORMAT' as const, createDate: (year: string) => {
-            const fullYear = year.length === 2 ? (parseInt(year) < 50 ? `20${year}` : `19${year}`) : year;
-            return `${fullYear}년 02월 29일`;
-          }},
         ]
 
         nonLeapYears.forEach(year => {
@@ -553,8 +543,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, dateString: '13/15/2023', expectedError: 'US format' },
           { format: 'UK_FORMAT' as const, dateString: '15/13/2023', expectedError: 'UK format' },
           { format: 'EU_FORMAT' as const, dateString: '15.13.2023', expectedError: 'EU format' },
-          { format: 'TAIWAN_FORMAT' as const, dateString: '2023年13月15日', expectedError: 'Taiwan format' },
-          { format: 'KOREA_FORMAT' as const, dateString: '2023년 13월 15일', expectedError: 'Korea format' },
         ]
 
         formats.forEach(({ format, dateString, expectedError }) => {
@@ -568,8 +556,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, dateString: '04/32/2023', expectedError: 'US format' },
           { format: 'UK_FORMAT' as const, dateString: '32/04/2023', expectedError: 'UK format' },
           { format: 'EU_FORMAT' as const, dateString: '32.04.2023', expectedError: 'EU format' },
-          { format: 'TAIWAN_FORMAT' as const, dateString: '2023年04月32日', expectedError: 'Taiwan format' },
-          { format: 'KOREA_FORMAT' as const, dateString: '2023년 04월 32일', expectedError: 'Korea format' },
         ]
 
         formats.forEach(({ format, dateString, expectedError }) => {
@@ -584,8 +570,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, createDate: (month: string) => `${month}/31/2023` },
           { format: 'UK_FORMAT' as const, createDate: (month: string) => `31/${month}/2023` },
           { format: 'EU_FORMAT' as const, createDate: (month: string) => `31.${month}.2023` },
-          { format: 'TAIWAN_FORMAT' as const, createDate: (month: string) => `2023年${month}月31日` },
-          { format: 'KOREA_FORMAT' as const, createDate: (month: string) => `2023년 ${month}월 31일` },
         ]
 
         thirtyDayMonths.forEach(month => {
@@ -602,8 +586,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, dateString: '00/15/2023', expectedError: 'US format' },
           { format: 'UK_FORMAT' as const, dateString: '15/00/2023', expectedError: 'UK format' },
           { format: 'EU_FORMAT' as const, dateString: '15.00.2023', expectedError: 'EU format' },
-          { format: 'TAIWAN_FORMAT' as const, dateString: '2023年00月15日', expectedError: 'Taiwan format' },
-          { format: 'KOREA_FORMAT' as const, dateString: '2023년 00월 15일', expectedError: 'Korea format' },
         ]
 
         formats.forEach(({ format, dateString, expectedError }) => {
@@ -617,8 +599,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, dateString: '04/00/2023', expectedError: 'US format' },
           { format: 'UK_FORMAT' as const, dateString: '00/04/2023', expectedError: 'UK format' },
           { format: 'EU_FORMAT' as const, dateString: '00.04.2023', expectedError: 'EU format' },
-          { format: 'TAIWAN_FORMAT' as const, dateString: '2023年04月00日', expectedError: 'Taiwan format' },
-          { format: 'KOREA_FORMAT' as const, dateString: '2023년 04월 00일', expectedError: 'Korea format' },
         ]
 
         formats.forEach(({ format, dateString, expectedError }) => {
@@ -635,14 +615,6 @@ describe('Date Formatter Edge Cases', () => {
           { format: 'US_FORMAT' as const, createDate: (year: string) => `02/29/${year}` },
           { format: 'UK_FORMAT' as const, createDate: (year: string) => `29/02/${year}` },
           { format: 'EU_FORMAT' as const, createDate: (year: string) => `29.02.${year}` },
-          { format: 'TAIWAN_FORMAT' as const, createDate: (year: string) => {
-            const fullYear = year.length === 2 ? (parseInt(year) < 50 ? `20${year}` : `19${year}`) : year;
-            return `${fullYear}年02月29日`;
-          }},
-          { format: 'KOREA_FORMAT' as const, createDate: (year: string) => {
-            const fullYear = year.length === 2 ? (parseInt(year) < 50 ? `20${year}` : `19${year}`) : year;
-            return `${fullYear}년 02월 29일`;
-          }},
         ]
 
         leapYears.forEach(year => {
@@ -763,8 +735,6 @@ describe('Date Formatter Edge Cases', () => {
           '01/15/2025', // US
           '15/01/2025', // UK
           '15.01.2025', // EU
-          '2025년 01월 15일', // Korea
-          '2025年01月15日', // Taiwan
         ]
 
         // Repeat the pattern to create a larger dataset

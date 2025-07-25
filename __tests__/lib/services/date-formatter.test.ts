@@ -201,64 +201,6 @@ describe('Date Formatter Service', () => {
     })
   })
 
-  describe('parseTaiwanFormat', () => {
-    describe('valid formats', () => {
-      test('should parse YYYY年MM月DD日 format', () => {
-        const result = parseSourceDate('2025年12月25日', 'TAIWAN_FORMAT')
-        expect(result).toBeValidDate()
-        expect(result.getFullYear()).toBe(2025)
-        expect(result.getMonth()).toBe(11)
-        expect(result.getDate()).toBe(25)
-      })
-
-      test('should handle single-digit months and days', () => {
-        const result = parseSourceDate('2025年1月5日', 'TAIWAN_FORMAT')
-        expect(result).toBeValidDate()
-        expect(result.getMonth()).toBe(0)
-        expect(result.getDate()).toBe(5)
-      })
-    })
-
-    describe('invalid formats', () => {
-      test('should throw error for wrong format', () => {
-        expect(() => parseSourceDate('2025/12/25', 'TAIWAN_FORMAT')).toThrow('Invalid Taiwan format')
-        expect(() => parseSourceDate('2025年12月', 'TAIWAN_FORMAT')).toThrow('Invalid Taiwan format')
-        expect(() => parseSourceDate('25年12月25日', 'TAIWAN_FORMAT')).toThrow('Invalid Taiwan format')
-      })
-    })
-  })
-
-  describe('parseKoreaFormat', () => {
-    describe('valid formats', () => {
-      test('should parse YYYY년 MM월 DD일 format', () => {
-        const result = parseSourceDate('2025년 12월 25일', 'KOREA_FORMAT')
-        expect(result).toBeValidDate()
-        expect(result.getFullYear()).toBe(2025)
-        expect(result.getMonth()).toBe(11)
-        expect(result.getDate()).toBe(25)
-      })
-
-      test('should handle format without spaces', () => {
-        const result = parseSourceDate('2025년12월25일', 'KOREA_FORMAT')
-        expect(result).toBeValidDate()
-        expect(result.getFullYear()).toBe(2025)
-      })
-
-      test('should handle single-digit months and days', () => {
-        const result = parseSourceDate('2025년 1월 5일', 'KOREA_FORMAT')
-        expect(result).toBeValidDate()
-        expect(result.getMonth()).toBe(0)
-        expect(result.getDate()).toBe(5)
-      })
-    })
-
-    describe('invalid formats', () => {
-      test('should throw error for wrong format', () => {
-        expect(() => parseSourceDate('2025/12/25', 'KOREA_FORMAT')).toThrow('Invalid Korea format')
-        expect(() => parseSourceDate('25년 12월 25일', 'KOREA_FORMAT')).toThrow('Invalid Korea format')
-      })
-    })
-  })
 
   describe('autoDetectAndParse', () => {
     describe('successful detection', () => {
@@ -290,17 +232,6 @@ describe('Date Formatter Service', () => {
         expect(result.getDate()).toBe(25)
       })
 
-      test('should detect Taiwan format', () => {
-        const result = parseSourceDate('2025年12月25日', 'AUTO')
-        expect(result).toBeValidDate()
-        expect(result.getFullYear()).toBe(2025)
-      })
-
-      test('should detect Korea format', () => {
-        const result = parseSourceDate('2025년 12월 25일', 'AUTO')
-        expect(result).toBeValidDate()
-        expect(result.getFullYear()).toBe(2025)
-      })
 
       test('should detect Unix timestamp', () => {
         const timestamp = '1640995200' // 2022-01-01 00:00:00 UTC
@@ -635,11 +566,6 @@ describe('Date Formatter Service', () => {
         expect(result).toBe('July 25, 2025')
       })
 
-      test('should handle Asian format conversions', () => {
-        const taiwanDate = '2025年07月25日'
-        const result = formatDate(taiwanDate, 'TAIWAN_FORMAT', 'KOREA_STANDARD')
-        expect(result).toBe('2025년 07월 25일')
-      })
     })
   })
 
@@ -728,8 +654,6 @@ describe('Date Formatter Service', () => {
         '07/25/2025',
         '25/07/2025',
         '25.07.2025',
-        '2025년 07월 25일',
-        '2025年07月25日'
       ]
 
       const startTime = performance.now()

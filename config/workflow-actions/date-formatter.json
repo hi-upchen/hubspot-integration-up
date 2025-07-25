@@ -41,9 +41,7 @@
           { "label": "UK Format (24/01/2025)", "value": "UK_FORMAT" },
           { "label": "EU Format (24.01.2025)", "value": "EU_FORMAT" },
           { "label": "Unix Timestamp (1737715800)", "value": "UNIX_TIMESTAMP" },
-          { "label": "Written Date (January 24, 2025)", "value": "WRITTEN_DATE" },
-          { "label": "Taiwan Format (2025年01月24日)", "value": "TAIWAN_FORMAT" },
-          { "label": "Korea Format (2025년 01월 24일)", "value": "KOREA_FORMAT" }
+          { "label": "Written Date (January 24, 2025)", "value": "WRITTEN_DATE" }
         ],
         "optionsUrl": null,
         "referencedObjectType": null,

@@ -207,8 +207,6 @@ export function generateFormatConversionMatrix(): DateTestCase[] {
     { format: 'UK_FORMAT', value: '25/07/2025' },
     { format: 'EU_FORMAT', value: '25.07.2025' },
     { format: 'ISO_DATE', value: '2025-07-25' },
-    { format: 'TAIWAN_FORMAT', value: '2025年07月25日' },
-    { format: 'KOREA_FORMAT', value: '2025년 07월 25일' },
   ]
 
   const targetFormatsAndExpected = [
@@ -304,9 +302,6 @@ export function generateAutoDetectionTestData(): ValidationTestCase[] {
     { input: '07/25/2025', description: 'US format' },
     { input: '31/12/2025', description: 'Unambiguous UK format' },
     { input: '25.12.2025', description: 'EU format' },
-    { input: '2025年07月25日', description: 'Taiwan format' },
-    { input: '2025년 07월 25일', description: 'Korea format with spaces' },
-    { input: '2025년07월25일', description: 'Korea format without spaces' },
     { input: '1640995200', description: 'Unix timestamp' },
     { input: 'July 25, 2025', description: 'Written English format' },
   ]
@@ -331,8 +326,6 @@ export function generateAutoDetectionTestData(): ValidationTestCase[] {
     { input: '   ', description: 'Whitespace only' },
     { input: '1/2', description: 'Missing year' },
     { input: '1/2/3/4', description: 'Too many parts' },
-    { input: '2025年12月', description: 'Incomplete Taiwan format' },
-    { input: '2025년 12월', description: 'Incomplete Korea format' },
     { input: 'NaN/NaN/NaN', description: 'NaN values' },
   ]
 
@@ -418,8 +411,6 @@ export function generateMixedFormatTestData(count: number): string[] {
     '01/15/2025', // US
     '15/01/2025', // UK
     '15.01.2025', // EU
-    '2025년 01월 15일', // Korea
-    '2025年01月15日', // Taiwan
   ]
   
   return Array.from({ length: count }, (_, i) => {

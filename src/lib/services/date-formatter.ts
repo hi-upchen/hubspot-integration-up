@@ -155,51 +155,6 @@ function parseEUFormat(dateValue: string): Date {
   return date;
 }
 
-/**
- * Parses Taiwan format date string (YYYY年MM月DD日)
- */
-function parseTaiwanFormat(dateValue: string): Date {
-  const cleanValue = validateAndSanitizeInput(dateValue, 'Taiwan');
-  
-  const match = cleanValue.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/);
-  if (!match) {
-    throw new Error('Invalid Taiwan format. Expected YYYY年MM月DD日');
-  }
-  
-  const [, yearStr, monthStr, dayStr] = match;
-  const fullYear = parseInt(yearStr);
-  const month = parseInt(monthStr);
-  const day = parseInt(dayStr);
-  
-  const date = new Date(fullYear, month - 1, day);
-  
-  validateParsedDate(date, fullYear, month, day, 'Taiwan');
-  
-  return date;
-}
-
-/**
- * Parses Korea format date string (YYYY년 MM월 DD일)
- */
-function parseKoreaFormat(dateValue: string): Date {
-  const cleanValue = validateAndSanitizeInput(dateValue, 'Korea');
-  
-  const match = cleanValue.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
-  if (!match) {
-    throw new Error('Invalid Korea format. Expected YYYY년 MM월 DD일');
-  }
-  
-  const [, yearStr, monthStr, dayStr] = match;
-  const fullYear = parseInt(yearStr);
-  const month = parseInt(monthStr);
-  const day = parseInt(dayStr);
-  
-  const date = new Date(fullYear, month - 1, day);
-  
-  validateParsedDate(date, fullYear, month, day, 'Korea');
-  
-  return date;
-}
 
 /**
  * Auto-detects date format and parses accordingly
@@ -209,15 +164,6 @@ function autoDetectAndParse(dateValue: string): Date {
   const cleanValue = validateAndSanitizeInput(dateValue, 'auto-detection');
   
   // Early pattern-based detection for common formats to avoid expensive parsing
-  // Taiwan format: contains Chinese characters
-  if (/\d{4}年\d{1,2}月\d{1,2}日/.test(cleanValue)) {
-    return parseTaiwanFormat(cleanValue);
-  }
-  
-  // Korea format: contains Korean characters
-  if (/\d{4}년\s*\d{1,2}월\s*\d{1,2}일/.test(cleanValue)) {
-    return parseKoreaFormat(cleanValue);
-  }
   
   // ISO DateTime format: contains T or YYYY-MM pattern
   if (cleanValue.includes('T') || /^\d{4}-\d{1,2}/.test(cleanValue)) {
@@ -309,12 +255,6 @@ export function parseSourceDate(dateValue: string, sourceFormat: string): Date {
     case 'US_WRITTEN': // US_WRITTEN produces "Month DD, YYYY" format
     case 'EU_WRITTEN': // EU_WRITTEN produces "DD Month YYYY" format
       return new Date(dateValue);
-    case 'TAIWAN_FORMAT':
-    case 'TAIWAN_STANDARD': // TAIWAN_STANDARD produces YYYY年MM月DD日 format, same as TAIWAN_FORMAT
-      return parseTaiwanFormat(dateValue);
-    case 'KOREA_FORMAT':
-    case 'KOREA_STANDARD': // KOREA_STANDARD produces YYYY년 MM월 DD일 format, same as KOREA_FORMAT
-      return parseKoreaFormat(dateValue);
     default:
       throw new Error(`Unsupported source format: ${sourceFormat}`);
   }
