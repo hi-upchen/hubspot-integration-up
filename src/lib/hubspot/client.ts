@@ -1,5 +1,4 @@
 import { Client } from '@hubspot/api-client';
-import type { HubSpotClientConfig } from '../types';
 import { HubSpotInstallationService } from '../supabase/client';
 import { refreshAccessToken } from './tokens';
 
@@ -56,16 +55,6 @@ export class HubSpotClientManager {
     return client;
   }
 
-  removeClient(hubId: number): void {
-    this.clients.delete(hubId);
-  }
-
-  async createClientWithToken(accessToken: string): Promise<Client> {
-    return new Client({
-      accessToken,
-      basePath: 'https://api.hubapi.com'
-    });
-  }
 }
 
 export const hubspotClientManager = HubSpotClientManager.getInstance();

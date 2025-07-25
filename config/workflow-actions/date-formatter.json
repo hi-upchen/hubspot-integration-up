@@ -106,15 +106,15 @@
       "isRequired": false,
       "includeEmptyIfValueAbsent": false,
       "automationFieldType": null,
-      "allowedObjectTypes": null,
-      "dependentFieldFilters": [
-        {
-          "formFieldName": "targetFormat",
-          "responseType": "EQUAL",
-          "filterType": "ENUMERATION",
-          "enumeration": "CUSTOM"
-        }
-      ]
+      "allowedObjectTypes": null
+    }
+  ],
+  "inputFieldDependencies": [
+    {
+      "dependencyType": "CONDITIONAL_SINGLE_FIELD",
+      "controllingFieldName": "targetFormat",
+      "controllingFieldValue": "CUSTOM",
+      "dependentFieldNames": ["customTargetFormat"]
     }
   ],
   "objectRequestOptions": {
@@ -132,7 +132,7 @@
         "sourceDateField": "Enter dynamic token for any date or string field (e.g., {{contact.createdate}})",
         "sourceFormat": "How is the source date formatted?",
         "targetFormat": "Choose the desired output format",
-        "customTargetFormat": "Enter custom format pattern when Custom Format is selected (e.g., DD-MM-YYYY)"
+        "customTargetFormat": "Enter custom date format pattern using these tokens:\n• YYYY = 4-digit year (2025)\n• YY = 2-digit year (25)\n• MM = month with zero padding (01-12)\n• M = month without padding (1-12)\n• MMM = short month name (Jan, Feb)\n• MMMM = full month name (January, February)\n• DD = day with zero padding (01-31)\n• D = day without padding (1-31)\n\nExamples:\n• DD-MM-YYYY → 25-07-2025\n• MMM D, YYYY → Jul 25, 2025\n• YYYY年MM月DD日 → 2025年07月25日\n• DD/MM/YY → 25/07/25\n• MMMM D, YYYY → July 25, 2025"
       },
       "outputFieldLabels": {
         "formattedDate": "Formatted date",

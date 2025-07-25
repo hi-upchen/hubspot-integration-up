@@ -32,7 +32,7 @@ function InstallContent() {
                 <ul className="text-sm text-blue-700 space-y-1">
                   <li>• Go to your HubSpot Workflows</li>
                   <li>• Create a new workflow or edit existing one</li>
-                  <li>• Add "Date Formatter" action from Custom Actions</li>
+                  <li>• Add &ldquo;Date Formatter&rdquo; action from Custom Actions</li>
                   <li>• Configure your date formatting preferences</li>
                 </ul>
               </div>
@@ -95,7 +95,7 @@ function InstallContent() {
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           <div className="space-y-6">
             <div>
-              <h2 className="text-xl font-semibold text-gray-900 mb-4">What you'll get:</h2>
+              <h2 className="text-xl font-semibold text-gray-900 mb-4">What you&rsquo;ll get:</h2>
               <ul className="space-y-3 text-gray-600">
                 <li className="flex items-start">
                   <svg className="h-5 w-5 text-green-500 mt-0.5 mr-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

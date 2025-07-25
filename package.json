@@ -8,13 +8,9 @@
     "start": "next start",
     "lint": "next lint",
     "hubspot:date-formatter:register": "node scripts/register-workflow-action.js date-formatter register",
-    "hubspot:date-formatter:update": "node scripts/register-workflow-action.js date-formatter update",
+    "hubspot:date-formatter:update": "node scripts/update-workflow-action.js date-formatter",
     "hubspot:date-formatter:list": "node scripts/list-workflow-actions.js date-formatter",
-    "hubspot:date-formatter:delete": "node scripts/delete-workflow-action.js date-formatter",
-    "hubspot:url-shortener:register": "node scripts/register-workflow-action.js url-shortener register",
-    "hubspot:url-shortener:update": "node scripts/register-workflow-action.js url-shortener update",
-    "hubspot:url-shortener:list": "node scripts/list-workflow-actions.js url-shortener",
-    "hubspot:url-shortener:delete": "node scripts/delete-workflow-action.js url-shortener"
+    "hubspot:date-formatter:delete": "node scripts/delete-workflow-action.js date-formatter"
   },
   "dependencies": {
     "@hubspot/api-client": "^13.0.0",

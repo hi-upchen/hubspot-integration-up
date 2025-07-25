@@ -2,12 +2,11 @@ import { URLSearchParams } from 'url';
 
 /**
  * OAuth scopes required for the HubSpot integration
- * Currently only requests 'oauth' scope for basic authentication
+ * Includes automation for workflow actions functionality
  */
 export const HUBSPOT_OAUTH_SCOPES = [
-  // 'automation',  // For workflow automation features
-  // 'workflows',   // For workflow management
-  'oauth'          // Basic OAuth scope for authentication
+  'oauth',         // Basic OAuth scope for authentication
+  'automation'     // For workflow automation features and custom actions
 ];
 
 /**
