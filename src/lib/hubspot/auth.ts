@@ -3,11 +3,10 @@ import { ConfigManager } from '@/lib/config/config-manager';
 
 /**
  * OAuth scopes required for the HubSpot integration
- * Includes automation for workflow actions functionality
+ * Only oauth scope is needed for basic authentication and API access
  */
 export const HUBSPOT_OAUTH_SCOPES = [
-  'oauth',         // Basic OAuth scope for authentication
-  'automation'     // For workflow automation features and custom actions
+  'oauth'          // Basic OAuth scope for authentication and API access
 ];
 
 /**

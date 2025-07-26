@@ -37,7 +37,7 @@ describe('HubSpot OAuth Authentication', () => {
 
   describe('HUBSPOT_OAUTH_SCOPES constant', () => {
     test('should contain required OAuth scopes', () => {
-      expect(HUBSPOT_OAUTH_SCOPES).toEqual(['oauth', 'automation']);
+      expect(HUBSPOT_OAUTH_SCOPES).toEqual(['oauth']);
     });
 
     test('should be an array', () => {
@@ -69,7 +69,7 @@ describe('HubSpot OAuth Authentication', () => {
         expect(url).toMatch(/^https:\/\/app\.hubspot\.com\/oauth\/authorize\?/);
         expect(url).toContain('client_id=test-client-id');
         expect(url).toContain('redirect_uri=https%3A%2F%2Fexample.com%2Fcallback');
-        expect(url).toContain('scope=oauth+automation');
+        expect(url).toContain('scope=oauth');
         expect(url).toContain('response_type=code');
       });
 
@@ -143,7 +143,7 @@ describe('HubSpot OAuth Authentication', () => {
         
         expect(url).toContain('client_id=');
         expect(url).toContain('redirect_uri=');
-        expect(url).toContain('scope=oauth+automation');
+        expect(url).toContain('scope=oauth');
         expect(url).toContain('response_type=code');
       });
 
@@ -167,21 +167,21 @@ describe('HubSpot OAuth Authentication', () => {
     });
 
     describe('Scope Validation Edge Cases', () => {
-      test('should join multiple scopes with spaces', () => {
+      test('should handle single scope correctly', () => {
         const url = generateOAuthUrl();
         
-        expect(url).toContain('scope=oauth+automation');
+        expect(url).toContain('scope=oauth');
       });
 
       test('should handle scope encoding correctly', () => {
         // Mock HUBSPOT_OAUTH_SCOPES with special characters for testing
         const originalScopes = [...HUBSPOT_OAUTH_SCOPES];
         (HUBSPOT_OAUTH_SCOPES as any).length = 0;
-        HUBSPOT_OAUTH_SCOPES.push('oauth@test', 'automation&special');
+        HUBSPOT_OAUTH_SCOPES.push('oauth@test');
         
         try {
           const url = generateOAuthUrl();
-          expect(url).toContain('scope=oauth%40test+automation%26special');
+          expect(url).toContain('scope=oauth%40test');
         } finally {
           // Restore original scopes
           (HUBSPOT_OAUTH_SCOPES as any).length = 0;
@@ -388,7 +388,7 @@ describe('HubSpot OAuth Authentication', () => {
         
         expect(urlObj.searchParams.get('client_id')).toBe('test-client-id');
         expect(urlObj.searchParams.get('redirect_uri')).toBe('https://example.com/callback');
-        expect(urlObj.searchParams.get('scope')).toBe('oauth automation');
+        expect(urlObj.searchParams.get('scope')).toBe('oauth');
         expect(urlObj.searchParams.get('response_type')).toBe('code');
       });
 
