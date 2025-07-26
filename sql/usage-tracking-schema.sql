@@ -1,3 +1,22 @@
+  -- Create HubSpot installations table
+  CREATE TABLE hubspot_installations (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    hub_id BIGINT UNIQUE NOT NULL,
+    access_token TEXT NOT NULL,
+    refresh_token TEXT NOT NULL,
+    expires_at TIMESTAMP WITH TIME ZONE NOT NULL,
+    scope TEXT NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+  );
+
+  -- Add RLS (Row Level Security)
+  ALTER TABLE hubspot_installations ENABLE ROW LEVEL SECURITY;
+
+  -- Add indexes for performance
+  CREATE INDEX idx_hubspot_installations_hub_id ON hubspot_installations(hub_id);
+  CREATE INDEX idx_hubspot_installations_expires_at ON hubspot_installations(expires_at);
+
 -- Usage tracking schema for HubSpot Date Formatter marketplace app
 -- Designed for high concurrency and 3-month data retention
 

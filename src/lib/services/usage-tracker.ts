@@ -3,7 +3,7 @@
  * Handles request tracking and usage analytics
  */
 
-import { supabaseClient } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase/client';
 import { ensurePortalInfoExists } from './hubspot-portal';
 import type { UsageTrackingData, TrackingResult, UsageStats, UsageAnalytics } from './types';
 
@@ -55,23 +55,8 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
     // Ensure portal info exists (first-time setup)
     await ensurePortalInfoExists(data.portalId);
     
-    // Use database transaction for atomicity
-    const { error: incrementError } = await supabaseClient.rpc('increment_portal_usage', {
-      p_portal_id: data.portalId,
-      p_month_year: monthYear,
-      p_success: data.success
-    });
-    
-    if (incrementError) {
-      console.error('Error incrementing portal usage:', {
-        portalId: data.portalId,
-        error: incrementError,
-        timestamp: timestamp.toISOString()
-      });
-    }
-    
     // Log detailed request data (for analytics)
-    const { error: logError } = await supabaseClient
+    const { error: logError } = await supabaseAdmin
       .from('usage_requests')
       .insert({
         portal_id: data.portalId,
@@ -121,7 +106,7 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
     const monthYear = getCurrentMonthYear();
     
     // Get current month usage
-    const { data: usage, error: usageError } = await supabaseClient
+    const { data: usage, error: usageError } = await supabaseAdmin
       .from('portal_usage_monthly')
       .select('request_count, success_count, error_count')
       .eq('portal_id', portalId)
@@ -163,7 +148,7 @@ export async function getUsageAnalytics(portalId: number): Promise<UsageAnalytic
   try {
     validatePortalId(portalId);
     
-    const { data: monthlyData, error } = await supabaseClient
+    const { data: monthlyData, error } = await supabaseAdmin
       .from('portal_usage_monthly')
       .select('month_year, request_count, success_count, error_count')
       .eq('portal_id', portalId)

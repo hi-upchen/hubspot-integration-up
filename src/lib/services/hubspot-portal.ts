@@ -3,7 +3,7 @@
  * Business logic for managing portal information
  */
 
-import { supabaseClient } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/supabase/client';
 import { fetchHubSpotAccessTokenInfo } from '@/lib/hubspot/portal-api';
 import type { PortalInfo, PortalUserData } from './types';
 import type { HubSpotAccessTokenResponse } from '@/lib/hubspot/types';
@@ -15,7 +15,7 @@ import type { HubSpotAccessTokenResponse } from '@/lib/hubspot/types';
  */
 export async function getPortalInfo(portalId: number): Promise<PortalInfo | null> {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseAdmin
       .from('portal_info')
       .select('*')
       .eq('portal_id', portalId)
@@ -47,10 +47,10 @@ export async function getPortalInfo(portalId: number): Promise<PortalInfo | null
 export async function createPortalInfo(portalId: number): Promise<PortalInfo> {
   try {
     // Get access token for this portal
-    const { data: tokenData, error: tokenError } = await supabaseClient
-      .from('tokens')
+    const { data: tokenData, error: tokenError } = await supabaseAdmin
+      .from('hubspot_installations')
       .select('access_token')
-      .eq('portal_id', portalId)
+      .eq('hub_id', portalId)
       .single();
     
     if (tokenError || !tokenData?.access_token) {
@@ -70,7 +70,7 @@ export async function createPortalInfo(portalId: number): Promise<PortalInfo> {
       hub_id: hubspotData.hub_id,
     };
     
-    const { data: savedData, error: saveError } = await supabaseClient
+    const { data: savedData, error: saveError } = await supabaseAdmin
       .from('portal_info')
       .insert(portalData)
       .select()
@@ -112,7 +112,7 @@ export async function getOrCreatePortalInfo(portalId: number): Promise<PortalInf
  */
 export async function updatePortalUserInfo(portalId: number, userData: PortalUserData): Promise<PortalInfo | null> {
   try {
-    const { data, error } = await supabaseClient
+    const { data, error } = await supabaseAdmin
       .from('portal_info')
       .update({
         user_name: userData.userName,
