@@ -24,6 +24,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     // Validate required fields
     if (!portalId) {
+      console.error('Validation error: Portal ID is required', { workflowRequest });
       return {
         success: false,
         status: 400,
@@ -32,6 +33,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     }
 
     if (!inputFields?.sourceDateField) {
+      console.error('Validation error: Source date field is required', { portalId, inputFields });
       return {
         success: false,
         status: 400,
@@ -40,6 +42,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     }
 
     if (!inputFields?.sourceFormat) {
+      console.error('Validation error: Source format is required', { portalId, inputFields });
       return {
         success: false,
         status: 400,
@@ -48,6 +51,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     }
 
     if (!inputFields?.targetFormat) {
+      console.error('Validation error: Target format is required', { portalId, inputFields });
       return {
         success: false,
         status: 400,
@@ -57,6 +61,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     // Validate custom format if needed
     if (inputFields.targetFormat === 'CUSTOM' && !inputFields.customTargetFormat) {
+      console.error('Validation error: Custom target format is required when target format is CUSTOM', { portalId, inputFields });
       return {
         success: false,
         status: 400,
@@ -67,7 +72,8 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Authenticate with HubSpot (verify portal has valid installation)
     try {
       await hubspotClientManager.getClient(portalId);
-    } catch {
+    } catch (authError) {
+      console.error(`Authentication failed for portal ${portalId}:`, authError);
       return {
         success: false,
         status: 401,
@@ -86,6 +92,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     // Check if date value is empty
     if (!dateValue || dateValue.trim() === '') {
+      console.warn('Empty date value received', { portalId, dateValue, inputFields });
       return {
         success: true,
         status: 200,
@@ -110,6 +117,16 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         inputFields.customTargetFormat
       );
     } catch (error) {
+      console.error('Date formatting error:', {
+        error: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        portalId,
+        dateValue,
+        sourceFormat: inputFields.sourceFormat,
+        targetFormat: inputFields.targetFormat,
+        customTargetFormat: inputFields.customTargetFormat
+      });
+      
       // Return error in output fields so workflow can continue
       return {
         success: true,
@@ -141,7 +158,13 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     };
 
   } catch (error) {
-    console.error('Date formatter webhook error:', error);
+    console.error('Date formatter webhook error:', {
+      error: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : undefined,
+      portalId: workflowRequest?.origin?.portalId,
+      inputFields: workflowRequest?.inputFields,
+      timestamp: new Date().toISOString()
+    });
     
     // Return workflow-compatible error response
     return {
