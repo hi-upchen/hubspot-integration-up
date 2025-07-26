@@ -59,10 +59,10 @@ describe('hubspot/tokens.ts', () => {
         };
         
         const expectedResult = {
-          access_token: 'access_token_123',
-          refresh_token: 'refresh_token_456',
-          expires_in: 21600,
-          token_type: 'bearer'
+          accessToken: 'access_token_123',
+          refreshToken: 'refresh_token_456',
+          expiresIn: 21600,
+          tokenType: 'bearer'
         };
         
         mockFetch.mockResolvedValue({
@@ -117,7 +117,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_request","error_description":"Missing parameter"}')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 400: invalid_request - Missing parameter');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 400 {"error":"invalid_request","error_description":"Missing parameter"}');
       });
 
       test('should handle 401 Unauthorized', async () => {
@@ -127,7 +127,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_client"}')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 401: invalid_client');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 401 {"error":"invalid_client"}');
       });
 
       test('should handle 403 Forbidden', async () => {
@@ -137,7 +137,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"access_denied"}')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 403: access_denied');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 403 {"error":"access_denied"}');
       });
 
       test('should handle 404 Not Found', async () => {
@@ -147,7 +147,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"not_found"}')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 404: not_found');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 404 {"error":"not_found"}');
       });
 
       test('should handle 429 Rate Limit', async () => {
@@ -157,7 +157,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"too_many_requests"}')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 429: too_many_requests');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 429 {"error":"too_many_requests"}');
       });
     });
 
@@ -169,7 +169,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"internal_error"}')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 500: internal_error');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 500 {"error":"internal_error"}');
       });
 
       test('should handle 502 Bad Gateway', async () => {
@@ -179,7 +179,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('Bad Gateway')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 502: Bad Gateway');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 502 Bad Gateway');
       });
 
       test('should handle 503 Service Unavailable', async () => {
@@ -189,7 +189,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('Service Unavailable')
         } as any);
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('HTTP 503: Service Unavailable');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Token exchange failed: 503 Service Unavailable');
       });
     });
 
@@ -197,25 +197,25 @@ describe('hubspot/tokens.ts', () => {
       test('should handle network timeout errors', async () => {
         mockFetch.mockRejectedValue(new Error('Network timeout'));
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Network timeout');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Failed to exchange code for tokens: Error: Network timeout');
       });
 
       test('should handle DNS resolution errors', async () => {
         mockFetch.mockRejectedValue(new Error('ENOTFOUND api.hubapi.com'));
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('ENOTFOUND api.hubapi.com');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Failed to exchange code for tokens: Error: ENOTFOUND api.hubapi.com');
       });
 
       test('should handle connection refused errors', async () => {
         mockFetch.mockRejectedValue(new Error('ECONNREFUSED'));
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('ECONNREFUSED');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Failed to exchange code for tokens: Error: ECONNREFUSED');
       });
 
       test('should handle abort signal errors', async () => {
         mockFetch.mockRejectedValue(new Error('The operation was aborted'));
 
-        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('The operation was aborted');
+        await expect(exchangeCodeForTokens(validCode)).rejects.toThrow('Failed to exchange code for tokens: Error: The operation was aborted');
       });
     });
 
@@ -227,7 +227,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_grant","error_description":"Code cannot be empty"}')
         } as any);
 
-        await expect(exchangeCodeForTokens('')).rejects.toThrow('HTTP 400: invalid_grant - Code cannot be empty');
+        await expect(exchangeCodeForTokens('')).rejects.toThrow('Token exchange failed: 400 {"error":"invalid_grant","error_description":"Code cannot be empty"}');
       });
 
       test('should handle expired authorization code', async () => {
@@ -237,7 +237,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_grant","error_description":"Authorization code expired"}')
         } as any);
 
-        await expect(exchangeCodeForTokens('expired_code')).rejects.toThrow('HTTP 400: invalid_grant - Authorization code expired');
+        await expect(exchangeCodeForTokens('expired_code')).rejects.toThrow('Token exchange failed: 400 {"error":"invalid_grant","error_description":"Authorization code expired"}');
       });
 
       test('should handle very long authorization codes', async () => {
@@ -268,6 +268,7 @@ describe('hubspot/tokens.ts', () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockRejectedValue(new Error('Unexpected token')),
           text: jest.fn().mockResolvedValue('invalid json {')
         } as any);
 
@@ -278,33 +279,51 @@ describe('hubspot/tokens.ts', () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockResolvedValue({}),
           text: jest.fn().mockResolvedValue('{}')
         } as any);
 
         const result = await exchangeCodeForTokens(validCode);
-        expect(result).toEqual({});
+        expect(result).toEqual({
+          accessToken: undefined,
+          refreshToken: undefined,
+          expiresIn: undefined,
+          tokenType: undefined
+        });
       });
 
       test('should handle partial JSON responses', async () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockResolvedValue({"access_token":"test"}),
           text: jest.fn().mockResolvedValue('{"access_token":"test"}')
         } as any);
 
         const result = await exchangeCodeForTokens(validCode);
-        expect(result).toEqual({ access_token: 'test' });
+        expect(result).toEqual({ 
+          accessToken: 'test',
+          refreshToken: undefined,
+          expiresIn: undefined,
+          tokenType: undefined
+        });
       });
 
       test('should handle null values in JSON', async () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockResolvedValue({"access_token":null,"refresh_token":"test"}),
           text: jest.fn().mockResolvedValue('{"access_token":null,"refresh_token":"test"}')
         } as any);
 
         const result = await exchangeCodeForTokens(validCode);
-        expect(result).toEqual({ access_token: null, refresh_token: 'test' });
+        expect(result).toEqual({ 
+          accessToken: null, 
+          refreshToken: 'test',
+          expiresIn: undefined,
+          tokenType: undefined
+        });
       });
     });
 
@@ -343,12 +362,18 @@ describe('hubspot/tokens.ts', () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockResolvedValue(mockResponse),
           text: jest.fn().mockResolvedValue(JSON.stringify(mockResponse))
         } as any);
 
         const result = await refreshAccessToken(validRefreshToken);
 
-        expect(result).toEqual(mockResponse);
+        expect(result).toEqual({
+          accessToken: 'new_access_token',
+          refreshToken: 'new_refresh_token',
+          expiresIn: 21600,
+          tokenType: undefined
+        });
         expect(mockFetch).toHaveBeenCalledWith(
           'https://api.hubapi.com/oauth/v1/token',
           expect.objectContaining({
@@ -380,7 +405,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_grant","error_description":"Invalid refresh token"}')
         } as any);
 
-        await expect(refreshAccessToken('invalid_token')).rejects.toThrow('HTTP 400: invalid_grant - Invalid refresh token');
+        await expect(refreshAccessToken('invalid_token')).rejects.toThrow('Token refresh failed: 400 {"error":"invalid_grant","error_description":"Invalid refresh token"}');
       });
 
       test('should handle expired refresh tokens', async () => {
@@ -390,7 +415,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_grant","error_description":"Refresh token expired"}')
         } as any);
 
-        await expect(refreshAccessToken('expired_token')).rejects.toThrow('HTTP 400: invalid_grant - Refresh token expired');
+        await expect(refreshAccessToken('expired_token')).rejects.toThrow('Token refresh failed: 400 {"error":"invalid_grant","error_description":"Refresh token expired"}');
       });
 
       test('should handle client authentication failures (401 error)', async () => {
@@ -400,19 +425,20 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_client"}')
         } as any);
 
-        await expect(refreshAccessToken(validRefreshToken)).rejects.toThrow('HTTP 401: invalid_client');
+        await expect(refreshAccessToken(validRefreshToken)).rejects.toThrow('Token refresh failed: 401 {"error":"invalid_client"}');
       });
 
       test('should handle network timeouts during refresh', async () => {
         mockFetch.mockRejectedValue(new Error('Request timeout'));
 
-        await expect(refreshAccessToken(validRefreshToken)).rejects.toThrow('Request timeout');
+        await expect(refreshAccessToken(validRefreshToken)).rejects.toThrow('Failed to refresh access token: Error: Request timeout');
       });
 
       test('should handle malformed refresh responses', async () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockRejectedValue(new Error('Unexpected token')),
           text: jest.fn().mockResolvedValue('malformed json')
         } as any);
 
@@ -435,16 +461,19 @@ describe('hubspot/tokens.ts', () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockResolvedValue(mockResponse),
           text: jest.fn().mockResolvedValue(JSON.stringify(mockResponse))
         } as any);
 
         const result = await getPortalInfo(validAccessToken);
 
-        expect(result).toEqual(mockResponse);
+        expect(result).toEqual({
+          portalId: 12345678,
+          domain: 'test-portal.hubspot.com'
+        });
         expect(mockFetch).toHaveBeenCalledWith(
-          'https://api.hubapi.com/account-info/v3/api-usage',
+          'https://api.hubapi.com/account-info/v3/details',
           expect.objectContaining({
-            method: 'GET',
             headers: { 'Authorization': `Bearer ${validAccessToken}` }
           })
         );
@@ -470,7 +499,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"invalid_token"}')
         } as any);
 
-        await expect(getPortalInfo('invalid_token')).rejects.toThrow('HTTP 401: invalid_token');
+        await expect(getPortalInfo('invalid_token')).rejects.toThrow('Failed to get portal info: 401 {"error":"invalid_token"}');
       });
 
       test('should handle insufficient permissions (403 Forbidden)', async () => {
@@ -480,7 +509,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"insufficient_scope"}')
         } as any);
 
-        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('HTTP 403: insufficient_scope');
+        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('Failed to get portal info: 403 {"error":"insufficient_scope"}');
       });
 
       test('should handle rate limiting (429 errors)', async () => {
@@ -490,7 +519,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"rate_limit_exceeded"}')
         } as any);
 
-        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('HTTP 429: rate_limit_exceeded');
+        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('Failed to get portal info: 429 {"error":"rate_limit_exceeded"}');
       });
 
       test('should handle server errors (500)', async () => {
@@ -500,7 +529,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('{"error":"internal_server_error"}')
         } as any);
 
-        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('HTTP 500: internal_server_error');
+        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('Failed to get portal info: 500 {"error":"internal_server_error"}');
       });
 
       test('should handle server errors (502)', async () => {
@@ -510,7 +539,7 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('Bad Gateway')
         } as any);
 
-        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('HTTP 502: Bad Gateway');
+        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('Failed to get portal info: 502 Bad Gateway');
       });
 
       test('should handle server errors (503)', async () => {
@@ -520,13 +549,14 @@ describe('hubspot/tokens.ts', () => {
           text: jest.fn().mockResolvedValue('Service Unavailable')
         } as any);
 
-        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('HTTP 503: Service Unavailable');
+        await expect(getPortalInfo(validAccessToken)).rejects.toThrow('Failed to get portal info: 503 Service Unavailable');
       });
 
       test('should handle malformed portal data responses', async () => {
         mockFetch.mockResolvedValue({
           ok: true,
           status: 200,
+          json: jest.fn().mockRejectedValue(new Error('Unexpected token')),
           text: jest.fn().mockResolvedValue('invalid json response')
         } as any);
 
@@ -584,11 +614,17 @@ describe('hubspot/tokens.ts', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        json: jest.fn().mockResolvedValue(exchangeResponse),
         text: jest.fn().mockResolvedValue(JSON.stringify(exchangeResponse))
       } as any);
 
       const tokens = await exchangeCodeForTokens('auth_code_123');
-      expect(tokens).toEqual(exchangeResponse);
+      expect(tokens).toEqual({
+        accessToken: 'access_token_123',
+        refreshToken: 'refresh_token_456',
+        expiresIn: 21600,
+        tokenType: undefined
+      });
 
       // Step 2: Get portal info
       const portalResponse = {
@@ -599,10 +635,11 @@ describe('hubspot/tokens.ts', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        json: jest.fn().mockResolvedValue(portalResponse),
         text: jest.fn().mockResolvedValue(JSON.stringify(portalResponse))
       } as any);
 
-      const portalInfo = await getPortalInfo(tokens.access_token);
+      const portalInfo = await getPortalInfo(tokens.accessToken);
       expect(portalInfo).toEqual(portalResponse);
 
       // Step 3: Refresh tokens
@@ -615,11 +652,17 @@ describe('hubspot/tokens.ts', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        json: jest.fn().mockResolvedValue(refreshResponse),
         text: jest.fn().mockResolvedValue(JSON.stringify(refreshResponse))
       } as any);
 
-      const newTokens = await refreshAccessToken(tokens.refresh_token);
-      expect(newTokens).toEqual(refreshResponse);
+      const newTokens = await refreshAccessToken(tokens.refreshToken);
+      expect(newTokens).toEqual({
+        accessToken: 'new_access_token',
+        refreshToken: 'new_refresh_token',
+        expiresIn: 21600,
+        tokenType: undefined
+      });
 
       expect(mockFetch).toHaveBeenCalledTimes(3);
     });
@@ -629,11 +672,17 @@ describe('hubspot/tokens.ts', () => {
       mockFetch.mockResolvedValueOnce({
         ok: true,
         status: 200,
+        json: jest.fn().mockResolvedValue({"access_token":"test"}),
         text: jest.fn().mockResolvedValue('{"access_token":"test"}')
       } as any);
 
       const result1 = await exchangeCodeForTokens('valid_code');
-      expect(result1).toEqual({ access_token: 'test' });
+      expect(result1).toEqual({ 
+        accessToken: 'test',
+        refreshToken: undefined,
+        expiresIn: undefined,
+        tokenType: undefined
+      });
 
       // Second call fails
       mockFetch.mockResolvedValueOnce({
@@ -642,13 +691,14 @@ describe('hubspot/tokens.ts', () => {
         text: jest.fn().mockResolvedValue('{"error":"invalid_token"}')
       } as any);
 
-      await expect(getPortalInfo('invalid_token')).rejects.toThrow('HTTP 401: invalid_token');
+      await expect(getPortalInfo('invalid_token')).rejects.toThrow('Failed to get portal info: 401 {"error":"invalid_token"}');
     });
 
     test('should handle concurrent requests', async () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
+        json: jest.fn().mockResolvedValue({"access_token":"concurrent_test"}),
         text: jest.fn().mockResolvedValue('{"access_token":"concurrent_test"}')
       } as any);
 
@@ -660,7 +710,12 @@ describe('hubspot/tokens.ts', () => {
       
       expect(results).toHaveLength(10);
       results.forEach(result => {
-        expect(result).toEqual({ access_token: 'concurrent_test' });
+        expect(result).toEqual({ 
+          accessToken: 'concurrent_test',
+          refreshToken: undefined,
+          expiresIn: undefined,
+          tokenType: undefined
+        });
       });
       expect(mockFetch).toHaveBeenCalledTimes(10);
     });
@@ -674,11 +729,18 @@ describe('hubspot/tokens.ts', () => {
       mockFetch.mockResolvedValue({
         ok: true,
         status: 200,
+        json: jest.fn().mockResolvedValue(largeResponse),
         text: jest.fn().mockResolvedValue(JSON.stringify(largeResponse))
       } as any);
 
       const result = await exchangeCodeForTokens('test_code');
-      expect(result).toEqual(largeResponse);
+      // The implementation only returns the normalized OAuth fields, not extra fields
+      expect(result).toEqual({
+        accessToken: 'test',
+        refreshToken: undefined,
+        expiresIn: undefined,
+        tokenType: undefined
+      });
     });
   });
 });
