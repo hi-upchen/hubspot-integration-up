@@ -88,15 +88,15 @@ function getSupabaseConfig(environment: Environment): SupabaseConfig {
   const prefix = environment === 'dev' ? 'DEV' : 'PROD';
   
   const config = {
-    url: process.env[`${prefix}_SUPABASE_URL`],
-    anonKey: process.env[`${prefix}_SUPABASE_ANON_KEY`],
-    serviceRoleKey: process.env[`${prefix}_SUPABASE_SERVICE_ROLE_KEY`],
+    url: process.env[`SUPABASE_${prefix}_URL`],
+    anonKey: process.env[`SUPABASE_${prefix}_ANON_KEY`],
+    serviceRoleKey: process.env[`SUPABASE_${prefix}_SERVICE_ROLE_KEY`],
   };
   
   // Validate all required fields are present
   const missingFields = Object.entries(config)
     .filter(([, value]) => !value)
-    .map(([key]) => `${prefix}_SUPABASE_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
+    .map(([key]) => `SUPABASE_${prefix}_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
   
   if (missingFields.length > 0) {
     throw new Error(
@@ -113,7 +113,7 @@ function getSupabaseConfig(environment: Environment): SupabaseConfig {
 export function logEnvironmentInfo(environment: Environment): void {
   const prefix = environment === 'dev' ? 'DEV' : 'PROD';
   const hubspotAppId = process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_APP_ID`];
-  const supabaseUrl = process.env[`${prefix}_SUPABASE_URL`];
+  const supabaseUrl = process.env[`SUPABASE_${prefix}_URL`];
   
   console.log(`🔧 Environment: ${environment.toUpperCase()}`);
   console.log(`   HubSpot App ID: ${hubspotAppId?.substring(0, 8)}...`);

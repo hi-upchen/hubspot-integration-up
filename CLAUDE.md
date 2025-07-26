@@ -88,11 +88,11 @@ Next.js application with HubSpot workflow actions for date formatting and other 
 ```typescript
 // Development
 HUBSPOT_DEV_CLIENT_ID=dev_app_client_id
-DEV_SUPABASE_URL=https://dev-project.supabase.co
+SUPABASE_DEV_URL=https://dev-project.supabase.co
 
 // Production  
 HUBSPOT_PROD_CLIENT_ID=prod_app_client_id
-PROD_SUPABASE_URL=https://prod-project.supabase.co
+SUPABASE_PROD_URL=https://prod-project.supabase.co
 
 // Auto-detection
 NODE_ENV=development  # or production
