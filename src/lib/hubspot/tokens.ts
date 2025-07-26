@@ -1,4 +1,5 @@
 import type { OAuthTokens, HubSpotOAuthResponse } from '../types';
+import { ConfigManager } from '@/lib/config/config-manager';
 
 /**
  * Exchanges HubSpot authorization code for access and refresh tokens
@@ -8,9 +9,7 @@ import type { OAuthTokens, HubSpotOAuthResponse } from '../types';
  * @throws Error if token exchange fails or configuration is missing
  */
 export async function exchangeCodeForTokens(code: string): Promise<OAuthTokens> {
-  const clientId = process.env.HUBSPOT_CLIENT_ID;
-  const clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
-  const redirectUri = process.env.HUBSPOT_REDIRECT_URI;
+  const { clientId, clientSecret, redirectUri } = ConfigManager.getHubSpotConfig();
 
   // Validate required OAuth configuration
   if (!clientId || !clientSecret || !redirectUri) {
@@ -65,8 +64,7 @@ export async function exchangeCodeForTokens(code: string): Promise<OAuthTokens> 
  * @throws Error if token refresh fails or configuration is missing
  */
 export async function refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
-  const clientId = process.env.HUBSPOT_CLIENT_ID;
-  const clientSecret = process.env.HUBSPOT_CLIENT_SECRET;
+  const { clientId, clientSecret } = ConfigManager.getHubSpotConfig();
 
   // Validate required OAuth configuration
   if (!clientId || !clientSecret) {

@@ -1,18 +1,70 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import type { HubSpotInstallation } from '../types';
+import { ConfigManager } from '@/lib/config/config-manager';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+/**
+ * Environment-aware Supabase client singleton
+ * Automatically connects to dev or prod database based on ConfigManager
+ */
+class SupabaseService {
+  private static instance: SupabaseClient | null = null;
+  private static adminInstance: SupabaseClient | null = null;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);
-
-// Using anon key instead of service key for now
-export const supabaseAdmin = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: false,
-    persistSession: false
+  /**
+   * Gets Supabase client instance with automatic environment detection
+   */
+  static getClient(): SupabaseClient {
+    if (!this.instance) {
+      const supabaseConfig = ConfigManager.getSupabaseConfig();
+      const environment = ConfigManager.getCurrentEnvironment();
+      
+      console.log(`🗄️  Connecting to ${environment.toUpperCase()} Supabase database`);
+      
+      this.instance = createClient(
+        supabaseConfig.url,
+        supabaseConfig.anonKey
+      );
+    }
+    
+    return this.instance;
   }
-});
+
+  /**
+   * Gets Supabase admin client with service role key
+   */
+  static getAdminClient(): SupabaseClient {
+    if (!this.adminInstance) {
+      const supabaseConfig = ConfigManager.getSupabaseConfig();
+      const environment = ConfigManager.getCurrentEnvironment();
+      
+      console.log(`🔐 Connecting to ${environment.toUpperCase()} Supabase admin`);
+      
+      this.adminInstance = createClient(
+        supabaseConfig.url,
+        supabaseConfig.serviceRoleKey,
+        {
+          auth: {
+            autoRefreshToken: false,
+            persistSession: false
+          }
+        }
+      );
+    }
+    
+    return this.adminInstance;
+  }
+
+  /**
+   * Reset client instances (for testing or environment changes)
+   */
+  static reset(): void {
+    this.instance = null;
+    this.adminInstance = null;
+  }
+}
+
+export const supabase = SupabaseService.getClient();
+export const supabaseAdmin = SupabaseService.getAdminClient();
 
 export class HubSpotInstallationService {
   async create(installation: Omit<HubSpotInstallation, 'id' | 'createdAt' | 'updatedAt'>): Promise<HubSpotInstallation> {

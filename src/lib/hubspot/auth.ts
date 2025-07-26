@@ -1,4 +1,5 @@
 import { URLSearchParams } from 'url';
+import { ConfigManager } from '@/lib/config/config-manager';
 
 /**
  * OAuth scopes required for the HubSpot integration
@@ -11,27 +12,25 @@ export const HUBSPOT_OAUTH_SCOPES = [
 
 /**
  * Generates HubSpot OAuth authorization URL with required parameters
+ * Uses environment-specific credentials detected automatically
  * 
  * @returns Complete OAuth authorization URL
  * @throws Error if required environment variables are missing
  */
 export function generateOAuthUrl(): string {
-  const clientId = process.env.HUBSPOT_CLIENT_ID;
-  const redirectUri = process.env.HUBSPOT_REDIRECT_URI;
+  const config = ConfigManager.getHubSpotConfig();
+  const environment = ConfigManager.getCurrentEnvironment();
   
-  // Validate required OAuth configuration
-  if (!clientId || !redirectUri) {
-    throw new Error('Missing HubSpot OAuth configuration');
-  }
-
   // Build OAuth authorization URL parameters
   const params = new URLSearchParams({
-    client_id: clientId,
-    redirect_uri: redirectUri,
+    client_id: config.clientId,
+    redirect_uri: config.redirectUri,
     scope: HUBSPOT_OAUTH_SCOPES.join(' '),
     response_type: 'code'
   });
 
+  console.log(`🔐 Generating OAuth URL for ${environment.toUpperCase()} environment`);
+  
   return `https://app.hubspot.com/oauth/authorize?${params.toString()}`;
 }
 

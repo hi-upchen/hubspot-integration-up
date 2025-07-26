@@ -12,10 +12,18 @@
     "test:coverage": "jest --coverage",
     "test:ci": "jest --ci --coverage --watchAll=false",
     "test:date-formatter": "jest --testPathIgnorePatterns=/integration/",
-    "hubspot:date-formatter:register": "node scripts/register-workflow-action.js date-formatter register",
-    "hubspot:date-formatter:update": "node scripts/update-workflow-action.js date-formatter",
-    "hubspot:date-formatter:list": "node scripts/list-workflow-actions.js date-formatter",
-    "hubspot:date-formatter:delete": "node scripts/delete-workflow-action.js date-formatter"
+    "hubspot:dev:register": "node scripts/register-workflow-action.mjs date-formatter register dev",
+    "hubspot:dev:update": "node scripts/update-workflow-action.mjs date-formatter dev",
+    "hubspot:dev:list": "node scripts/list-workflow-actions.mjs date-formatter dev",
+    "hubspot:dev:delete": "node scripts/delete-workflow-action.mjs date-formatter dev",
+    "hubspot:prod:register": "node scripts/register-workflow-action.mjs date-formatter register prod",
+    "hubspot:prod:update": "node scripts/update-workflow-action.mjs date-formatter prod",
+    "hubspot:prod:list": "node scripts/list-workflow-actions.mjs date-formatter prod",
+    "hubspot:prod:delete": "node scripts/delete-workflow-action.mjs date-formatter prod",
+    "hubspot:date-formatter:register": "node scripts/register-workflow-action.mjs date-formatter register",
+    "hubspot:date-formatter:update": "node scripts/update-workflow-action.mjs date-formatter",
+    "hubspot:date-formatter:list": "node scripts/list-workflow-actions.mjs date-formatter",
+    "hubspot:date-formatter:delete": "node scripts/delete-workflow-action.mjs date-formatter"
   },
   "dependencies": {
     "@hubspot/api-client": "^13.0.0",

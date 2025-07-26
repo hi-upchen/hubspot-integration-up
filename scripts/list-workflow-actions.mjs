@@ -14,11 +14,14 @@
  * - HUBSPOT_URL_SHORTENER_APP_ID: App ID for URL Shortener app (future)
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import { getCurrentEnvironment, getHubSpotConfig } from './config-helper.mjs';
 
-// Load environment variables from .env.local
-require('dotenv').config({ path: '.env.local' });
+// ES module compatibility for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Get app name from command line arguments
 const args = process.argv.slice(2);
@@ -43,27 +46,31 @@ if (!appConfig) {
   process.exit(1);
 }
 
-// Get environment variables
-const HUBSPOT_DEVELOPER_API_KEY = process.env.HUBSPOT_DEVELOPER_API_KEY;
-const HUBSPOT_APP_ID = process.env[`HUBSPOT_${appConfig.envPrefix}_APP_ID`];
+// Get environment-specific configuration
+const environment = getCurrentEnvironment();
+const hubspotConfig = getHubSpotConfig();
 
-if (!HUBSPOT_DEVELOPER_API_KEY) {
-  console.error('❌ HUBSPOT_DEVELOPER_API_KEY environment variable is required');
+console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
+
+if (!hubspotConfig.developerApiKey) {
+  const envVar = environment === 'dev' ? 'HUBSPOT_DEV_DEVELOPER_API_KEY' : 'HUBSPOT_PROD_DEVELOPER_API_KEY';
+  console.error(`❌ ${envVar} environment variable is required`);
   console.log('Get this from https://developer.hubspot.com → Settings → API Keys');
   process.exit(1);
 }
 
-if (!HUBSPOT_APP_ID) {
-  console.error(`❌ HUBSPOT_${appConfig.envPrefix}_APP_ID environment variable is required`);
+if (!hubspotConfig.dateFormatterAppId) {
+  const envVar = environment === 'dev' ? 'HUBSPOT_DEV_DATE_FORMATTER_APP_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_APP_ID';
+  console.error(`❌ ${envVar} environment variable is required`);
   console.log('Get this from your HubSpot Developer Portal app dashboard');
   process.exit(1);
 }
 
 async function listWorkflowActions() {
   console.log(`📋 Listing workflow actions for ${appName}...`);
-  console.log(`   App ID: ${HUBSPOT_APP_ID}`);
+  console.log(`   App ID: ${hubspotConfig.dateFormatterAppId}`);
   
-  const apiUrl = `https://api.hubspot.com/automation/v4/actions/${HUBSPOT_APP_ID}?hapikey=${HUBSPOT_DEVELOPER_API_KEY}`;
+  const apiUrl = `https://api.hubspot.com/automation/v4/actions/${hubspotConfig.dateFormatterAppId}?hapikey=${hubspotConfig.developerApiKey}`;
   
   try {
     const response = await fetch(apiUrl, {

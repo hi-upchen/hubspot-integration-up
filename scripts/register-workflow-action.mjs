@@ -15,12 +15,18 @@
  * - NEXTJS_URL: Your deployed application URL
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+import dotenv from 'dotenv';
+import { ConfigManager } from '../src/lib/config/config-manager.ts';
+
+// ES module compatibility for __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Load environment variables from .env.local
-require('dotenv').config({ path: '.env.local' });
-
+dotenv.config({ path: '.env.local' });
 
 // Get app name from command line arguments
 const args = process.argv.slice(2);
@@ -59,26 +65,34 @@ try {
   process.exit(1);
 }
 
-// Get environment variables
-const HUBSPOT_DEVELOPER_API_KEY = process.env.HUBSPOT_DEVELOPER_API_KEY;
-const HUBSPOT_APP_ID = process.env[`HUBSPOT_${appConfig.envPrefix}_APP_ID`];
-const NEXTJS_URL = process.env.NEXTJS_URL;
+// Get environment-specific configuration
+const environment = ConfigManager.getCurrentEnvironment();
+const hubspotConfig = ConfigManager.getHubSpotConfig();
 
+console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
 
-if (!HUBSPOT_DEVELOPER_API_KEY) {
-  console.error('❌ HUBSPOT_DEVELOPER_API_KEY environment variable is required');
+if (!hubspotConfig.developerApiKey) {
+  const envVar = environment === 'dev' ? 'HUBSPOT_DEV_DEVELOPER_API_KEY' : 'HUBSPOT_PROD_DEVELOPER_API_KEY';
+  console.error(`❌ ${envVar} environment variable is required`);
   console.log('Get this from https://developer.hubspot.com → Settings → API Keys');
   process.exit(1);
 }
 
-if (!HUBSPOT_APP_ID) {
-  console.error(`❌ HUBSPOT_${appConfig.envPrefix}_APP_ID environment variable is required`);
+if (!hubspotConfig.dateFormatterAppId) {
+  const envVar = environment === 'dev' ? 'HUBSPOT_DEV_DATE_FORMATTER_APP_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_APP_ID';
+  console.error(`❌ ${envVar} environment variable is required`);
   console.log('Get this from your HubSpot Developer Portal app dashboard');
   process.exit(1);
 }
 
+// Get webhook URL for the current environment
+const NEXTJS_URL = environment === 'dev' 
+  ? (process.env.NEXTJS_URL || process.env.DEV_NEXTJS_URL || 'http://localhost:3000')
+  : (process.env.PROD_NEXTJS_URL || process.env.NEXTJS_URL);
+
 if (!NEXTJS_URL) {
-  console.error('❌ NEXTJS_URL environment variable is required');
+  console.error('❌ Webhook base URL is required');
+  console.error('Set DEV_NEXTJS_URL for development or PROD_NEXTJS_URL for production');
   process.exit(1);
 }
 
@@ -88,18 +102,18 @@ workflowActionDefinition.actionUrl = `${NEXTJS_URL}${appConfig.webhookPath}`;
 // Generate action name with version and conditional timestamp
 const baseActionName = workflowActionDefinition.labels.en.actionName;
 const version = 'v1.0.0';
-const isDevelopment = NEXTJS_URL.includes('localhost') || NEXTJS_URL.includes('ngrok');
+const isDevMode = NEXTJS_URL.includes('localhost') || NEXTJS_URL.includes('ngrok') || NEXTJS_URL.includes('127.0.0.1');
 
 let finalActionName = `${baseActionName} ${version}`;
 let finalDescription = workflowActionDefinition.labels.en.actionDescription;
 
 // Only add timestamp and environment info in development mode
-if (isDevelopment) {
+if (isDevMode) {
   const now = new Date();
   const timestamp = now.toISOString().slice(0, 16).replace('T', ' '); // 2025-01-25 14:30
-  const environment = NEXTJS_URL.includes('localhost') ? 'Dev' : 'Dev-Tunnel';
+  const envLabel = NEXTJS_URL.includes('localhost') ? 'Dev' : 'Dev-Tunnel';
   
-  finalActionName = `${baseActionName} ${version} (${environment} - ${timestamp})`;
+  finalActionName = `${baseActionName} ${version} (${envLabel} - ${timestamp})`;
   finalDescription = `${workflowActionDefinition.labels.en.actionDescription} (${version}) - Registered: ${timestamp}`;
 } else {
   finalDescription = `${workflowActionDefinition.labels.en.actionDescription} (${version})`;
@@ -113,10 +127,10 @@ async function registerWorkflowAction() {
   
   console.log(`🚀 Registering ${workflowActionDefinition.labels?.en?.actionName || 'workflow action'} with HubSpot...`);
   console.log(`   App: ${appName}`);
-  console.log(`   App ID: ${HUBSPOT_APP_ID}`);
+  console.log(`   App ID: ${hubspotConfig.dateFormatterAppId}`);
   console.log(`   Action URL: ${workflowActionDefinition.actionUrl}`);
   
-  const apiUrl = `https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}?hapikey=${HUBSPOT_DEVELOPER_API_KEY}`;
+  const apiUrl = `https://api.hubapi.com/automation/v4/actions/${hubspotConfig.dateFormatterAppId}?hapikey=${hubspotConfig.developerApiKey}`;
   
   try {
     
@@ -184,7 +198,7 @@ async function updateWorkflowAction() {
   console.log(`🔄 Updating existing ${workflowActionDefinition.labels?.en?.actionName || 'workflow action'}...`);
   
   try {
-    const response = await fetch(`https://api.hubapi.com/automation/v4/actions/${HUBSPOT_APP_ID}/${workflowActionDefinition.actionDefinitionId}?hapikey=${HUBSPOT_DEVELOPER_API_KEY}`, {
+    const response = await fetch(`https://api.hubapi.com/automation/v4/actions/${hubspotConfig.dateFormatterAppId}/${workflowActionDefinition.actionDefinitionId}?hapikey=${hubspotConfig.developerApiKey}`, {
       method: 'PATCH',
       headers: {
         'Content-Type': 'application/json'

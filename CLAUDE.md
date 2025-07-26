@@ -76,21 +76,108 @@ Next.js application with HubSpot workflow actions for date formatting and other 
 }
 ```
 
-### NPM Commands
-- `npm run hubspot:date-formatter:register` - Register new action
-- `npm run hubspot:date-formatter:update` - Update latest action
-- `npm run hubspot:date-formatter:list` - List all actions
-- `npm run hubspot:date-formatter:delete <id>` - Delete specific action
+## Environment Separation Architecture
 
-### File Structure
+### ConfigManager System
+- **Automatic Detection**: Environment determined by `process.argv` (dev/prod) or `NODE_ENV`
+- **Priority Order**: Command-line args → NODE_ENV → default (dev)
+- **Single Source of Truth**: All configuration flows through ConfigManager
+- **42 Test Coverage**: Comprehensive edge case testing for reliability
+
+### Environment Configuration
+```typescript
+// Development
+HUBSPOT_DEV_CLIENT_ID=dev_app_client_id
+DEV_SUPABASE_URL=https://dev-project.supabase.co
+
+// Production  
+HUBSPOT_PROD_CLIENT_ID=prod_app_client_id
+PROD_SUPABASE_URL=https://prod-project.supabase.co
+
+// Auto-detection
+NODE_ENV=development  # or production
+```
+
+### Environment-Specific Commands
+```bash
+# Development Environment
+npm run hubspot:dev:list           # List dev workflow actions
+npm run hubspot:dev:register       # Register to dev HubSpot app
+npm run hubspot:dev:update         # Update dev action
+npm run hubspot:dev:delete <id>    # Delete dev action
+
+# Production Environment
+npm run hubspot:prod:list          # List prod workflow actions
+npm run hubspot:prod:register      # Register to prod HubSpot app
+npm run hubspot:prod:update        # Update prod action
+npm run hubspot:prod:delete <id>   # Delete prod action
+
+# Legacy Commands (auto-detect environment)
+npm run hubspot:date-formatter:register  # Uses ConfigManager detection
+npm run hubspot:date-formatter:update    # Uses ConfigManager detection
+npm run hubspot:date-formatter:list      # Uses ConfigManager detection
+```
+
+### Service Integration
+- **Supabase Client**: Automatically connects to dev/prod databases
+- **HubSpot Services**: OAuth, tokens, client manager use ConfigManager
+- **API Routes**: All routes use environment-aware configuration
+- **Webhook Handler**: Processes requests with correct environment context
+
+### Action Naming Convention
+- **Development**: `Date Formatter v1.0.0 (Dev - 2025-01-26 14:30)` (with timestamp)
+- **Production**: `Date Formatter v1.0.0` (clean, professional)
+
+## File Structure
+- `src/lib/config/config-manager.ts` - Central configuration management
+- `src/lib/config/environment.ts` - Environment-specific configurations
+- `src/lib/supabase/client.ts` - Environment-aware database client
+- `scripts/config-helper.mjs` - ES module configuration for scripts
 - `config/apps.json` - Multi-app configuration
 - `config/workflow-actions/` - Action definitions
-- `scripts/` - Management scripts for workflow actions
+- `scripts/*.mjs` - ES module management scripts
 - `src/app/api/webhook/` - Webhook endpoints
 - `src/lib/services/` - Business logic services
 
-### Development Notes
-- Always test conditional fields in completely new workflows
-- Update script automatically increments revision numbers
-- Environment detection: localhost/ngrok = dev, vercel = prod
-- Debug logging enabled in webhook endpoints for troubleshooting
+## Development Guidelines
+
+### Environment Setup
+1. **Create separate HubSpot apps**: One for development, one for production
+2. **Create separate Supabase projects**: `hubspot-integration-up-dev` and `hubspot-integration-up-prod`
+3. **Configure environment variables**: Set DEV_* and PROD_* variables in `.env.local`
+4. **Use explicit commands**: `npm run hubspot:dev:*` for development work
+
+### Testing Best Practices
+- **Fresh workflows**: Always test in completely new HubSpot workflows after updates
+- **Environment isolation**: Use dev commands for development, prod commands for releases
+- **ConfigManager tests**: Run `npm test -- __tests__/lib/config/config-manager.test.ts`
+- **Build verification**: `npm run build` should connect to PROD environment
+
+### Deployment Process
+1. **Development**: Use `npm run hubspot:dev:*` commands
+2. **Testing**: Verify in dev HubSpot app and dev Supabase database
+3. **Production**: Use `npm run hubspot:prod:*` commands for releases
+4. **Verification**: Set `NODE_ENV=production` for production builds
+
+### Common Operations
+```bash
+# Check current environment detection
+npm run hubspot:dev:list    # Should show "DEV environment configuration"
+npm run hubspot:prod:list   # Should show "PROD environment configuration"
+
+# Deploy to development
+npm run hubspot:dev:register
+
+# Deploy to production
+npm run hubspot:prod:register
+
+# Debug configuration
+npm test -- __tests__/lib/config/config-manager.test.ts
+```
+
+### Troubleshooting
+- **Wrong environment**: Check `NODE_ENV` and command-line arguments
+- **Missing config**: Verify DEV_*/PROD_* environment variables are set
+- **Database errors**: Ensure Supabase projects are created and keys are correct
+- **Cache issues**: Test in fresh HubSpot workflows, clear browser cache
+- **Build issues**: ConfigManager should automatically use PROD environment during builds
