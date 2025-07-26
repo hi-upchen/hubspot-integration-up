@@ -23,7 +23,8 @@ export default function UsageStatsCard({ usageStats, portalId }: UsageStatsCardP
   }
 
   const { currentUsage, successCount, errorCount, monthYear } = usageStats;
-  const successRate = currentUsage > 0 ? Math.round((successCount / currentUsage) * 100) : 0;
+  const successRate = currentUsage > 0 ? (successCount / currentUsage) * 100 : 0;
+  const errorRate = currentUsage > 0 ? (errorCount / currentUsage) * 100 : 0;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -32,47 +33,64 @@ export default function UsageStatsCard({ usageStats, portalId }: UsageStatsCardP
         <span className="text-sm text-gray-500">{monthYear}</span>
       </div>
       
-      {/* Main Usage Counter */}
-      <div className="text-center mb-6">
-        <div className="text-3xl font-bold text-blue-600">{currentUsage.toLocaleString()}</div>
-        <div className="text-sm text-gray-500">Requests This Month</div>
-      </div>
-
-      {/* Success/Error Breakdown */}
-      <div className="grid grid-cols-2 gap-4 mb-4">
-        <div className="text-center">
-          <div className="text-xl font-semibold text-green-600">{successCount.toLocaleString()}</div>
-          <div className="text-xs text-gray-500">Successful</div>
-        </div>
-        <div className="text-center">
-          <div className="text-xl font-semibold text-red-600">{errorCount.toLocaleString()}</div>
-          <div className="text-xs text-gray-500">Errors</div>
-        </div>
-      </div>
-
-      {/* Success Rate Bar */}
-      {currentUsage > 0 && (
-        <div className="mt-4">
-          <div className="flex justify-between text-sm text-gray-600 mb-1">
-            <span>Success Rate</span>
-            <span>{successRate}%</span>
+      {/* Hero Metric with Modern Card Design */}
+      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6 mb-6">
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="text-3xl font-bold text-gray-900">{currentUsage.toLocaleString()}</div>
+            <div className="text-sm font-medium text-gray-600">API Requests</div>
+            <div className="text-xs text-gray-500">{monthYear}</div>
           </div>
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div
-              className="bg-green-500 h-2 rounded-full"
-              style={{ width: `${successRate}%` }}
-            ></div>
+          <div className="flex-shrink-0">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+              </svg>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Success/Error Progress Bar */}
+      {currentUsage > 0 && (
+        <div className="bg-gray-50 rounded-lg p-4 mb-4">
+          <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
+            <span className="text-green-600">{successCount.toLocaleString()} Successful</span>
+            <span className="text-red-600">{errorCount.toLocaleString()} Errors</span>
+          </div>
+          <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
+            {/* Success segment */}
+            {successRate > 0 && (
+              <div
+                className="bg-gradient-to-r from-green-500 to-green-400 h-4 transition-all duration-500"
+                style={{ width: `${successRate}%` }}
+              ></div>
+            )}
+            {/* Error segment */}
+            {errorRate > 0 && (
+              <div
+                className="bg-gradient-to-r from-red-500 to-red-400 h-4 transition-all duration-500"
+                style={{ width: `${errorRate}%` }}
+              ></div>
+            )}
+          </div>
+          <div className="flex justify-between text-xs text-gray-500 mt-2">
+            <span>0</span>
+            <span>{currentUsage.toLocaleString()} total</span>
           </div>
         </div>
       )}
 
-      {/* Beta Notice */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="flex items-center text-sm text-blue-600">
-          <svg className="h-4 w-4 mr-1" fill="currentColor" viewBox="0 0 20 20">
-            <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-          </svg>
-          Free during beta period
+      {/* Enhanced Beta Status Badge */}
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="w-2 h-2 bg-blue-500 rounded-full mr-2"></div>
+            <span className="text-sm font-medium text-blue-700">Beta Access</span>
+          </div>
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+            FREE
+          </span>
         </div>
       </div>
     </div>
