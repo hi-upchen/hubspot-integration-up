@@ -69,35 +69,3 @@ CREATE INDEX idx_usage_requests_portal_month ON usage_requests(portal_id, month_
 CREATE INDEX idx_usage_requests_timestamp ON usage_requests(request_timestamp);
 CREATE INDEX idx_portal_info_portal_id ON portal_info(portal_id);
 
--- Function for atomic usage increment (handles concurrency)
-CREATE OR REPLACE FUNCTION increment_portal_usage(
-  p_portal_id BIGINT,
-  p_month_year VARCHAR(7),
-  p_success BOOLEAN
-) RETURNS VOID AS $$
-BEGIN
-  -- Use INSERT ... ON CONFLICT for atomic upsert
-  INSERT INTO portal_usage_monthly (
-    portal_id, 
-    month_year, 
-    request_count, 
-    success_count, 
-    error_count, 
-    last_request_at
-  ) VALUES (
-    p_portal_id,
-    p_month_year,
-    1,
-    CASE WHEN p_success THEN 1 ELSE 0 END,
-    CASE WHEN p_success THEN 0 ELSE 1 END,
-    NOW()
-  )
-  ON CONFLICT (portal_id, month_year) 
-  DO UPDATE SET
-    request_count = portal_usage_monthly.request_count + 1,
-    success_count = portal_usage_monthly.success_count + CASE WHEN p_success THEN 1 ELSE 0 END,
-    error_count = portal_usage_monthly.error_count + CASE WHEN p_success THEN 0 ELSE 1 END,
-    last_request_at = NOW(),
-    updated_at = NOW();
-END;
-$$ LANGUAGE plpgsql;
