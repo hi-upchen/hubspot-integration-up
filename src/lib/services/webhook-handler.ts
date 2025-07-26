@@ -1,11 +1,42 @@
 import { formatDate } from './date-formatter';
 import { hubspotClientManager } from '@/lib/hubspot/client';
+import { trackUsage } from './usage-tracker';
 import type { WorkflowRequest, WorkflowResponse, DateFormat } from '@/lib/types';
+import type { UsageTrackingData } from './types';
 
 export interface WebhookResult {
   success: boolean;
   status: number;
   data: WorkflowResponse | { error: string; details?: string };
+}
+
+/**
+ * Fire-and-forget helper to prevent tracking from blocking webhook responses
+ */
+function trackUsageAsync(data: UsageTrackingData): void {
+  trackUsage(data).catch(error => {
+    console.error('Usage tracking failed (non-blocking):', error);
+  });
+}
+
+/**
+ * Defensive helper function to build consistent tracking data
+ */
+function buildTrackingData(
+  portalId: number,
+  inputFields: Record<string, any> = {},
+  success: boolean,
+  errorMessage?: string
+): UsageTrackingData {
+  return {
+    portalId,
+    sourceDate: inputFields.sourceDateField || '',
+    sourceFormat: inputFields.sourceFormat || '',
+    targetFormat: inputFields.targetFormat || '',
+    customTargetFormat: inputFields.customTargetFormat,
+    success,
+    errorMessage
+  };
 }
 
 /**
@@ -34,6 +65,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     if (!inputFields?.sourceDateField) {
       console.error('Validation error: Source date field is required', { portalId, inputFields });
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Source date field is required'));
       return {
         success: false,
         status: 400,
@@ -43,6 +75,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     if (!inputFields?.sourceFormat) {
       console.error('Validation error: Source format is required', { portalId, inputFields });
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Source format is required'));
       return {
         success: false,
         status: 400,
@@ -52,6 +85,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     if (!inputFields?.targetFormat) {
       console.error('Validation error: Target format is required', { portalId, inputFields });
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Target format is required'));
       return {
         success: false,
         status: 400,
@@ -62,6 +96,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Validate custom format if needed
     if (inputFields.targetFormat === 'CUSTOM' && !inputFields.customTargetFormat) {
       console.error('Validation error: Custom target format is required when target format is CUSTOM', { portalId, inputFields });
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Custom target format is required when target format is CUSTOM'));
       return {
         success: false,
         status: 400,
@@ -74,6 +109,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       await hubspotClientManager.getClient(portalId);
     } catch (authError) {
       console.error(`Authentication failed for portal ${portalId}:`, authError);
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Authentication failed'));
       return {
         success: false,
         status: 401,
@@ -93,6 +129,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Check if date value is empty
     if (!dateValue || dateValue.trim() === '') {
       console.warn('Empty date value received', { portalId, dateValue, inputFields });
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Source date field is empty'));
       return {
         success: true,
         status: 200,
@@ -127,6 +164,8 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         customTargetFormat: inputFields.customTargetFormat
       });
       
+      trackUsageAsync(buildTrackingData(portalId, inputFields, false, error instanceof Error ? error.message : 'Date formatting failed'));
+      
       // Return error in output fields so workflow can continue
       return {
         success: true,
@@ -141,6 +180,9 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         }
       };
     }
+
+    // Track successful processing
+    trackUsageAsync(buildTrackingData(portalId, inputFields, true));
 
     // Return successful response
     const response: WorkflowResponse = {
@@ -165,6 +207,16 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       inputFields: workflowRequest?.inputFields,
       timestamp: new Date().toISOString()
     });
+    
+    // Track unexpected errors if we have portal context
+    if (workflowRequest?.origin?.portalId) {
+      trackUsageAsync(buildTrackingData(
+        workflowRequest.origin.portalId,
+        workflowRequest.inputFields || {},
+        false,
+        'Internal server error'
+      ));
+    }
     
     // Return workflow-compatible error response
     return {

@@ -16,6 +16,9 @@ Next.js application with HubSpot workflow actions for date formatting and other 
 - **No premature implementation**: Don't make changes without clear requirements
 - **Industry best practices**: Follow established patterns and conventions
 - **Config-driven architecture**: Separate configuration from business logic
+- **Function naming conventions**:
+  - `get` - Simple retrieval, usually from cache/database first
+  - `fetch` - Always makes external call (API/network), implies fresh data retrieval
 
 ### Git Workflow
 - **Clean commit messages**: Write main description + 2-5 detailed points
@@ -181,3 +184,17 @@ npm test -- __tests__/lib/config/config-manager.test.ts
 - **Database errors**: Ensure Supabase projects are created and keys are correct
 - **Cache issues**: Test in fresh HubSpot workflows, clear browser cache
 - **Build issues**: ConfigManager should automatically use PROD environment during builds
+
+## Usage Tracking & Pricing
+
+### Pricing Tiers (Future Implementation)
+- **Free**: 3,000 requests/month - $0
+- **Starter**: 30,000 requests/month - $19
+- **Professional**: 300,000 requests/month - $99  
+- **Enterprise**: 3,000,000 requests/month - $499
+
+### Beta Behavior
+- **Current Status**: All usage is free during beta period
+- **Soft Limits**: Track usage but allow all requests
+- **Future Notice**: 30-day advance notice before implementing billing
+- **Usage Tracking**: Full request logging and analytics for optimization
