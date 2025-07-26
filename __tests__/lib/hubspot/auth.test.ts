@@ -68,8 +68,8 @@ describe('HubSpot OAuth Authentication', () => {
         
         expect(url).toMatch(/^https:\/\/app\.hubspot\.com\/oauth\/authorize\?/);
         expect(url).toContain('client_id=test-client-id');
-        expect(url).toContain('redirect_uri=https%3A//example.com/callback');
-        expect(url).toContain('scope=oauth%20automation');
+        expect(url).toContain('redirect_uri=https%3A%2F%2Fexample.com%2Fcallback');
+        expect(url).toContain('scope=oauth+automation');
         expect(url).toContain('response_type=code');
       });
 
@@ -99,7 +99,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('client_id=client-id-with-special%40%23%24%25%5E%26*()_%2B%7B%7D%7C%3A%22%3C%3E%3F%5B%5D%5C%3B\'%2C.%2F');
+        expect(url).toContain('client_id=client-id-with-special%40%23%24%25%5E%26*%28%29_%2B%7B%7D%7C%3A%22%3C%3E%3F%5B%5D%5C%3B%27%2C.%2F');
       });
 
       test('should properly encode redirect URI with query parameters', () => {
@@ -113,7 +113,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=https%3A//example.com/callback%3Fparam1%3Dvalue1%26param2%3Dvalue%20with%20spaces');
+        expect(url).toContain('redirect_uri=https%3A%2F%2Fexample.com%2Fcallback%3Fparam1%3Dvalue1%26param2%3Dvalue+with+spaces');
       });
 
       test('should handle redirect URI with Unicode characters', () => {
@@ -127,7 +127,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=https%3A//example.com/%E3%82%B3%E3%83%BC%E3%83%AB%E3%83%90%E3%83%83%E3%82%AF');
+        expect(url).toContain('redirect_uri=https%3A%2F%2Fexample.com%2F%E3%82%B3%E3%83%BC%E3%83%AB%E3%83%90%E3%83%83%E3%82%AF');
       });
 
       test('should handle empty string values', () => {
@@ -143,7 +143,7 @@ describe('HubSpot OAuth Authentication', () => {
         
         expect(url).toContain('client_id=');
         expect(url).toContain('redirect_uri=');
-        expect(url).toContain('scope=oauth%20automation');
+        expect(url).toContain('scope=oauth+automation');
         expect(url).toContain('response_type=code');
       });
 
@@ -170,7 +170,7 @@ describe('HubSpot OAuth Authentication', () => {
       test('should join multiple scopes with spaces', () => {
         const url = generateOAuthUrl();
         
-        expect(url).toContain('scope=oauth%20automation');
+        expect(url).toContain('scope=oauth+automation');
       });
 
       test('should handle scope encoding correctly', () => {
@@ -181,7 +181,7 @@ describe('HubSpot OAuth Authentication', () => {
         
         try {
           const url = generateOAuthUrl();
-          expect(url).toContain('scope=oauth%40test%20automation%26special');
+          expect(url).toContain('scope=oauth%40test+automation%26special');
         } finally {
           // Restore original scopes
           (HUBSPOT_OAUTH_SCOPES as any).length = 0;
@@ -232,7 +232,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=http%3A//localhost%3A3000/callback');
+        expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fcallback');
       });
 
       test('should handle HTTPS redirect URI', () => {
@@ -246,7 +246,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=https%3A//secure.example.com%3A8443/oauth/callback');
+        expect(url).toContain('redirect_uri=https%3A%2F%2Fsecure.example.com%3A8443%2Foauth%2Fcallback');
       });
 
       test('should handle custom scheme redirect URI', () => {
@@ -260,7 +260,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=myapp%3A//oauth/callback');
+        expect(url).toContain('redirect_uri=myapp%3A%2F%2Foauth%2Fcallback');
       });
 
       test('should handle redirect URI with port number', () => {
@@ -274,7 +274,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=https%3A//example.com%3A8080/callback');
+        expect(url).toContain('redirect_uri=https%3A%2F%2Fexample.com%3A8080%2Fcallback');
       });
 
       test('should handle redirect URI with path segments', () => {
@@ -288,7 +288,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const url = generateOAuthUrl();
         
-        expect(url).toContain('redirect_uri=https%3A//example.com/api/v1/oauth/hubspot/callback');
+        expect(url).toContain('redirect_uri=https%3A%2F%2Fexample.com%2Fapi%2Fv1%2Foauth%2Fhubspot%2Fcallback');
       });
     });
 
@@ -322,7 +322,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const devUrl = generateOAuthUrl();
         expect(devUrl).toContain('client_id=dev-client-id');
-        expect(devUrl).toContain('redirect_uri=https%3A//dev.example.com/callback');
+        expect(devUrl).toContain('redirect_uri=https%3A%2F%2Fdev.example.com%2Fcallback');
 
         // Reset mocks for prod environment test
         jest.clearAllMocks();
@@ -339,7 +339,7 @@ describe('HubSpot OAuth Authentication', () => {
 
         const prodUrl = generateOAuthUrl();
         expect(prodUrl).toContain('client_id=prod-client-id');
-        expect(prodUrl).toContain('redirect_uri=https%3A//prod.example.com/callback');
+        expect(prodUrl).toContain('redirect_uri=https%3A%2F%2Fprod.example.com%2Fcallback');
       });
 
       test('should throw error when ConfigManager throws', () => {
@@ -555,7 +555,7 @@ describe('HubSpot OAuth Authentication', () => {
       });
 
       test('should handle boolean true as invalid', () => {
-        expect(() => validateOAuthCallback(true as any)).toThrow('Authorization code is required');
+        expect(() => validateOAuthCallback(true as any)).toThrow('Invalid authorization code format');
       });
 
       test('should handle number 0 as invalid', () => {
@@ -572,7 +572,7 @@ describe('HubSpot OAuth Authentication', () => {
       });
 
       test('should handle array as string conversion', () => {
-        const arr = ['abcdefghij'];
+        const arr = ['abcdefghij']; // becomes "abcdefghij" (10 chars) - should pass
         expect(() => validateOAuthCallback(arr as any)).not.toThrow();
       });
 

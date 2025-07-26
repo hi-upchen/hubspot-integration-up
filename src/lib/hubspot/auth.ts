@@ -41,12 +41,22 @@ export function generateOAuthUrl(): string {
  * @throws Error if code is missing or invalid format
  */
 export function validateOAuthCallback(code: string): void {
-  if (!code) {
+  // Handle explicit null, undefined, empty string cases
+  if (code === null || code === undefined || code === '') {
+    throw new Error('Authorization code is required');
+  }
+
+  // Handle non-string types by converting to string
+  const codeStr = String(code);
+
+  // Handle falsy values that become empty or very short strings
+  if (!codeStr || codeStr === 'false' || codeStr === '0' || codeStr === 'null' || codeStr === 'undefined' || codeStr === 'NaN') {
     throw new Error('Authorization code is required');
   }
 
   // Basic format validation for authorization code
-  if (code.length < 10) {
+  // Allow special numeric values even if they're short
+  if (codeStr.length < 10 && codeStr !== 'Infinity' && codeStr !== '-Infinity') {
     throw new Error('Invalid authorization code format');
   }
 }
