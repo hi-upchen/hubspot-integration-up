@@ -24,16 +24,17 @@ function trackUsageAsync(data: UsageTrackingData): void {
  */
 function buildTrackingData(
   portalId: number,
-  inputFields: Record<string, unknown> = {},
+  inputFields: Record<string, unknown> | null | undefined = {},
   success: boolean,
   errorMessage?: string
 ): UsageTrackingData {
+  const fields = inputFields || {};
   return {
     portalId,
-    sourceDate: (inputFields.sourceDateField as string) || '',
-    sourceFormat: (inputFields.sourceFormat as string) || '',
-    targetFormat: (inputFields.targetFormat as string) || '',
-    customTargetFormat: inputFields.customTargetFormat as string | undefined,
+    sourceDate: (fields.sourceDateField as string) || '',
+    sourceFormat: (fields.sourceFormat as string) || '',
+    targetFormat: (fields.targetFormat as string) || '',
+    customTargetFormat: fields.customTargetFormat as string | undefined,
     success,
     errorMessage
   };
