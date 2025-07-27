@@ -9,7 +9,7 @@ interface UsageStatsCardProps {
   portalId: number;
 }
 
-export default function UsageStatsCard({ usageStats, portalId }: UsageStatsCardProps) {
+export default function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
   if (!usageStats) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -33,30 +33,30 @@ export default function UsageStatsCard({ usageStats, portalId }: UsageStatsCardP
         <span className="text-sm text-gray-500">{monthYear}</span>
       </div>
       
-      {/* Hero Metric with Modern Card Design */}
-      <div className="bg-gradient-to-br from-blue-50 to-indigo-100 rounded-lg p-6 mb-6">
+      {/* Hero Metric with Modern Card Design - Show only successful requests */}
+      <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-3xl font-bold text-gray-900">{currentUsage.toLocaleString()}</div>
-            <div className="text-sm font-medium text-gray-600">API Requests</div>
+            <div className="text-3xl font-bold text-gray-900">{successCount.toLocaleString()}</div>
+            <div className="text-sm font-medium text-gray-600">Successful API Calls</div>
             <div className="text-xs text-gray-500">{monthYear}</div>
           </div>
           <div className="flex-shrink-0">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+              <svg className="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
               </svg>
             </div>
           </div>
         </div>
       </div>
 
-      {/* Success/Error Progress Bar */}
+      {/* Success/Error Progress Bar - Show breakdown if there are any attempts */}
       {currentUsage > 0 && (
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
           <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
-            <span className="text-green-600">{successCount.toLocaleString()} Successful</span>
-            <span className="text-red-600">{errorCount.toLocaleString()} Errors</span>
+            <span className="text-green-600">{successCount.toLocaleString()} successful</span>
+            <span className="text-red-600">{errorCount.toLocaleString()} failed attempts</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
             {/* Success segment */}
@@ -75,8 +75,8 @@ export default function UsageStatsCard({ usageStats, portalId }: UsageStatsCardP
             )}
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-2">
-            <span>0</span>
-            <span>{currentUsage.toLocaleString()} total</span>
+            <span></span>
+            <span>{currentUsage.toLocaleString()} total attempts</span>
           </div>
         </div>
       )}

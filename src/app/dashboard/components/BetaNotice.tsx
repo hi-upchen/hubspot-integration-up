@@ -15,8 +15,8 @@ export default function BetaNotice() {
           <h3 className="text-sm font-medium text-blue-800">Beta Version - Free Access</h3>
           <div className="mt-2 text-sm text-blue-700">
             <p>
-              You're using our beta version with <strong>unlimited free access</strong>! 
-              We'll provide <strong>30 days advance notice</strong> before introducing any charges.
+              You&apos;re using our beta version with <strong>unlimited free access</strong>! 
+              We&apos;ll provide <strong>30 days advance notice</strong> before introducing any charges.
             </p>
           </div>
         </div>

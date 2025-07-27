@@ -6,7 +6,7 @@
 import { supabaseAdmin } from '@/lib/supabase/client';
 import { fetchHubSpotAccessTokenInfo } from '@/lib/hubspot/portal-api';
 import type { PortalInfo, PortalUserData } from './types';
-import type { HubSpotAccessTokenResponse } from '@/lib/hubspot/types';
+// HubSpotAccessTokenResponse is imported but used by fetchHubSpotAccessTokenInfo
 
 /**
  * Gets portal information from database only
@@ -153,7 +153,18 @@ export async function ensurePortalInfoExists(portalId: number): Promise<PortalIn
 /**
  * Transforms database row to PortalInfo interface
  */
-function transformDatabaseToPortalInfo(data: any): PortalInfo {
+interface DatabasePortalInfo {
+  portal_id: number;
+  portal_name?: string;
+  user_email?: string;
+  domain?: string;
+  user_name?: string;
+  organization_name?: string;
+  hubspot_user_id?: number;
+  hub_id?: number;
+}
+
+function transformDatabaseToPortalInfo(data: DatabasePortalInfo): PortalInfo {
   return {
     portalId: data.portal_id,
     portalName: data.portal_name,

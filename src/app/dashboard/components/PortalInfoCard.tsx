@@ -52,8 +52,8 @@ export default function PortalInfoCard({ portalInfo, portalId }: PortalInfoCardP
       setSuccess(true);
       setIsEditing(false);
       
-      // Reset success message after 3 seconds
-      setTimeout(() => setSuccess(false), 3000);
+      // Refresh the page to show updated data
+      setTimeout(() => window.location.reload(), 1000);
       
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to update profile');
@@ -139,7 +139,7 @@ export default function PortalInfoCard({ portalInfo, portalId }: PortalInfoCardP
               type="text"
               value={userName}
               onChange={(e) => setUserName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               placeholder="Enter your name"
             />
           ) : (
@@ -159,7 +159,7 @@ export default function PortalInfoCard({ portalInfo, portalId }: PortalInfoCardP
               type="text"
               value={organizationName}
               onChange={(e) => setOrganizationName(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900 placeholder-gray-500"
               placeholder="Enter organization name"
             />
           ) : (

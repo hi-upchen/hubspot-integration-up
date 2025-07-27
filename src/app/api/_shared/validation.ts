@@ -35,12 +35,12 @@ export interface UpdatePortalRequest {
 /**
  * Validates update portal request body
  */
-export function validateUpdatePortalRequest(body: any): UpdatePortalRequest {
+export function validateUpdatePortalRequest(body: unknown): UpdatePortalRequest {
   if (!body || typeof body !== 'object') {
     throw new ValidationError('Request body is required', 'JSON request body must be provided');
   }
   
-  const { portalId, userName, organizationName } = body;
+  const { portalId, userName, organizationName } = body as Record<string, unknown>;
   
   // Validate portal ID
   if (!portalId || typeof portalId !== 'number' || portalId <= 0) {

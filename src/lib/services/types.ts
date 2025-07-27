@@ -24,9 +24,9 @@ export interface PortalUserData {
 
 export interface UsageTrackingData {
   portalId: number;
-  sourceDate: string;
-  sourceFormat: string;
-  targetFormat: string;
+  sourceDate?: string; // Optional to allow tracking validation failures
+  sourceFormat?: string; // Optional to allow tracking validation failures
+  targetFormat?: string; // Optional to allow tracking validation failures
   customTargetFormat?: string;
   success: boolean;
   errorMessage?: string;

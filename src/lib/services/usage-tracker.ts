@@ -15,21 +15,15 @@ function getCurrentMonthYear(): string {
 }
 
 /**
- * Validates usage tracking data
+ * Validates only essential tracking data
+ * Only portal ID is truly required for tracking - other fields are optional
+ * to ensure we can track ALL requests including validation failures
  */
-function validateUsageData(data: UsageTrackingData): void {
+function validateTrackingData(data: UsageTrackingData): void {
   if (!data.portalId || data.portalId <= 0) {
-    throw new Error('Valid portal ID is required');
+    throw new Error('Valid portal ID is required for tracking');
   }
-  if (!data.sourceDate?.trim()) {
-    throw new Error('Source date is required');
-  }
-  if (!data.sourceFormat?.trim()) {
-    throw new Error('Source format is required');
-  }
-  if (!data.targetFormat?.trim()) {
-    throw new Error('Target format is required');
-  }
+  // All other fields are optional to allow tracking of invalid requests
 }
 
 /**
@@ -47,7 +41,8 @@ function validatePortalId(portalId: number): void {
  */
 export async function trackUsage(data: UsageTrackingData): Promise<TrackingResult> {
   try {
-    validateUsageData(data);
+    // Only validate essential fields - we want to track ALL requests
+    validateTrackingData(data);
     
     const monthYear = getCurrentMonthYear();
     const timestamp = data.timestamp || new Date();
@@ -56,17 +51,18 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
     await ensurePortalInfoExists(data.portalId);
     
     // Log detailed request data (for analytics)
+    // Empty strings for missing fields are intentional - we want to track validation failures
     const { error: logError } = await supabaseAdmin
       .from('usage_requests')
       .insert({
         portal_id: data.portalId,
         request_timestamp: timestamp.toISOString(),
-        source_date: data.sourceDate,
-        source_format: data.sourceFormat,
-        target_format: data.targetFormat,
-        custom_target_format: data.customTargetFormat,
+        source_date: data.sourceDate || '', // Allow empty to track validation failures
+        source_format: data.sourceFormat || '', // Allow empty to track validation failures
+        target_format: data.targetFormat || '', // Allow empty to track validation failures
+        custom_target_format: data.customTargetFormat || null,
         success: data.success,
-        error_message: data.errorMessage,
+        error_message: data.errorMessage || null,
         month_year: monthYear
       });
     

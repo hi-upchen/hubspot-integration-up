@@ -22,7 +22,9 @@
     "hubspot:prod:delete": "node scripts/delete-workflow-action.mjs date-formatter prod",
     "usage:aggregate": "node scripts/aggregate-usage.mjs",
     "usage:aggregate:dev": "NODE_ENV=development node scripts/aggregate-usage.mjs",
-    "usage:aggregate:prod": "NODE_ENV=production node scripts/aggregate-usage.mjs"
+    "usage:aggregate:prod": "NODE_ENV=production node scripts/aggregate-usage.mjs",
+    "clean": "rm -rf .next node_modules/.cache",
+    "clean:all": "rm -rf .next node_modules/.cache .turbo .swc"
   },
   "dependencies": {
     "@hubspot/api-client": "^13.0.0",

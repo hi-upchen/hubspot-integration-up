@@ -8,9 +8,9 @@ import ErrorMessage from './components/ErrorMessage';
 import { fetchDashboardData } from './lib/dashboard-api';
 
 interface DashboardPageProps {
-  searchParams: { 
+  searchParams: Promise<{ 
     portalId?: string;
-  };
+  }>;
 }
 
 // Loading component for Suspense
@@ -35,7 +35,8 @@ function DashboardLoading() {
 // Main dashboard page component
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   // Parse portal ID from URL parameters
-  const portalIdParam = searchParams.portalId;
+  const params = await searchParams;
+  const portalIdParam = params.portalId;
   
   // Handle missing portal ID
   if (!portalIdParam) {
@@ -85,7 +86,8 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
 // Optional: Add metadata
 export async function generateMetadata({ searchParams }: DashboardPageProps) {
-  const portalId = searchParams.portalId;
+  const params = await searchParams;
+  const portalId = params.portalId;
   return {
     title: portalId ? `Dashboard - Portal ${portalId}` : 'Dashboard',
     description: 'HubSpot Date Formatter Dashboard - View usage statistics and manage your portal settings',
