@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { ConfigManager } from '../src/lib/config/config-manager.ts';
+import { getCurrentEnvironment, getHubSpotConfig, getWebhookBaseUrl, isDevelopmentMode } from './config-helper.mjs';
 
 // ES module compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -68,8 +68,8 @@ try {
 }
 
 // Get environment-specific configuration
-const environment = ConfigManager.getCurrentEnvironment();
-const hubspotConfig = ConfigManager.getHubSpotConfig();
+const environment = getCurrentEnvironment();
+const hubspotConfig = getHubSpotConfig();
 // Get webhook URL for the current environment
 const NEXTJS_URL = environment === 'dev' 
   ? (process.env.NEXTJS_URL || process.env.DEV_NEXTJS_URL || 'http://localhost:3000')

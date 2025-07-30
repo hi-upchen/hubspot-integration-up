@@ -20,7 +20,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { ConfigManager } from '../src/lib/config/config-manager.ts';
+import { getCurrentEnvironment, getHubSpotConfig } from './config-helper.mjs';
 
 // ES module compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -58,8 +58,8 @@ if (!appConfig) {
 }
 
 // Get environment-specific configuration
-const environment = ConfigManager.getCurrentEnvironment();
-const hubspotConfig = ConfigManager.getHubSpotConfig();
+const environment = getCurrentEnvironment();
+const hubspotConfig = getHubSpotConfig();
 
 console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
 
@@ -80,7 +80,7 @@ if (!hubspotConfig.dateFormatterAppId) {
 async function deleteWorkflowAction() {
   console.log(`🗑️  Deleting workflow action...`);
   console.log(`   App: ${appName}`);
-  console.log(`   App ID: ${HUBSPOT_APP_ID}`);
+  console.log(`   App ID: ${hubspotConfig.dateFormatterAppId}`);
   console.log(`   Action ID: ${actionId}`);
   
   const apiUrl = `https://api.hubspot.com/automation/v4/actions/${hubspotConfig.dateFormatterAppId}/${actionId}?hapikey=${hubspotConfig.developerApiKey}`;

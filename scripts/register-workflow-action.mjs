@@ -19,7 +19,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
-import { ConfigManager } from '../src/lib/config/config-manager.ts';
+import { getCurrentEnvironment, getHubSpotConfig, getWebhookBaseUrl, isDevelopmentMode } from './config-helper.mjs';
 
 // ES module compatibility for __dirname
 const __filename = fileURLToPath(import.meta.url);
@@ -66,8 +66,8 @@ try {
 }
 
 // Get environment-specific configuration
-const environment = ConfigManager.getCurrentEnvironment();
-const hubspotConfig = ConfigManager.getHubSpotConfig();
+const environment = getCurrentEnvironment();
+const hubspotConfig = getHubSpotConfig();
 
 console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
 
