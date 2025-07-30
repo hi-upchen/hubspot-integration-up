@@ -18,7 +18,6 @@ export async function POST(request: NextRequest) {
   } catch (parseError) {
     console.error('JSON parsing error:', {
       error: parseError instanceof Error ? parseError.message : 'Unknown parsing error',
-      stack: parseError instanceof Error ? parseError.stack : undefined,
       contentType: request.headers.get('content-type'),
       timestamp: new Date().toISOString()
     });
@@ -51,7 +50,6 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     console.error('Date formatter webhook error:', error);
-    console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace available');
     
     // Return workflow-compatible error response
     return NextResponse.json({

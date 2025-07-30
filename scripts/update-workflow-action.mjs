@@ -28,19 +28,28 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
 
-// Get app name and optional action ID from command line arguments
+// Get app name, environment, and optional action ID from command line arguments
 const args = process.argv.slice(2);
 const appName = args[0];
-const specificActionId = args[1];
+const environment = args[1];
+const specificActionId = args[2];
 
-if (!appName) {
-  console.error('❌ App name is required');
-  console.log('Usage: node scripts/update-workflow-action.js <app-name> [action-id]');
+if (!appName || !environment) {
+  console.error('❌ App name and environment are required');
+  console.log('Usage: node scripts/update-workflow-action.js <app-name> <dev|prod> [action-id]');
   console.log('Available apps: date-formatter, url-shortener');
   console.log('');
   console.log('Examples:');
-  console.log('  node scripts/update-workflow-action.js date-formatter              # Update latest action');
-  console.log('  node scripts/update-workflow-action.js date-formatter 218268439   # Update specific action');
+  console.log('  node scripts/update-workflow-action.js date-formatter dev              # Update latest dev action');
+  console.log('  node scripts/update-workflow-action.js date-formatter prod             # Update latest prod action');
+  console.log('  node scripts/update-workflow-action.js date-formatter dev 218268439    # Update specific dev action');
+  console.log('  node scripts/update-workflow-action.js date-formatter prod 218849819   # Update specific prod action');
+  process.exit(1);
+}
+
+if (!['dev', 'prod'].includes(environment)) {
+  console.error(`❌ Invalid environment: ${environment}`);
+  console.log('Environment must be either "dev" or "prod"');
   process.exit(1);
 }
 
@@ -67,9 +76,8 @@ try {
   process.exit(1);
 }
 
-// Get environment-specific configuration
-const environment = getCurrentEnvironment();
-const hubspotConfig = getHubSpotConfig();
+// Get environment-specific configuration using explicit environment
+const hubspotConfig = getHubSpotConfig(environment);
 // Get webhook URL for the current environment
 const NEXTJS_URL = environment === 'dev' 
   ? (process.env.NEXTJS_URL || process.env.DEV_NEXTJS_URL || 'http://localhost:3000')

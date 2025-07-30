@@ -29,19 +29,28 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
 
-// Get app name and action ID from command line arguments
+// Get app name, environment, and action ID from command line arguments
 const args = process.argv.slice(2);
 const appName = args[0];
-const actionId = args[1];
+const environment = args[1];
+const actionId = args[2];
 
-if (!appName || !actionId) {
-  console.error('❌ App name and action ID are required');
-  console.log('Usage: node scripts/delete-workflow-action.js <app-name> <action-id>');
+if (!appName || !environment || !actionId) {
+  console.error('❌ App name, environment, and action ID are required');
+  console.log('Usage: node scripts/delete-workflow-action.js <app-name> <dev|prod> <action-id>');
   console.log('Available apps: date-formatter, url-shortener');
   console.log('');
-  console.log('Example: node scripts/delete-workflow-action.js date-formatter 218240892');
+  console.log('Examples:');
+  console.log('  node scripts/delete-workflow-action.js date-formatter dev 218240892    # Delete dev action');
+  console.log('  node scripts/delete-workflow-action.js date-formatter prod 218849819   # Delete prod action');
   console.log('');
   console.log('💡 Tip: Use list-workflow-actions.js to see all action IDs');
+  process.exit(1);
+}
+
+if (!['dev', 'prod'].includes(environment)) {
+  console.error(`❌ Invalid environment: ${environment}`);
+  console.log('Environment must be either "dev" or "prod"');
   process.exit(1);
 }
 
@@ -57,9 +66,8 @@ if (!appConfig) {
   process.exit(1);
 }
 
-// Get environment-specific configuration
-const environment = getCurrentEnvironment();
-const hubspotConfig = getHubSpotConfig();
+// Get environment-specific configuration using explicit environment
+const hubspotConfig = getHubSpotConfig(environment);
 
 console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
 

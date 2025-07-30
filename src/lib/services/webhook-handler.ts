@@ -157,7 +157,6 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     } catch (error) {
       console.error('Date formatting error:', {
         error: error instanceof Error ? error.message : 'Unknown error',
-        stack: error instanceof Error ? error.stack : undefined,
         portalId,
         dateValue,
         sourceFormat: inputFields.sourceFormat,
@@ -203,7 +202,6 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
   } catch (error) {
     console.error('Date formatter webhook error:', {
       error: error instanceof Error ? error.message : 'Unknown error',
-      stack: error instanceof Error ? error.stack : undefined,
       portalId: workflowRequest?.origin?.portalId,
       inputFields: workflowRequest?.inputFields,
       timestamp: new Date().toISOString()

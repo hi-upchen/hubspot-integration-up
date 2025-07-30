@@ -28,16 +28,25 @@ const __dirname = path.dirname(__filename);
 // Load environment variables from .env.local
 dotenv.config({ path: '.env.local' });
 
-// Get app name from command line arguments
+// Get app name and environment from command line arguments
 const args = process.argv.slice(2);
 const appName = args[0];
-const command = args[1] || 'register';
+const environment = args[1];
 
-
-if (!appName) {
-  console.error('❌ App name is required');
-  console.log('Usage: node scripts/register-workflow-action.js <app-name> [register|update]');
+if (!appName || !environment) {
+  console.error('❌ App name and environment are required');
+  console.log('Usage: node scripts/register-workflow-action.js <app-name> <dev|prod>');
   console.log('Available apps: date-formatter, url-shortener');
+  console.log('');
+  console.log('Examples:');
+  console.log('  node scripts/register-workflow-action.js date-formatter dev     # Register to dev app');
+  console.log('  node scripts/register-workflow-action.js date-formatter prod    # Register to prod app');
+  process.exit(1);
+}
+
+if (!['dev', 'prod'].includes(environment)) {
+  console.error(`❌ Invalid environment: ${environment}`);
+  console.log('Environment must be either "dev" or "prod"');
   process.exit(1);
 }
 
@@ -65,9 +74,8 @@ try {
   process.exit(1);
 }
 
-// Get environment-specific configuration
-const environment = getCurrentEnvironment();
-const hubspotConfig = getHubSpotConfig();
+// Get environment-specific configuration using explicit environment
+const hubspotConfig = getHubSpotConfig(environment);
 
 console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
 
@@ -194,46 +202,5 @@ async function registerWorkflowAction() {
   }
 }
 
-async function updateWorkflowAction() {
-  console.log(`🔄 Updating existing ${workflowActionDefinition.labels?.en?.actionName || 'workflow action'}...`);
-  
-  try {
-    const response = await fetch(`https://api.hubapi.com/automation/v4/actions/${hubspotConfig.dateFormatterAppId}/${workflowActionDefinition.actionDefinitionId}?hapikey=${hubspotConfig.developerApiKey}`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(workflowActionDefinition)
-    });
-
-    const responseText = await response.text();
-    
-    if (response.ok) {
-      const result = JSON.parse(responseText);
-      console.log('✅ Workflow action updated successfully!');
-      return result;
-    } else if (response.status === 404) {
-      console.log('ℹ️  Action not found, creating new one...');
-      return await registerWorkflowAction();
-    } else {
-      console.error('❌ Failed to update workflow action');
-      console.error(`   Status: ${response.status} ${response.statusText}`);
-      console.error(`   Response: ${responseText}`);
-      process.exit(1);
-    }
-  } catch (error) {
-    console.error('💥 Error updating workflow action:', error.message);
-    process.exit(1);
-  }
-}
-
-// Execute the command
-if (command === 'update') {
-  updateWorkflowAction();
-} else if (command === 'register') {
-  registerWorkflowAction();
-} else {
-  console.log('Usage: node scripts/register-workflow-action.js <app-name> [register|update]');
-  console.log('Available apps:', Object.keys(appsConfig).join(', '));
-  process.exit(1);
-}
+// Execute the register command
+registerWorkflowAction();

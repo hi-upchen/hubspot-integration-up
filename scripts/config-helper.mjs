@@ -21,9 +21,10 @@ export function getCurrentEnvironment() {
 
 /**
  * Gets environment-specific HubSpot configuration
+ * @param {string} explicitEnv - Optional explicit environment ('dev' or 'prod')
  */
-export function getHubSpotConfig() {
-  const environment = getCurrentEnvironment();
+export function getHubSpotConfig(explicitEnv) {
+  const environment = explicitEnv || getCurrentEnvironment();
   const isDev = environment === 'dev';
   
   return {
