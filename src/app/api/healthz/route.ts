@@ -43,8 +43,6 @@ interface HealthResponse {
 export async function GET() {
   const startTime = Date.now();
   
-  console.log('🏥 Health check started');
-  
   const response: HealthResponse = {
     status: 'healthy',
     timestamp: new Date().toISOString(),
@@ -63,7 +61,6 @@ export async function GET() {
   };
 
   // 1. Config Health Check
-  console.log('🔧 Checking configuration...');
   const configStart = Date.now();
   try {
     const currentEnv = ConfigManager.getCurrentEnvironment();
@@ -99,7 +96,6 @@ export async function GET() {
         }
       };
     }
-    console.log(`✅ Config check completed in ${Date.now() - configStart}ms`);
   } catch (error) {
     response.checks.config = {
       status: 'unhealthy',
@@ -110,7 +106,6 @@ export async function GET() {
   }
 
   // 2. Database Health Check
-  console.log('💾 Checking database connection...');
   const dbStart = Date.now();
   try {
     const currentEnv = ConfigManager.getCurrentEnvironment();
@@ -134,7 +129,6 @@ export async function GET() {
         query: 'SELECT 1 equivalent successful'
       }
     };
-    console.log(`✅ Database check completed in ${Date.now() - dbStart}ms`);
   } catch (error) {
     response.checks.database = {
       status: 'unhealthy',
@@ -146,7 +140,6 @@ export async function GET() {
   }
 
   // 3. HubSpot API Health Check
-  console.log('🔗 Checking HubSpot API connectivity...');
   const hubspotStart = Date.now();
   try {
     const currentEnv = ConfigManager.getCurrentEnvironment();
@@ -170,7 +163,6 @@ export async function GET() {
           statusCode: response_hubspot.status
         }
       };
-      console.log(`✅ HubSpot check completed in ${Date.now() - hubspotStart}ms`);
     } else {
       throw new Error(`HubSpot API returned status ${response_hubspot.status}`);
     }
@@ -202,9 +194,6 @@ export async function GET() {
     response.status = 'unhealthy';
   }
 
-  const totalTime = Date.now() - startTime;
-  console.log(`🏥 Health check completed in ${totalTime}ms - Status: ${response.status}`);
-  console.log(`📊 Summary: ${response.summary.healthy}/${response.summary.total} services healthy`);
 
   // Return appropriate HTTP status code - industry best practice
   let httpStatus: number;
