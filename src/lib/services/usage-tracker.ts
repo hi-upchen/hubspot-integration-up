@@ -52,6 +52,12 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
     
     // Log detailed request data (for analytics)
     // Empty strings for missing fields are intentional - we want to track validation failures
+    console.log('📊 Writing usage tracking data to database:', {
+      portalId: data.portalId,
+      success: data.success,
+      timestamp: timestamp.toISOString()
+    });
+    
     const { error: logError } = await supabaseAdmin
       .from('usage_requests')
       .insert({
@@ -67,11 +73,13 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
       });
     
     if (logError) {
-      console.error('Error logging usage request:', {
+      console.error('❌ Error logging usage request:', {
         portalId: data.portalId,
         error: logError,
         timestamp: timestamp.toISOString()
       });
+    } else {
+      console.log('✅ Usage tracking data written successfully to database');
     }
     
     // Return success even if some operations failed (non-blocking)
