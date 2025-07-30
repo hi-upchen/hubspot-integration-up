@@ -106,7 +106,7 @@ export default function HomePage() {
               Stop frustrating your customers.
             </h2>
             <p className="mt-4 text-lg tracking-tight text-slate-700">
-              HubSpot's date formatting is confusing and unprofessional. 
+              HubSpot&apos;s date formatting is confusing and unprofessional. 
               Get crystal clear dates that customers actually understand.
             </p>
           </div>
@@ -273,7 +273,7 @@ export default function HomePage() {
               Loved by HubSpot users worldwide.
             </h2>
             <p className="mt-4 text-lg tracking-tight text-slate-700">
-              Join thousands of HubSpot users who've eliminated date formatting confusion forever.
+              Join thousands of HubSpot users who&apos;ve eliminated date formatting confusion forever.
             </p>
           </div>
           
@@ -377,7 +377,7 @@ export default function HomePage() {
                 Get professional date formatting for all your HubSpot workflows. No limits during beta.
               </p>
               <div className="mt-10 flex items-center gap-x-4">
-                <h4 className="flex-none text-sm font-semibold leading-6 text-blue-400">What's included</h4>
+                <h4 className="flex-none text-sm font-semibold leading-6 text-blue-400">What&apos;s included</h4>
                 <div className="h-px flex-auto bg-slate-600" />
               </div>
               <ul className="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-slate-300 sm:grid-cols-2 sm:gap-6">

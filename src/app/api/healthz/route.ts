@@ -7,7 +7,7 @@ interface HealthCheck {
   responseTime?: string;
   error?: string;
   environment?: string;
-  details?: any;
+  details?: Record<string, unknown>;
 }
 
 interface HealthResponse {
@@ -41,7 +41,6 @@ interface HealthResponse {
  * - Structured JSON response format
  */
 export async function GET() {
-  const startTime = Date.now();
   
   const response: HealthResponse = {
     status: 'healthy',
@@ -113,7 +112,7 @@ export async function GET() {
     const supabase = createClient(supabaseConfig.url, supabaseConfig.anonKey);
     
     // Efficient health check query - industry best practice
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from('portal_info')
       .select('count')
       .limit(1);
