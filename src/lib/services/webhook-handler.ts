@@ -11,12 +11,16 @@ export interface WebhookResult {
 }
 
 /**
- * Fire-and-forget helper to prevent tracking from blocking webhook responses
+ * Track usage with proper error handling
+ * Note: We must await this in Vercel serverless functions or the write will be killed
  */
-function trackUsageAsync(data: UsageTrackingData): void {
-  trackUsage(data).catch(error => {
-    console.error('Usage tracking failed (non-blocking):', error);
-  });
+async function trackUsageWithErrorHandling(data: UsageTrackingData): Promise<void> {
+  try {
+    await trackUsage(data);
+  } catch (error) {
+    // Log error but don't throw - we don't want tracking failures to break the webhook
+    console.error('Usage tracking failed:', error);
+  }
 }
 
 /**
@@ -66,7 +70,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     if (!inputFields?.sourceDateField) {
       console.error('Validation error: Source date field is required', { portalId, inputFields });
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Source date field is required'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source date field is required'));
       return {
         success: false,
         status: 400,
@@ -76,7 +80,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     if (!inputFields?.sourceFormat) {
       console.error('Validation error: Source format is required', { portalId, inputFields });
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Source format is required'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source format is required'));
       return {
         success: false,
         status: 400,
@@ -86,7 +90,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     if (!inputFields?.targetFormat) {
       console.error('Validation error: Target format is required', { portalId, inputFields });
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Target format is required'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Target format is required'));
       return {
         success: false,
         status: 400,
@@ -97,7 +101,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Validate custom format if needed
     if (inputFields.targetFormat === 'CUSTOM' && !inputFields.customTargetFormat) {
       console.error('Validation error: Custom target format is required when target format is CUSTOM', { portalId, inputFields });
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Custom target format is required when target format is CUSTOM'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Custom target format is required when target format is CUSTOM'));
       return {
         success: false,
         status: 400,
@@ -110,7 +114,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       await hubspotClientManager.getClient(portalId);
     } catch (authError) {
       console.error(`Authentication failed for portal ${portalId}:`, authError);
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Authentication failed'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Authentication failed'));
       return {
         success: false,
         status: 401,
@@ -130,7 +134,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Check if date value is empty
     if (!dateValue || dateValue.trim() === '') {
       console.warn('Empty date value received', { portalId, dateValue, inputFields });
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, 'Source date field is empty'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source date field is empty'));
       return {
         success: true,
         status: 200,
@@ -164,7 +168,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         customTargetFormat: inputFields.customTargetFormat
       });
       
-      trackUsageAsync(buildTrackingData(portalId, inputFields, false, error instanceof Error ? error.message : 'Date formatting failed'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, error instanceof Error ? error.message : 'Date formatting failed'));
       
       // Return error in output fields so workflow can continue
       return {
@@ -182,7 +186,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     }
 
     // Track successful processing
-    trackUsageAsync(buildTrackingData(portalId, inputFields, true));
+    await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, true));
 
     // Return successful response
     const response: WorkflowResponse = {
@@ -209,7 +213,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     
     // Track unexpected errors if we have portal context
     if (workflowRequest?.origin?.portalId) {
-      trackUsageAsync(buildTrackingData(
+      await trackUsageWithErrorHandling(buildTrackingData(
         workflowRequest.origin.portalId,
         workflowRequest.inputFields || {},
         false,
