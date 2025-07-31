@@ -53,5 +53,13 @@
     "node-mocks-http": "^1.17.2",
     "tailwindcss": "^4",
     "typescript": "^5"
+  },
+  "overrides": {
+    "whatwg-url": "^14.0.0",
+    "tr46": "^4.1.1"
+  },
+  "_overridesExplanation": {
+    "whatwg-url": "Force newer version to fix Node.js punycode deprecation warnings. Older versions use deprecated built-in punycode module.",
+    "tr46": "Force v4.1.1+ which uses require('punycode/') instead of deprecated require('punycode'). Required by Supabase dependency chain."
   }
 }
