@@ -32,9 +32,10 @@ interface AggregationResult {
  */
 export async function aggregateDateFormatterUsage(): Promise<AggregationResult> {
   const startTime = new Date();
-  const environment = ConfigManager.getCurrentEnvironment();
+  let environment = 'dev'; // Default fallback
   
   try {
+    environment = ConfigManager.getCurrentEnvironment();
     console.log(`🔄 Starting usage aggregation (${environment.toUpperCase()}) at ${startTime.toISOString()}`);
     console.log('⚠️  WARNING: Fetching ALL historical data - optimize for production use');
 

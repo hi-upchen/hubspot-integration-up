@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
         executionTimeSeconds: result.duration,
         totalRecordsFound: result.totalRecords,
         environment: result.environment,
-        error: result.error
+        error: result.error || null
       }
     }, { 
       status: result.success ? 200 : 500 
