@@ -30,7 +30,8 @@ function buildTrackingData(
   portalId: number,
   inputFields: Record<string, unknown> | null | undefined = {},
   success: boolean,
-  errorMessage?: string
+  errorMessage?: string,
+  formattedDate?: string
 ): UsageTrackingData {
   const fields = inputFields || {};
   return {
@@ -40,7 +41,8 @@ function buildTrackingData(
     targetFormat: (fields.targetFormat as string) || '',
     customTargetFormat: fields.customTargetFormat as string | undefined,
     success,
-    errorMessage
+    errorMessage,
+    formattedDate
   };
 }
 
@@ -134,7 +136,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Check if date value is empty
     if (!dateValue || dateValue.trim() === '') {
       console.warn('Empty date value received', { portalId, dateValue, inputFields });
-      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source date field is empty'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source date field is empty', ''));
       return {
         success: true,
         status: 200,
@@ -168,7 +170,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         customTargetFormat: inputFields.customTargetFormat
       });
       
-      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, error instanceof Error ? error.message : 'Date formatting failed'));
+      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, error instanceof Error ? error.message : 'Date formatting failed', dateValue));
       
       // Return error in output fields so workflow can continue
       return {
@@ -185,8 +187,8 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       };
     }
 
-    // Track successful processing
-    await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, true));
+    // Track successful processing with the formatted date
+    await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, true, undefined, formattedDate));
 
     // Return successful response
     const response: WorkflowResponse = {

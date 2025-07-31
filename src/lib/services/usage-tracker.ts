@@ -69,7 +69,8 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
         custom_target_format: data.customTargetFormat || null,
         success: data.success,
         error_message: data.errorMessage || null,
-        month_year: monthYear
+        month_year: monthYear,
+        formatted_date: data.formattedDate || null // The actual date returned to user
       });
     
     if (logError) {
@@ -78,8 +79,6 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
         error: logError,
         timestamp: timestamp.toISOString()
       });
-    } else {
-      console.log('✅ Usage tracking data written successfully to database');
     }
     
     // Return success even if some operations failed (non-blocking)

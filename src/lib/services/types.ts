@@ -31,6 +31,7 @@ export interface UsageTrackingData {
   success: boolean;
   errorMessage?: string;
   timestamp?: Date;
+  formattedDate?: string; // The actual formatted date returned to user
 }
 
 export interface TrackingResult {
