@@ -36,15 +36,7 @@ export async function POST(request: NextRequest) {
     // Process the request using extracted business logic
     const result = await processDateFormatterWebhook(workflowRequest);
     
-    // Only log errors, not successful requests
-    if (!result.success) {
-      console.log('Date formatter webhook request:', JSON.stringify({
-        portalId: workflowRequest.origin?.portalId,
-        inputFields: workflowRequest.inputFields,
-        timestamp: new Date().toISOString()
-      }, null, 2));
-      console.log(`Date formatter webhook result: ${result.status} - ${JSON.stringify(result.data)}`);
-    }
+    // Errors are already logged in webhook-handler.ts
     
     return NextResponse.json(result.data, { status: result.status });
 

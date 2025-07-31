@@ -18,7 +18,6 @@ class SupabaseService {
       const supabaseConfig = ConfigManager.getSupabaseConfig();
       const environment = ConfigManager.getCurrentEnvironment();
       
-      console.log(`🗄️  Connecting to ${environment.toUpperCase()} Supabase database`);
       
       this.instance = createClient(
         supabaseConfig.url,
@@ -37,7 +36,6 @@ class SupabaseService {
       const supabaseConfig = ConfigManager.getSupabaseConfig();
       const environment = ConfigManager.getCurrentEnvironment();
       
-      console.log(`🔐 Connecting to ${environment.toUpperCase()} Supabase admin`);
       
       this.adminInstance = createClient(
         supabaseConfig.url,
