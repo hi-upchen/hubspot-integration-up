@@ -73,7 +73,8 @@ export class HubSpotInstallationService {
         access_token: installation.accessToken,
         refresh_token: installation.refreshToken,
         expires_at: installation.expiresAt,
-        scope: installation.scope
+        scope: installation.scope,
+        app_type: installation.appType
       })
       .select()
       .single();
@@ -89,16 +90,50 @@ export class HubSpotInstallationService {
       refreshToken: data.refresh_token,
       expiresAt: data.expires_at,
       scope: data.scope,
+      appType: data.app_type,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
   }
 
+  // Legacy method - finds any installation for hub (for backwards compatibility)
   async findByHubId(hubId: number): Promise<HubSpotInstallation | null> {
     const { data, error } = await supabaseAdmin
       .from('hubspot_installations')
       .select('*')
       .eq('hub_id', hubId)
+      .order('created_at', { ascending: false })
+      .limit(1);
+
+    if (error) {
+      throw new Error(`Failed to find installation: ${error.message}`);
+    }
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    const installation = data[0];
+    return {
+      id: installation.id,
+      hubId: installation.hub_id,
+      accessToken: installation.access_token,
+      refreshToken: installation.refresh_token,
+      expiresAt: installation.expires_at,
+      scope: installation.scope,
+      appType: installation.app_type,
+      createdAt: installation.created_at,
+      updatedAt: installation.updated_at
+    };
+  }
+
+  // New method - finds specific app installation for hub
+  async findByHubIdAndApp(hubId: number, appType: 'date-formatter' | 'url-shortener'): Promise<HubSpotInstallation | null> {
+    const { data, error } = await supabaseAdmin
+      .from('hubspot_installations')
+      .select('*')
+      .eq('hub_id', hubId)
+      .eq('app_type', appType)
       .single();
 
     if (error) {
@@ -115,11 +150,13 @@ export class HubSpotInstallationService {
       refreshToken: data.refresh_token,
       expiresAt: data.expires_at,
       scope: data.scope,
+      appType: data.app_type,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };
   }
 
+  // Legacy method - updates first found installation (for backwards compatibility)
   async updateTokens(hubId: number, tokens: { accessToken: string; refreshToken: string; expiresAt: string }): Promise<HubSpotInstallation> {
     const { data, error } = await supabaseAdmin
       .from('hubspot_installations')
@@ -130,6 +167,8 @@ export class HubSpotInstallationService {
         updated_at: new Date().toISOString()
       })
       .eq('hub_id', hubId)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .select()
       .single();
 
@@ -144,6 +183,39 @@ export class HubSpotInstallationService {
       refreshToken: data.refresh_token,
       expiresAt: data.expires_at,
       scope: data.scope,
+      appType: data.app_type,
+      createdAt: data.created_at,
+      updatedAt: data.updated_at
+    };
+  }
+
+  // New method - updates specific app installation
+  async updateTokensForApp(hubId: number, appType: 'date-formatter' | 'url-shortener', tokens: { accessToken: string; refreshToken: string; expiresAt: string }): Promise<HubSpotInstallation> {
+    const { data, error } = await supabaseAdmin
+      .from('hubspot_installations')
+      .update({
+        access_token: tokens.accessToken,
+        refresh_token: tokens.refreshToken,
+        expires_at: tokens.expiresAt,
+        updated_at: new Date().toISOString()
+      })
+      .eq('hub_id', hubId)
+      .eq('app_type', appType)
+      .select()
+      .single();
+
+    if (error) {
+      throw new Error(`Failed to update tokens for ${appType}: ${error.message}`);
+    }
+
+    return {
+      id: data.id,
+      hubId: data.hub_id,
+      accessToken: data.access_token,
+      refreshToken: data.refresh_token,
+      expiresAt: data.expires_at,
+      scope: data.scope,
+      appType: data.app_type,
       createdAt: data.created_at,
       updatedAt: data.updated_at
     };

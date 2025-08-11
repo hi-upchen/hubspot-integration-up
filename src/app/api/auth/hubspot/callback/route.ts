@@ -16,6 +16,7 @@ export async function GET(request: NextRequest) {
     const searchParams = request.nextUrl.searchParams;
     const code = searchParams.get('code');
     const error = searchParams.get('error');
+    const state = searchParams.get('state'); // App type identifier
 
     // Handle OAuth errors from HubSpot
     if (error) {
@@ -40,37 +41,57 @@ export async function GET(request: NextRequest) {
     // Validate the authorization code format
     validateOAuthCallback(code);
 
+    // Validate app type from state parameter
+    if (!state || !['date-formatter', 'url-shortener'].includes(state)) {
+      return NextResponse.json({
+        success: false,
+        error: 'invalid_state',
+        message: 'Invalid or missing app type in OAuth state'
+      }, { status: 400 });
+    }
+
     // Exchange authorization code for access and refresh tokens
-    const tokens = await exchangeCodeForTokens(code);
+    const tokens = await exchangeCodeForTokens(code, state as 'date-formatter' | 'url-shortener');
     
     // Get portal information using the access token
     const portalInfo = await getPortalInfo(tokens.accessToken);
 
-    // Store or update installation in database
+    // Store or update installation in database (app-specific)
     const installationService = new HubSpotInstallationService();
-    const existingInstallation = await installationService.findByHubId(portalInfo.portalId);
+    const appType = state as 'date-formatter' | 'url-shortener';
+    const existingInstallation = await installationService.findByHubIdAndApp(portalInfo.portalId, appType);
     
     if (existingInstallation) {
-      // Update existing installation with new tokens
-      await installationService.updateTokens(portalInfo.portalId, {
+      // Update existing installation with new tokens for this specific app
+      await installationService.updateTokensForApp(portalInfo.portalId, appType, {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + tokens.expiresIn * 1000).toISOString()
       });
     } else {
-      // Create new installation record
+      // Create new installation record for this specific app
       await installationService.create({
         hubId: portalInfo.portalId,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + tokens.expiresIn * 1000).toISOString(),
-        scope: HUBSPOT_OAUTH_SCOPES
+        scope: HUBSPOT_OAUTH_SCOPES,
+        appType: appType
       });
     }
 
-    // Get return URL from cookie or default to success page
-    const returnUrl = request.cookies.get('hubspot_return_url')?.value;
-    const redirectUrl = returnUrl || '/install?success=true';
+    // Determine redirect URL based on app type (state parameter)
+    let redirectUrl = '/install?success=true'; // Default fallback
+    
+    if (state && ['date-formatter', 'url-shortener'].includes(state)) {
+      redirectUrl = `/install/${state}/success?portalId=${portalInfo.portalId}`;
+    } else {
+      // Check for custom return URL in cookies
+      const returnUrl = request.cookies.get('hubspot_return_url')?.value;
+      if (returnUrl) {
+        redirectUrl = returnUrl;
+      }
+    }
 
     const response = NextResponse.redirect(new URL(redirectUrl, request.url));
     

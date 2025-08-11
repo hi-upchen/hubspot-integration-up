@@ -5,11 +5,14 @@ import { ConfigManager } from '@/lib/config/config-manager';
  * Exchanges HubSpot authorization code for access and refresh tokens
  * 
  * @param code - Authorization code received from HubSpot OAuth callback
+ * @param appType - App type to determine which OAuth credentials to use
  * @returns Promise containing OAuth tokens (access_token, refresh_token, expires_in, token_type)
  * @throws Error if token exchange fails or configuration is missing
  */
-export async function exchangeCodeForTokens(code: string): Promise<OAuthTokens> {
-  const { clientId, clientSecret, redirectUri } = ConfigManager.getHubSpotConfig();
+export async function exchangeCodeForTokens(code: string, appType: 'date-formatter' | 'url-shortener'): Promise<OAuthTokens> {
+  const clientId = ConfigManager.getHubSpotClientId(appType);
+  const clientSecret = ConfigManager.getHubSpotClientSecret(appType);
+  const { redirectUri } = ConfigManager.getHubSpotConfig();
 
   // Validate required OAuth configuration
   if (!clientId || !clientSecret || !redirectUri) {
@@ -60,11 +63,13 @@ export async function exchangeCodeForTokens(code: string): Promise<OAuthTokens> 
  * Refreshes an expired HubSpot access token using refresh token
  * 
  * @param refreshToken - Valid refresh token from previous OAuth flow
+ * @param appType - App type to determine which OAuth credentials to use
  * @returns Promise containing new OAuth tokens
  * @throws Error if token refresh fails or configuration is missing
  */
-export async function refreshAccessToken(refreshToken: string): Promise<OAuthTokens> {
-  const { clientId, clientSecret } = ConfigManager.getHubSpotConfig();
+export async function refreshAccessToken(refreshToken: string, appType: 'date-formatter' | 'url-shortener'): Promise<OAuthTokens> {
+  const clientId = ConfigManager.getHubSpotClientId(appType);
+  const clientSecret = ConfigManager.getHubSpotClientSecret(appType);
 
   // Validate required OAuth configuration
   if (!clientId || !clientSecret) {

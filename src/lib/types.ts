@@ -1,3 +1,5 @@
+export type AppType = 'date-formatter' | 'url-shortener';
+
 export interface HubSpotInstallation {
   id: string;
   hubId: number;
@@ -5,6 +7,7 @@ export interface HubSpotInstallation {
   refreshToken: string;
   expiresAt: string;
   scope: string[];
+  appType: AppType;
   createdAt: string;
   updatedAt: string;
 }

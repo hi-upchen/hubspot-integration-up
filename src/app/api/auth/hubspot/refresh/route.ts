@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const refreshedTokens = await refreshAccessToken(installation.refreshToken);
+    // Use the stored app_type from the installation record
+    const refreshedTokens = await refreshAccessToken(installation.refreshToken, installation.appType);
     
     const updatedInstallation = await installationService.updateTokens(hubId, {
       accessToken: refreshedTokens.accessToken,
