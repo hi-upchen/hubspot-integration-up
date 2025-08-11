@@ -75,7 +75,7 @@ try {
 }
 
 // Get environment-specific configuration using explicit environment
-const hubspotConfig = getHubSpotConfig(environment);
+const hubspotConfig = getHubSpotConfig(appName, environment);
 
 console.log(`🔧 Using ${environment.toUpperCase()} environment configuration`);
 
@@ -86,8 +86,12 @@ if (!hubspotConfig.developerApiKey) {
   process.exit(1);
 }
 
-if (!hubspotConfig.dateFormatterAppId) {
-  const envVar = environment === 'dev' ? 'HUBSPOT_DEV_DATE_FORMATTER_APP_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_APP_ID';
+// Validate app ID exists for the specified app type
+const appId = hubspotConfig.appId;
+if (!appId) {
+  const envPrefix = environment === 'dev' ? 'HUBSPOT_DEV' : 'HUBSPOT_PROD';
+  const appSuffix = appName === 'url-shortener' ? 'URL_SHORTENER_APP_ID' : 'DATE_FORMATTER_APP_ID';
+  const envVar = `${envPrefix}_${appSuffix}`;
   console.error(`❌ ${envVar} environment variable is required`);
   console.log('Get this from your HubSpot Developer Portal app dashboard');
   process.exit(1);
@@ -135,10 +139,10 @@ async function registerWorkflowAction() {
   
   console.log(`🚀 Registering ${workflowActionDefinition.labels?.en?.actionName || 'workflow action'} with HubSpot...`);
   console.log(`   App: ${appName}`);
-  console.log(`   App ID: ${hubspotConfig.dateFormatterAppId}`);
+  console.log(`   App ID: ${appId}`);
   console.log(`   Action URL: ${workflowActionDefinition.actionUrl}`);
   
-  const apiUrl = `https://api.hubapi.com/automation/v4/actions/${hubspotConfig.dateFormatterAppId}?hapikey=${hubspotConfig.developerApiKey}`;
+  const apiUrl = `https://api.hubapi.com/automation/v4/actions/${appId}?hapikey=${hubspotConfig.developerApiKey}`;
   
   try {
     

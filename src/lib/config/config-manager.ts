@@ -20,6 +20,42 @@ export class ConfigManager {
   }
 
   /**
+   * Gets app-specific HubSpot client ID
+   * @param appType - The app type ('date-formatter' or 'url-shortener')
+   * @returns Client ID for the specified app
+   */
+  static getHubSpotClientId(appType: 'date-formatter' | 'url-shortener' = 'date-formatter'): string {
+    const config = this.getHubSpotConfig();
+    return appType === 'url-shortener' 
+      ? config.urlShortener.clientId 
+      : config.dateFormatter.clientId;
+  }
+
+  /**
+   * Gets app-specific HubSpot client secret
+   * @param appType - The app type ('date-formatter' or 'url-shortener')
+   * @returns Client secret for the specified app
+   */
+  static getHubSpotClientSecret(appType: 'date-formatter' | 'url-shortener' = 'date-formatter'): string {
+    const config = this.getHubSpotConfig();
+    return appType === 'url-shortener' 
+      ? config.urlShortener.clientSecret 
+      : config.dateFormatter.clientSecret;
+  }
+
+  /**
+   * Gets app-specific HubSpot app ID
+   * @param appType - The app type ('date-formatter' or 'url-shortener')
+   * @returns App ID for the specified app
+   */
+  static getHubSpotAppId(appType: 'date-formatter' | 'url-shortener' = 'date-formatter'): string {
+    const config = this.getHubSpotConfig();
+    return appType === 'url-shortener' 
+      ? config.urlShortener.appId 
+      : config.dateFormatter.appId;
+  }
+
+  /**
    * Gets Supabase configuration for current environment
    * @returns Supabase configuration object
    */

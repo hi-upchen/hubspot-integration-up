@@ -6,11 +6,18 @@
 export type Environment = 'dev' | 'prod';
 
 export interface HubSpotConfig {
-  clientId: string;
-  clientSecret: string;
   redirectUri: string;
   developerApiKey: string;
-  dateFormatterAppId: string;
+  dateFormatter: {
+    clientId: string;
+    clientSecret: string;
+    appId: string;
+  };
+  urlShortener: {
+    clientId: string;
+    clientSecret: string;
+    appId: string;
+  };
 }
 
 export interface SupabaseConfig {
@@ -60,21 +67,48 @@ function getHubSpotConfig(environment: Environment): HubSpotConfig {
   const prefix = environment === 'dev' ? 'DEV' : 'PROD';
   
   const config = {
-    clientId: process.env[`HUBSPOT_${prefix}_CLIENT_ID`],
-    clientSecret: process.env[`HUBSPOT_${prefix}_CLIENT_SECRET`],
     redirectUri: process.env[`HUBSPOT_${prefix}_REDIRECT_URI`],
     developerApiKey: process.env[`HUBSPOT_${prefix}_DEVELOPER_API_KEY`],
-    dateFormatterAppId: process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_APP_ID`],
+    dateFormatter: {
+      clientId: process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_CLIENT_ID`],
+      clientSecret: process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_CLIENT_SECRET`],
+      appId: process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_APP_ID`],
+    },
+    urlShortener: {
+      clientId: process.env[`HUBSPOT_${prefix}_URL_SHORTENER_CLIENT_ID`],
+      clientSecret: process.env[`HUBSPOT_${prefix}_URL_SHORTENER_CLIENT_SECRET`],
+      appId: process.env[`HUBSPOT_${prefix}_URL_SHORTENER_APP_ID`],
+    },
   };
   
-  // Validate all required fields are present
-  const missingFields = Object.entries(config)
-    .filter(([, value]) => !value)
-    .map(([key]) => `HUBSPOT_${prefix}_${key.replace(/([A-Z])/g, '_$1').toUpperCase()}`);
+  // Validate shared required fields
+  const sharedMissingFields = [
+    ['redirectUri', `HUBSPOT_${prefix}_REDIRECT_URI`],
+    ['developerApiKey', `HUBSPOT_${prefix}_DEVELOPER_API_KEY`],
+  ].filter(([key]) => !config[key as keyof typeof config])
+    .map(([, envVar]) => envVar);
   
-  if (missingFields.length > 0) {
+  // Validate date formatter fields
+  const dateFormatterMissing = [
+    ['clientId', `HUBSPOT_${prefix}_DATE_FORMATTER_CLIENT_ID`],
+    ['clientSecret', `HUBSPOT_${prefix}_DATE_FORMATTER_CLIENT_SECRET`],
+    ['appId', `HUBSPOT_${prefix}_DATE_FORMATTER_APP_ID`],
+  ].filter(([key]) => !config.dateFormatter[key as keyof typeof config.dateFormatter])
+    .map(([, envVar]) => envVar);
+  
+  // Validate URL shortener fields
+  const urlShortenerMissing = [
+    ['clientId', `HUBSPOT_${prefix}_URL_SHORTENER_CLIENT_ID`],
+    ['clientSecret', `HUBSPOT_${prefix}_URL_SHORTENER_CLIENT_SECRET`],
+    ['appId', `HUBSPOT_${prefix}_URL_SHORTENER_APP_ID`],
+  ].filter(([key]) => !config.urlShortener[key as keyof typeof config.urlShortener])
+    .map(([, envVar]) => envVar);
+  
+  const allMissingFields = [...sharedMissingFields, ...dateFormatterMissing, ...urlShortenerMissing];
+  
+  if (allMissingFields.length > 0) {
     throw new Error(
-      `Missing required HubSpot ${environment} environment variables: ${missingFields.join(', ')}`
+      `Missing required HubSpot ${environment} environment variables: ${allMissingFields.join(', ')}`
     );
   }
   
@@ -112,10 +146,12 @@ function getSupabaseConfig(environment: Environment): SupabaseConfig {
  */
 export function logEnvironmentInfo(environment: Environment): void {
   const prefix = environment === 'dev' ? 'DEV' : 'PROD';
-  const hubspotAppId = process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_APP_ID`];
+  const dateFormatterAppId = process.env[`HUBSPOT_${prefix}_DATE_FORMATTER_APP_ID`];
+  const urlShortenerAppId = process.env[`HUBSPOT_${prefix}_URL_SHORTENER_APP_ID`];
   const supabaseUrl = process.env[`SUPABASE_${prefix}_URL`];
   
   console.log(`🔧 Environment: ${environment.toUpperCase()}`);
-  console.log(`   HubSpot App ID: ${hubspotAppId?.substring(0, 8)}...`);
+  console.log(`   Date Formatter App ID: ${dateFormatterAppId?.substring(0, 8)}...`);
+  console.log(`   URL Shortener App ID: ${urlShortenerAppId?.substring(0, 8)}...`);
   console.log(`   Supabase Project: ${supabaseUrl?.split('.')[0].split('//')[1]}...`);
 }

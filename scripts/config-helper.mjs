@@ -21,16 +21,31 @@ export function getCurrentEnvironment() {
 
 /**
  * Gets environment-specific HubSpot configuration
+ * @param {string} appType - The app type ('date-formatter' or 'url-shortener')
  * @param {string} explicitEnv - Optional explicit environment ('dev' or 'prod')
  */
-export function getHubSpotConfig(explicitEnv) {
+export function getHubSpotConfig(appType = 'date-formatter', explicitEnv) {
   const environment = explicitEnv || getCurrentEnvironment();
   const isDev = environment === 'dev';
   
-  return {
+  const config = {
     developerApiKey: process.env[isDev ? 'HUBSPOT_DEV_DEVELOPER_API_KEY' : 'HUBSPOT_PROD_DEVELOPER_API_KEY'],
-    dateFormatterAppId: process.env[isDev ? 'HUBSPOT_DEV_DATE_FORMATTER_APP_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_APP_ID']
   };
+  
+  if (appType === 'date-formatter') {
+    config.appId = process.env[isDev ? 'HUBSPOT_DEV_DATE_FORMATTER_APP_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_APP_ID'];
+    config.clientId = process.env[isDev ? 'HUBSPOT_DEV_DATE_FORMATTER_CLIENT_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_CLIENT_ID'];
+    config.clientSecret = process.env[isDev ? 'HUBSPOT_DEV_DATE_FORMATTER_CLIENT_SECRET' : 'HUBSPOT_PROD_DATE_FORMATTER_CLIENT_SECRET'];
+  } else if (appType === 'url-shortener') {
+    config.appId = process.env[isDev ? 'HUBSPOT_DEV_URL_SHORTENER_APP_ID' : 'HUBSPOT_PROD_URL_SHORTENER_APP_ID'];
+    config.clientId = process.env[isDev ? 'HUBSPOT_DEV_URL_SHORTENER_CLIENT_ID' : 'HUBSPOT_PROD_URL_SHORTENER_CLIENT_ID'];
+    config.clientSecret = process.env[isDev ? 'HUBSPOT_DEV_URL_SHORTENER_CLIENT_SECRET' : 'HUBSPOT_PROD_URL_SHORTENER_CLIENT_SECRET'];
+  }
+  
+  // Legacy support
+  config.dateFormatterAppId = process.env[isDev ? 'HUBSPOT_DEV_DATE_FORMATTER_APP_ID' : 'HUBSPOT_PROD_DATE_FORMATTER_APP_ID'];
+  
+  return config;
 }
 
 /**
