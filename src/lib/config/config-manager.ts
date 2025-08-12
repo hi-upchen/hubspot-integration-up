@@ -1,22 +1,32 @@
 /**
  * Configuration Manager
  * Handles environment detection and provides direct access to configuration
+ * Now uses ConfigLoader for JSON-based configuration instead of environment variables
  */
 
-import { getEnvironmentConfig, type Environment, type EnvironmentConfig, type HubSpotConfig, type SupabaseConfig } from './environment';
+import { ConfigLoader, type AppConfig } from './config-loader';
+import type { Environment } from './environment';
 
 export class ConfigManager {
-  private static config: EnvironmentConfig;
+  private static config: AppConfig;
+
+  /**
+   * Gets complete configuration for current environment
+   * @returns Complete configuration object
+   */
+  static getConfig(): AppConfig {
+    if (!this.config) {
+      this.initializeConfig();
+    }
+    return this.config;
+  }
 
   /**
    * Gets HubSpot configuration for current environment
    * @returns HubSpot configuration object
    */
-  static getHubSpotConfig(): HubSpotConfig {
-    if (!this.config) {
-      this.initializeConfig();
-    }
-    return this.config.hubspot;
+  static getHubSpotConfig(): AppConfig['hubspot'] {
+    return this.getConfig().hubspot;
   }
 
   /**
@@ -25,10 +35,12 @@ export class ConfigManager {
    * @returns Client ID for the specified app
    */
   static getHubSpotClientId(appType: 'date-formatter' | 'url-shortener' = 'date-formatter'): string {
-    const config = this.getHubSpotConfig();
-    return appType === 'url-shortener' 
-      ? config.urlShortener.clientId 
-      : config.dateFormatter.clientId;
+    const hubspotConfig = this.getHubSpotConfig();
+    const appConfig = hubspotConfig.apps[appType];
+    if (!appConfig) {
+      throw new Error(`No configuration found for app: ${appType}`);
+    }
+    return appConfig.clientId;
   }
 
   /**
@@ -37,10 +49,12 @@ export class ConfigManager {
    * @returns Client secret for the specified app
    */
   static getHubSpotClientSecret(appType: 'date-formatter' | 'url-shortener' = 'date-formatter'): string {
-    const config = this.getHubSpotConfig();
-    return appType === 'url-shortener' 
-      ? config.urlShortener.clientSecret 
-      : config.dateFormatter.clientSecret;
+    const hubspotConfig = this.getHubSpotConfig();
+    const appConfig = hubspotConfig.apps[appType];
+    if (!appConfig) {
+      throw new Error(`No configuration found for app: ${appType}`);
+    }
+    return appConfig.clientSecret;
   }
 
   /**
@@ -49,21 +63,76 @@ export class ConfigManager {
    * @returns App ID for the specified app
    */
   static getHubSpotAppId(appType: 'date-formatter' | 'url-shortener' = 'date-formatter'): string {
-    const config = this.getHubSpotConfig();
-    return appType === 'url-shortener' 
-      ? config.urlShortener.appId 
-      : config.dateFormatter.appId;
+    const hubspotConfig = this.getHubSpotConfig();
+    const appConfig = hubspotConfig.apps[appType];
+    if (!appConfig) {
+      throw new Error(`No configuration found for app: ${appType}`);
+    }
+    return appConfig.appId;
+  }
+
+  /**
+   * Gets HubSpot redirect URI for current environment
+   * @returns Redirect URI
+   */
+  static getHubSpotRedirectUri(): string {
+    return this.getHubSpotConfig().shared.redirectUri;
+  }
+
+  /**
+   * Gets HubSpot developer API key for current environment
+   * @returns Developer API key
+   */
+  static getHubSpotDeveloperApiKey(): string {
+    return this.getHubSpotConfig().shared.developerApiKey;
   }
 
   /**
    * Gets Supabase configuration for current environment
    * @returns Supabase configuration object
    */
-  static getSupabaseConfig(): SupabaseConfig {
-    if (!this.config) {
-      this.initializeConfig();
-    }
-    return this.config.supabase;
+  static getSupabaseConfig(): AppConfig['supabase'] {
+    return this.getConfig().supabase;
+  }
+
+  /**
+   * Gets application configuration for current environment
+   * @returns Application configuration object
+   */
+  static getApplicationConfig(): AppConfig['application'] {
+    return this.getConfig().application;
+  }
+
+  /**
+   * Gets Next.js URL for current environment
+   * @returns Next.js base URL
+   */
+  static getNextjsUrl(): string {
+    return this.getApplicationConfig().nextjsUrl;
+  }
+
+  /**
+   * Gets encryption key for current environment
+   * @returns Encryption key for API key encryption
+   */
+  static getEncryptionKey(): string {
+    return this.getApplicationConfig().encryptionKey;
+  }
+
+  /**
+   * Gets NextAuth secret for current environment
+   * @returns NextAuth secret
+   */
+  static getNextAuthSecret(): string {
+    return this.getApplicationConfig().nextAuthSecret;
+  }
+
+  /**
+   * Gets cron secret for current environment
+   * @returns Cron job security secret
+   */
+  static getCronSecret(): string {
+    return this.getApplicationConfig().cronSecret;
   }
 
   /**
@@ -71,7 +140,7 @@ export class ConfigManager {
    */
   private static initializeConfig(): void {
     const environment = this.determineEnvironment();
-    this.config = getEnvironmentConfig(environment);
+    this.config = ConfigLoader.loadConfig(environment);
   }
 
   /**
@@ -125,6 +194,7 @@ export class ConfigManager {
   private static reset(): void {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     this.config = undefined as any;
+    ConfigLoader.clearCache();
   }
 
   /**
