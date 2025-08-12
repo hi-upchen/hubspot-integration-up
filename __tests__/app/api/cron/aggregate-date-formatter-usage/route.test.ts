@@ -3,7 +3,7 @@
  */
 
 // Mock external dependencies BEFORE imports
-jest.mock('@/lib/services/date-formatter-usage-aggregator');
+jest.mock('@/lib/features/date-formatter/services/date-formatter-usage-aggregator');
 jest.mock('@/lib/config/config-manager', () => ({
   ConfigManager: {
     getCurrentEnvironment: jest.fn(() => 'dev'),
@@ -28,7 +28,7 @@ jest.mock('@/lib/supabase/client', () => ({
 }));
 
 import { GET } from '@/app/api/cron/aggregate-date-formatter-usage/route';
-import { aggregateDateFormatterUsage } from '@/lib/services/date-formatter-usage-aggregator';
+import { aggregateDateFormatterUsage } from '@/lib/features/date-formatter/services/date-formatter-usage-aggregator';
 import { NextRequest } from 'next/server';
 
 const mockAggregateDateFormatterUsage = aggregateDateFormatterUsage as jest.MockedFunction<typeof aggregateDateFormatterUsage>;

@@ -29,7 +29,7 @@ jest.mock('@/lib/config/config-manager', () => ({
   }
 }));
 
-import { aggregateDateFormatterUsage } from '@/lib/services/date-formatter-usage-aggregator';
+import { aggregateDateFormatterUsage } from '@/lib/features/date-formatter/services/date-formatter-usage-aggregator';
 import { supabaseAdmin } from '@/lib/supabase/client';
 import { ConfigManager } from '@/lib/config/config-manager';
 

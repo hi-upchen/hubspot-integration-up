@@ -1,4 +1,4 @@
-import { parseSourceDate, formatDate } from '@/lib/services/date-formatter'
+import { parseSourceDate, formatDate } from '@/lib/features/date-formatter/services/date-formatter'
 import type { DateFormat } from '@/lib/types'
 
 describe('Date Formatter Edge Cases', () => {
