@@ -13,22 +13,25 @@ export const HUBSPOT_OAUTH_SCOPES = [
  * Generates HubSpot OAuth authorization URL with required parameters
  * Uses environment-specific credentials detected automatically
  * 
+ * @param appType - The app type to generate OAuth URL for
  * @returns Complete OAuth authorization URL
  * @throws Error if required environment variables are missing
  */
-export function generateOAuthUrl(): string {
-  const config = ConfigManager.getHubSpotConfig();
+export function generateOAuthUrl(appType: 'date-formatter' | 'url-shortener'): string {
+  const clientId = ConfigManager.getHubSpotClientId(appType);
+  const redirectUri = ConfigManager.getHubSpotRedirectUri();
   const environment = ConfigManager.getCurrentEnvironment();
   
   // Build OAuth authorization URL parameters
   const params = new URLSearchParams({
-    client_id: config.clientId,
-    redirect_uri: config.redirectUri,
+    client_id: clientId,
+    redirect_uri: redirectUri,
     scope: HUBSPOT_OAUTH_SCOPES.join(' '),
-    response_type: 'code'
+    response_type: 'code',
+    state: appType  // Add state parameter to identify app type
   });
 
-  console.log(`🔐 Generating OAuth URL for ${environment.toUpperCase()} environment`);
+  console.log(`🔐 Generating OAuth URL for ${appType} (${environment.toUpperCase()} environment)`);
   
   return `https://app.hubspot.com/oauth/authorize?${params.toString()}`;
 }

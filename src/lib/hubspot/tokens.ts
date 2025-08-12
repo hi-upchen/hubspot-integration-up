@@ -12,7 +12,7 @@ import { ConfigManager } from '@/lib/config/config-manager';
 export async function exchangeCodeForTokens(code: string, appType: 'date-formatter' | 'url-shortener'): Promise<OAuthTokens> {
   const clientId = ConfigManager.getHubSpotClientId(appType);
   const clientSecret = ConfigManager.getHubSpotClientSecret(appType);
-  const { redirectUri } = ConfigManager.getHubSpotConfig();
+  const redirectUri = ConfigManager.getHubSpotRedirectUri();
 
   // Validate required OAuth configuration
   if (!clientId || !clientSecret || !redirectUri) {
