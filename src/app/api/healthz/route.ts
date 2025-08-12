@@ -142,10 +142,10 @@ export async function GET() {
   const hubspotStart = Date.now();
   try {
     const currentEnv = ConfigManager.getCurrentEnvironment();
-    const hubspotConfig = ConfigManager.getHubSpotConfig();
     
-    // Test HubSpot OAuth endpoint availability (doesn't require auth)
-    const oauthUrl = `https://app.hubspot.com/oauth/authorize?client_id=${hubspotConfig.clientId}&scope=oauth&redirect_uri=test`;
+    // Test HubSpot OAuth endpoint availability using date-formatter app (doesn't require auth)
+    const dateFormatterClientId = ConfigManager.getHubSpotClientId('date-formatter');
+    const oauthUrl = `https://app.hubspot.com/oauth/authorize?client_id=${dateFormatterClientId}&scope=oauth&redirect_uri=test`;
     const response_hubspot = await fetch(oauthUrl, {
       method: 'HEAD',
       signal: AbortSignal.timeout(5000) // 5 second timeout

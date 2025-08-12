@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPortalInfo, updatePortalUserInfo } from '@/lib/services/hubspot-portal';
+import { getPortalInfo, updatePortalUserInfo } from '@/lib/shared/hubspot-portal';
 import { validatePortalId, validateUpdatePortalRequest } from '../../_shared/validation';
 import { formatSuccessResponse, handleApiError } from '../../_shared/responses';
 import { PortalNotFoundError } from '../../_shared/errors';

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { aggregateDateFormatterUsage } from '@/lib/services/date-formatter-usage-aggregator';
+import { aggregateDateFormatterUsage } from '@/lib/features/date-formatter/services/date-formatter-usage-aggregator';
 
 /**
  * Cron job endpoint for aggregating date formatter usage

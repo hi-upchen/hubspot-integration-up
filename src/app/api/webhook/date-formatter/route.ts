@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { processDateFormatterWebhook } from '@/lib/services/webhook-handler';
+import { processDateFormatterWebhook } from '@/lib/shared/webhook-handler';
 import type { WorkflowRequest } from '@/lib/types';
 
 /**
