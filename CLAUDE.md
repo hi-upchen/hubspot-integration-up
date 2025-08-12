@@ -374,11 +374,51 @@ npm test -- __tests__/lib/config/config-manager.test.ts
   - Custom format tokens
   - Error handling that doesn't break workflows
 - **Expansion Plans**: 
-  - URL shortener action
+  - ✅ **URL shortener action** (Completed January 2025)
   - Data transformer action
   - Text formatter action
   - Number formatter action
 - **Success Metrics**: Monthly active portals, requests per portal, error rates
+
+## URL Shortener Implementation (Completed January 2025)
+
+### Features
+- **Bitly Integration**: Powered by Bitly API v4 for reliable URL shortening
+- **Custom Domain Support**: Use branded domains (e.g., yourbrand.co) or default bit.ly
+- **Error Handling**: Comprehensive error messages for API key issues, invalid URLs, rate limits
+- **Usage Tracking**: Full request logging and analytics separate from date formatter
+- **Security**: Encrypted API key storage with AES-256-GCM encryption
+- **Multi-App Architecture**: Clean separation from date formatter with shared OAuth
+
+### Implementation Details
+- **Database Schema**: New tables for API keys (`url_shortener_api_keys`), usage tracking (`url_shortener_usage`), and monthly aggregates
+- **API Key Management**: Dashboard UI for Bitly token configuration with connection testing
+- **Webhook Handler**: `/api/webhook/url-shortener` with input validation and retry logic
+- **Service Architecture**: Modular design with `BitlyService`, `UrlValidator`, and `UrlShortenerService`
+- **OAuth Integration**: State parameter support for app-specific redirect flows
+- **Scripts**: NPM commands for dev/prod registration and management
+
+### Configuration Files
+- **Workflow Action**: `/config/workflow-actions/url-shortener.json`
+- **App Config**: Updated `/config/apps.json` with url-shortener entry
+- **Package Scripts**: Added `hubspot:url-shortener:dev:*` and `hubspot:url-shortener:prod:*` commands
+
+### User Experience
+- **Installation Flow**: Dedicated success page at `/install/url-shortener/success`
+- **Dashboard Integration**: Tabbed interface with API key settings and usage statistics  
+- **Error Messages**: User-friendly messages with clear resolution steps
+- **Documentation**: Complete setup guides in `/docs/URL_SHORTENER_SETUP.md` and `/docs/BITLY_API_KEY_GUIDE.md`
+
+### Testing Coverage
+- **Unit Tests**: Comprehensive test suites for BitlyService, URL validation, encryption, and webhook handler
+- **Error Scenarios**: Rate limits, invalid API keys, malformed URLs, custom domain issues
+- **Edge Cases**: Network failures, retry logic, concurrent requests, authentication errors
+
+### Security Implementation
+- **API Key Encryption**: AES-256-GCM with PBKDF2 key derivation
+- **Environment Variables**: Separate DEV/PROD configurations
+- **Input Validation**: URL format validation and domain verification
+- **Portal Authorization**: Installation verification for each request
 
 ## Critical Test Scenarios
 ### Date Formatting Tests
@@ -393,6 +433,18 @@ npm test -- __tests__/lib/config/config-manager.test.ts
   - Invalid dates (13/32/2025)
   - Different separators (/, -, ., space)
   - Leading zeros (01/01/2025 vs 1/1/2025)
+
+### URL Shortener Tests
+- **Valid URL**: Should successfully shorten standard HTTP/HTTPS URLs
+- **Custom Domain**: Should respect custom Bitly domains when provided
+- **Invalid URL**: Should return validation error for malformed URLs
+- **Missing API Key**: Should return setup instructions error message
+- **Invalid API Key**: Should return "Please check your Bitly API key" error
+- **Rate Limiting**: Should handle Bitly rate limits with retry logic and user-friendly messages
+- **Network Failures**: Should retry with exponential backoff (max 3 attempts)
+- **Already Shortened**: Should detect and warn about already-shortened URLs
+- **Long URLs**: Should handle URLs up to 2048 characters
+- **Unicode URLs**: Should properly encode international characters
 
 ### Authentication Tests
 - **Portal Not Found**: Should return 401 unauthorized

@@ -3,5 +3,10 @@
     "envPrefix": "DATE_FORMATTER",
     "webhookPath": "/api/webhook/date-formatter",
     "definitionFile": "config/workflow-actions/date-formatter.json"
+  },
+  "url-shortener": {
+    "envPrefix": "URL_SHORTENER",
+    "webhookPath": "/api/webhook/url-shortener",
+    "definitionFile": "config/workflow-actions/url-shortener.json"
   }
 }
