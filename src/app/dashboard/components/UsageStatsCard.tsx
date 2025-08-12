@@ -2,14 +2,14 @@
  * Usage stats card component
  */
 
-import type { UsageStats } from '@/lib/services/types';
+import type { UsageStats } from '@/lib/shared/types';
 
 interface UsageStatsCardProps {
   usageStats: UsageStats | null;
   portalId: number;
 }
 
-export default function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
+export function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
   if (!usageStats) {
     return (
       <div className="bg-white border border-gray-200 rounded-lg p-6">

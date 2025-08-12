@@ -5,7 +5,7 @@
  */
 
 import { useState } from 'react';
-import type { PortalInfo } from '@/lib/services/types';
+import type { PortalInfo } from '@/lib/shared/types';
 
 interface PortalInfoCardProps {
   portalInfo: PortalInfo | null;

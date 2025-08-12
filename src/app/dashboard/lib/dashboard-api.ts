@@ -2,9 +2,9 @@
  * Server-side API utilities for dashboard data fetching
  */
 
-import { getPortalInfo } from '@/lib/services/hubspot-portal';
-import { getUsageStats } from '@/lib/services/usage-tracker';
-import type { PortalInfo, UsageStats } from '@/lib/services/types';
+import { getPortalInfo } from '@/lib/shared/hubspot-portal';
+import { getUsageStats } from '@/lib/shared/usage-tracker';
+import type { PortalInfo, UsageStats } from '@/lib/shared/types';
 
 export interface DashboardData {
   portalInfo: PortalInfo | null;

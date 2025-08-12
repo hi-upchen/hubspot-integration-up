@@ -4,7 +4,7 @@
 
 import BetaNotice from './BetaNotice';
 import PortalInfoCard from './PortalInfoCard';
-import UsageStatsCard from './UsageStatsCard';
+import { FeatureTabs } from './FeatureTabs';
 import ErrorMessage from './ErrorMessage';
 import type { DashboardData } from '../lib/dashboard-api';
 
@@ -45,30 +45,16 @@ export default function Dashboard({ data }: DashboardProps) {
         {/* Beta Notice */}
         <BetaNotice />
 
-        {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
-          {/* Portal Info Card */}
+        {/* Portal Info Card */}
+        <div className="mb-8">
           <PortalInfoCard portalInfo={portalInfo} portalId={portalId} />
-          
-          {/* Usage Stats Card */}
-          <UsageStatsCard usageStats={usageStats} portalId={portalId} />
         </div>
 
-        {/* Future: Additional cards can go here */}
-        <div className="grid grid-cols-1 gap-6">
-          {/* Placeholder for future features */}
-          <div className="bg-white border border-gray-200 rounded-lg p-6">
-            <h3 className="text-lg font-semibold text-gray-900 mb-4">Coming Soon</h3>
-            <div className="text-center py-8">
-              <p className="text-gray-500">More features and analytics coming soon!</p>
-              <ul className="text-sm text-gray-400 mt-4 space-y-1">
-                <li>• Historical usage charts</li>
-                <li>• Export usage reports</li>
-                <li>• Usage alerts and notifications</li>
-              </ul>
-            </div>
-          </div>
-        </div>
+        {/* Feature Tabs */}
+        <FeatureTabs 
+          portalId={portalId}
+          usageStats={usageStats}
+        />
       </div>
     </div>
   );
