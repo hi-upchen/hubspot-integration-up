@@ -1,0 +1,83 @@
+{
+  "actionUrl": "https://your-domain.vercel.app/api/webhook/url-shortener",
+  "published": true,
+  "inputFields": [
+    {
+      "typeDefinition": {
+        "name": "urlToShorten",
+        "type": "string",
+        "fieldType": "text"
+      },
+      "supportedValueTypes": ["STATIC_VALUE", "OBJECT_PROPERTY"],
+      "isRequired": true,
+      "label": "URL to shorten",
+      "description": "The long URL you want to shorten using Bitly"
+    },
+    {
+      "typeDefinition": {
+        "name": "customDomain",
+        "type": "string", 
+        "fieldType": "text"
+      },
+      "supportedValueTypes": ["STATIC_VALUE", "OBJECT_PROPERTY"],
+      "isRequired": false,
+      "label": "Your domain (optional)",
+      "description": "Custom branded domain (e.g., yourbrand.co). Leave blank to use your Bitly default"
+    }
+  ],
+  "outputFields": [
+    {
+      "typeDefinition": {
+        "name": "shortUrl",
+        "type": "string"
+      },
+      "label": "Shortened URL"
+    },
+    {
+      "typeDefinition": {
+        "name": "longUrl", 
+        "type": "string"
+      },
+      "label": "Original URL"
+    },
+    {
+      "typeDefinition": {
+        "name": "customDomain",
+        "type": "string"
+      },
+      "label": "Domain Used"
+    },
+    {
+      "typeDefinition": {
+        "name": "createdAt",
+        "type": "string"
+      },
+      "label": "Created Time"
+    },
+    {
+      "typeDefinition": {
+        "name": "error",
+        "type": "string"
+      },
+      "label": "Error Message"
+    }
+  ],
+  "objectTypes": ["CONTACT", "COMPANY", "DEAL", "TICKET"],
+  "labels": {
+    "en": {
+      "actionName": "URL Shortener",
+      "actionDescription": "Shorten URLs using Bitly service with custom domain support",
+      "inputFieldLabels": {
+        "urlToShorten": "URL to shorten",
+        "customDomain": "Your domain (optional)"
+      },
+      "outputFieldLabels": {
+        "shortUrl": "Shortened URL",
+        "longUrl": "Original URL", 
+        "customDomain": "Domain Used",
+        "createdAt": "Created Time",
+        "error": "Error Message"
+      }
+    }
+  }
+}
