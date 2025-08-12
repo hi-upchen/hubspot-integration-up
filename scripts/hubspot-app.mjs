@@ -182,11 +182,13 @@ async function registerAction() {
       
       console.log('✅ Workflow action registered successfully!');
       console.log('📋 Action Details:');
+      console.log(`   Original Name: ${baseActionName}`);
       console.log(`   Action ID: ${result.id || result.actionDefinitionId}`);
       console.log(`   Status: ${result.published ? 'Published' : 'Draft'}`);
       console.log(`   Action URL: ${result.actionUrl}`);
       console.log(`   Input Fields: ${result.inputFields?.length || 0}`);
       console.log(`   Output Fields: ${result.outputFields?.length || 0}`);
+      console.log(`   Registered Name: ${finalActionName}`);
       
       console.log('\n🎯 Next Steps:');
       console.log('1. Go to your HubSpot account');
@@ -224,11 +226,158 @@ async function registerAction() {
 }
 
 async function updateAction() {
-  console.log('🔄 Update functionality will list existing actions and prompt for selection');
-  await listActions();
-  console.log('\nℹ️  To update an action, delete the old one and register a new one:');
-  console.log(`   npm run hubspot -- delete ${appName} ${environment} <action-id>`);
-  console.log(`   npm run hubspot -- register ${appName} ${environment}`);
+  console.log('🔄 Updating existing workflow action...');
+  
+  // First, list existing actions to find the one to update
+  const listResult = await listActionsQuiet();
+  
+  if (!listResult.results || listResult.results.length === 0) {
+    console.log('❌ No existing actions found to update');
+    console.log('💡 Register a new action instead:');
+    console.log(`   npm run hubspot -- register ${appName} ${environment}`);
+    return;
+  }
+  
+  // For now, update the first (most recent) action found
+  const actionToUpdate = listResult.results[0];
+  const actionId = actionToUpdate.id || actionToUpdate.actionDefinitionId;
+  
+  console.log(`📝 Updating action: ${actionToUpdate.labels?.en?.actionName || 'Unnamed'} (ID: ${actionId})`);
+  
+  // Load the action definition from config file
+  const actionDefPath = path.join(__dirname, '..', 'config', 'workflow-actions', `${appName}.json`);
+  
+  if (!fs.existsSync(actionDefPath)) {
+    console.error(`❌ Action definition file not found: ${actionDefPath}`);
+    process.exit(1);
+  }
+
+  const actionDefinition = JSON.parse(fs.readFileSync(actionDefPath, 'utf8'));
+  
+  // Add runtime properties to the definition
+  const now = new Date();
+  const envLabel = environment.toUpperCase();
+  const timestamp = environment === 'dev' 
+    ? ` (Dev-Tunnel - ${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+    : '';
+
+  // Store original name for output
+  const originalActionName = actionDefinition.labels.en.actionName;
+  const baseActionName = originalActionName.split(' v')[0];
+  
+  actionDefinition.labels.en.actionName = `${baseActionName} v1.0.0${timestamp}`;
+  actionDefinition.actionUrl = actionDefinition.actionUrl.replace('https://your-domain.vercel.app', hubspotConfig.nextjsUrl);
+
+  const apiUrl = `https://api.hubapi.com/automation/v4/actions/${hubspotConfig.appId}/${actionId}?hapikey=${hubspotConfig.developerApiKey}`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'PATCH', // Try PATCH first, fallback to PUT if needed
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify(actionDefinition)
+    });
+
+    const responseText = await response.text();
+
+    if (response.ok) {
+      const result = JSON.parse(responseText);
+      console.log('✅ Workflow action updated successfully!');
+      console.log('📋 Updated Action Details:');
+      console.log(`   Original Name: ${originalActionName}`);
+      console.log(`   Action ID: ${result.id || result.actionDefinitionId || actionId}`);
+      console.log(`   Status: ${result.published ? 'Published' : 'Draft'}`);
+      console.log(`   Action URL: ${result.actionUrl || actionDefinition.actionUrl}`);
+      console.log(`   Input Fields: ${result.inputFields?.length || actionDefinition.inputFields?.length || 0}`);
+      console.log(`   Output Fields: ${result.outputFields?.length || actionDefinition.outputFields?.length || 0}`);
+      console.log(`   Updated Name: ${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}`);
+      console.log('');
+      console.log('🎯 Next Steps:');
+      console.log('1. Go to your HubSpot account');
+      console.log('2. Navigate to Automation → Workflows');
+      console.log('3. Create a new workflow or edit existing one');
+      console.log(`4. Look for "${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}" in Custom Actions`);
+    } else if (response.status === 405 && !response.url.includes('PUT')) {
+      // Method not allowed, try PUT instead
+      console.log('🔄 PATCH not supported, trying PUT method...');
+      
+      const putResponse = await fetch(apiUrl.replace('PATCH', 'PUT'), {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(actionDefinition)
+      });
+
+      const putResponseText = await putResponse.text();
+
+      if (putResponse.ok) {
+        const result = JSON.parse(putResponseText);
+        console.log('✅ Workflow action updated successfully (using PUT)!');
+        console.log('📋 Updated Action Details:');
+        console.log(`   Original Name: ${originalActionName}`);
+        console.log(`   Action ID: ${result.id || result.actionDefinitionId || actionId}`);
+        console.log(`   Status: ${result.published ? 'Published' : 'Draft'}`);
+        console.log(`   Action URL: ${result.actionUrl || actionDefinition.actionUrl}`);
+        console.log(`   Input Fields: ${result.inputFields?.length || actionDefinition.inputFields?.length || 0}`);
+        console.log(`   Output Fields: ${result.outputFields?.length || actionDefinition.outputFields?.length || 0}`);
+        console.log(`   Updated Name: ${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}`);
+      } else {
+        throw new Error(`PUT method also failed: ${putResponse.status} ${putResponse.statusText}\n${putResponseText}`);
+      }
+    } else {
+      console.error('❌ Failed to update workflow action');
+      console.error(`   Status: ${response.status} ${response.statusText}`);
+      console.error(`   Response: ${responseText}`);
+      
+      if (response.status === 404) {
+        console.error('\n💡 This might mean:');
+        console.error('   1. The action ID is incorrect');
+        console.error('   2. The action has been deleted');
+        console.error('   3. Update API endpoint has changed');
+        console.error('\n🔄 Falling back to delete and recreate:');
+        console.log(`   npm run hubspot -- delete ${appName} ${environment} ${actionId}`);
+        console.log(`   npm run hubspot -- register ${appName} ${environment}`);
+      } else if (response.status === 405) {
+        console.error('\n💡 Update method not supported by API');
+        console.error('🔄 Use delete and recreate instead:');
+        console.log(`   npm run hubspot -- delete ${appName} ${environment} ${actionId}`);
+        console.log(`   npm run hubspot -- register ${appName} ${environment}`);
+      }
+      
+      process.exit(1);
+    }
+  } catch (error) {
+    console.error('💥 Error updating workflow action:', error.message);
+    console.error('\n🔄 Falling back to delete and recreate:');
+    console.log(`   npm run hubspot -- delete ${appName} ${environment} ${actionId}`);
+    console.log(`   npm run hubspot -- register ${appName} ${environment}`);
+    process.exit(1);
+  }
+}
+
+async function listActionsQuiet() {
+  const apiUrl = `https://api.hubapi.com/automation/v4/actions/${hubspotConfig.appId}?hapikey=${hubspotConfig.developerApiKey}`;
+
+  try {
+    const response = await fetch(apiUrl, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const responseText = await response.text();
+
+    if (response.ok) {
+      return JSON.parse(responseText);
+    } else {
+      throw new Error(`Failed to list actions: ${response.status} ${response.statusText}`);
+    }
+  } catch (error) {
+    throw new Error(`Error listing workflow actions: ${error.message}`);
+  }
 }
 
 async function listActions() {
