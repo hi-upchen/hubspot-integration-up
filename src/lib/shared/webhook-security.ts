@@ -297,21 +297,26 @@ export async function validateHubSpotWebhook(
     } else {
       // For localhost development, we need to use the ngrok URL that was registered with HubSpot
       // because HubSpot generates signatures based on the registered URL, not the actual request URL
-      try {
-        const fs = await import('fs');
-        const path = await import('path');
-        const configPath = path.join(process.cwd(), 'config', 'credentials', 'dev.json');
-        const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-        const nextjsUrl = config.application.nextjsUrl;
-        
-        if (request.url.includes('localhost') && nextjsUrl && nextjsUrl.includes('ngrok')) {
-          // Replace localhost with the registered ngrok URL
-          uri = request.url.replace(/https?:\/\/localhost:\d+/, nextjsUrl);
-        } else {
+      if (request.url.includes('localhost')) {
+        try {
+          const fs = await import('fs');
+          const path = await import('path');
+          const configPath = path.join(process.cwd(), 'config', 'credentials', 'dev.json');
+          const config = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+          const nextjsUrl = config.application.nextjsUrl;
+          
+          if (nextjsUrl && nextjsUrl.includes('ngrok')) {
+            // Replace localhost with the registered ngrok URL
+            uri = request.url.replace(/https?:\/\/localhost:\d+/, nextjsUrl);
+          } else {
+            uri = new URL(request.url).href;
+          }
+        } catch (error) {
+          // Fallback to request URL if config loading fails
           uri = new URL(request.url).href;
         }
-      } catch (error) {
-        // Fallback to request URL if config loading fails
+      } else {
+        // Production: Use actual request URL directly (no file I/O needed)
         uri = new URL(request.url).href;
       }
     }
