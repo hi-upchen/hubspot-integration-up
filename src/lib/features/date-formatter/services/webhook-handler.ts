@@ -1,5 +1,4 @@
 import { formatDate } from './date-formatter';
-import { hubspotClientManager } from '@/lib/hubspot/client';
 import { trackUsage } from '@/lib/database/usage';
 import type { WorkflowRequest, WorkflowResponse } from '@/lib/hubspot/types';
 import type { DateFormat, DateFormatterUsageData } from '../types';
@@ -108,22 +107,6 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         success: false,
         status: 400,
         data: { error: 'Custom target format is required when target format is CUSTOM' }
-      };
-    }
-
-    // Authenticate with HubSpot (verify portal has valid installation)
-    try {
-      await hubspotClientManager.getClient(portalId);
-    } catch (authError) {
-      console.error(`Authentication failed for portal ${portalId}:`, authError);
-      await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Authentication failed'));
-      return {
-        success: false,
-        status: 401,
-        data: {
-          error: 'Portal not authorized or installation not found',
-          details: 'Please reinstall the app for this HubSpot portal'
-        }
       };
     }
 

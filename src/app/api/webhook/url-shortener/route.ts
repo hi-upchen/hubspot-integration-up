@@ -6,7 +6,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
 import { trackUrlShortenerUsage } from '@/lib/features/url-shortener/services/usage-tracker';
-import { supabaseAdmin } from '@/lib/database/supabase';
 import { validateHubSpotWebhook, createSecurityErrorResponse } from '@/lib/shared/webhook-security';
 import { 
   classifyError, 
@@ -56,34 +55,6 @@ function validateRequest(body: WorkflowRequest): { valid: boolean; error?: strin
   }
   
   return { valid: true };
-}
-
-/**
- * Checks if the portal has a valid installation for URL shortener
- */
-async function checkPortalAuthorization(portalId: number): Promise<boolean> {
-  const supabase = supabaseAdmin;
-  
-  try {
-    
-    // Check for URL shortener app installation specifically
-    const { data, error } = await supabase
-      .from('hubspot_installations')
-      .select('hub_id, app_type')
-      .eq('hub_id', portalId)
-      .eq('app_type', 'url-shortener')
-      .single();
-    
-    if (error) {
-      return false;
-    }
-    
-    const isAuthorized = data !== null;
-    return isAuthorized;
-  } catch (err) {
-    console.error(`[URL Shortener Webhook] Unexpected error checking authorization for portal ${portalId}:`, err);
-    return false;
-  }
 }
 
 /**
@@ -165,30 +136,6 @@ export async function POST(request: NextRequest) {
       const { response, httpStatus, headers } = createErrorResponse(
         'VALIDATION_ERROR',
         validation.error!,
-        false, // Smart default: Always stop workflow for user config errors
-        urlToShorten
-      );
-      
-      const responseOptions = { status: httpStatus, headers };
-      
-      return NextResponse.json(response, responseOptions);
-    }
-    
-    // Check portal authorization
-    const isAuthorized = await checkPortalAuthorization(portalId!);
-    if (!isAuthorized) {
-      // Track unauthorized attempt
-      await trackUrlShortenerUsage({
-        portalId: portalId!,
-        longUrl: urlToShorten,
-        success: false,
-        errorMessage: 'Portal not authorized',
-        responseTimeMs: Date.now() - startTime
-      });
-      
-      const { response, httpStatus, headers } = createErrorResponse(
-        'AUTHORIZATION_ERROR',
-        'Portal not authorized. Please install the Integration Up URL Shortener app.',
         false, // Smart default: Always stop workflow for user config errors
         urlToShorten
       );
