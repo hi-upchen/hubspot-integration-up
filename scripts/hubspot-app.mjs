@@ -245,7 +245,7 @@ async function updateAction() {
   console.log(`📝 Updating action: ${actionToUpdate.labels?.en?.actionName || 'Unnamed'} (ID: ${actionId})`);
   
   // Load the action definition from config file
-  const actionDefPath = path.join(__dirname, '..', 'config', 'workflow-actions', `${appName}.json`);
+  const actionDefPath = path.join(__dirname, '..', appMetadata.definitionFile);
   
   if (!fs.existsSync(actionDefPath)) {
     console.error(`❌ Action definition file not found: ${actionDefPath}`);
@@ -266,7 +266,13 @@ async function updateAction() {
   const baseActionName = originalActionName.split(' v')[0];
   
   actionDefinition.labels.en.actionName = `${baseActionName} v1.0.0${timestamp}`;
-  actionDefinition.actionUrl = actionDefinition.actionUrl.replace('https://your-domain.vercel.app', hubspotConfig.nextjsUrl);
+  
+  // Set or update the action URL
+  if (actionDefinition.actionUrl) {
+    actionDefinition.actionUrl = actionDefinition.actionUrl.replace('https://your-domain.vercel.app', hubspotConfig.nextjsUrl);
+  } else {
+    actionDefinition.actionUrl = `${hubspotConfig.nextjsUrl}${appMetadata.webhookPath}`;
+  }
 
   const apiUrl = `https://api.hubapi.com/automation/v4/actions/${hubspotConfig.appId}/${actionId}?hapikey=${hubspotConfig.developerApiKey}`;
 

@@ -1,4 +1,5 @@
 {
+  "actionUrl": "https://your-domain.vercel.app/api/webhook/date-formatter",
   "actionDefinitionId": "date-formatter-action",
   "published": true,
   "objectTypes": [],

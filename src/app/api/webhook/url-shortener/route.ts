@@ -7,6 +7,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
 import { trackUrlShortenerUsage } from '@/lib/features/url-shortener/services/usage-tracker';
 import { supabaseAdmin } from '@/lib/database/supabase';
+import { validateHubSpotWebhook, createSecurityErrorResponse } from '@/lib/shared/webhook-security';
 import { 
   classifyError, 
   createErrorResponse, 
@@ -87,6 +88,9 @@ async function checkPortalAuthorization(portalId: number): Promise<boolean> {
 
 /**
  * Handles POST requests from HubSpot workflows
+ * 
+ * Security: All requests are validated using HubSpot v3 signature verification
+ * to ensure they originate from HubSpot and haven't been tampered with.
  */
 export async function POST(request: NextRequest) {
   const startTime = Date.now();
@@ -94,8 +98,50 @@ export async function POST(request: NextRequest) {
   let urlToShorten: string | undefined;
   
   try {
-    // Parse request body
-    const body = await request.json() as WorkflowRequest;
+    // === SECURITY VALIDATION ===
+    // Validate webhook request using HubSpot official v3 signature verification
+    const securityValidation = await validateHubSpotWebhook(
+      request, 
+      'url-shortener'
+    );
+
+    if (!securityValidation.isValid) {
+      console.warn('[URL Shortener Webhook] Security validation failed:', {
+        error: securityValidation.error,
+        bypassed: securityValidation.bypassed,
+        timestamp: new Date().toISOString(),
+        url: request.url,
+        userAgent: request.headers.get('user-agent')
+      });
+      
+      // Track security failure for monitoring
+      if (portalId) {
+        await trackUrlShortenerUsage({
+          portalId,
+          longUrl: urlToShorten,
+          success: false,
+          errorMessage: `Security validation failed: ${securityValidation.error}`,
+          responseTimeMs: Date.now() - startTime
+        });
+      }
+      
+      return createSecurityErrorResponse(
+        securityValidation.error || 'Unauthorized request',
+        true // Include details in dev mode
+      );
+    }
+
+    // Log successful security validation (but not in production to reduce noise)
+    if (process.env.NODE_ENV === 'development' || securityValidation.bypassed) {
+      console.log('[URL Shortener Webhook] Security validation passed', {
+        bypassed: securityValidation.bypassed,
+        timestamp: new Date().toISOString()
+      });
+    }
+
+    // === REQUEST PROCESSING ===
+    // Parse request body (body already extracted during security validation)
+    const body = JSON.parse(securityValidation.body!) as WorkflowRequest;
     
     
     // Extract values for tracking

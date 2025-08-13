@@ -13,14 +13,17 @@ import { POST, GET } from '@/app/api/webhook/url-shortener/route';
 jest.mock('@/lib/features/url-shortener/services/url-shortener');
 jest.mock('@/lib/features/url-shortener/services/usage-tracker');
 jest.mock('@/lib/database/supabase');
+jest.mock('@/lib/shared/webhook-security');
 
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
 import { trackUrlShortenerUsage } from '@/lib/features/url-shortener/services/usage-tracker';
 import { supabaseAdmin } from '@/lib/database/supabase';
+import { validateHubSpotWebhook } from '@/lib/shared/webhook-security';
 
 const mockGetUrlShortenerService = getUrlShortenerService as jest.MockedFunction<typeof getUrlShortenerService>;
 const mockTrackUrlShortenerUsage = trackUrlShortenerUsage as jest.MockedFunction<typeof trackUrlShortenerUsage>;
 const mockSupabaseAdmin = supabaseAdmin as jest.Mocked<typeof supabaseAdmin>;
+const mockValidateHubSpotWebhook = validateHubSpotWebhook as jest.MockedFunction<typeof validateHubSpotWebhook>;
 
 // Mock service instance
 const mockService = {
@@ -45,6 +48,15 @@ describe('/api/webhook/url-shortener', () => {
     mockTrackUrlShortenerUsage.mockResolvedValue(undefined);
     mockService.shortenUrl.mockClear();
     
+    // Mock webhook security validation to pass by default
+    mockValidateHubSpotWebhook.mockResolvedValue({
+      isValid: true,
+      body: JSON.stringify({
+        origin: { portalId: 123456 },
+        inputFields: { urlToShorten: 'https://example.com' }
+      })
+    });
+    
     // Setup default Supabase mock behavior with proper chaining
     const mockEqChain = {
       eq: jest.fn().mockReturnValue({
@@ -67,9 +79,23 @@ describe('/api/webhook/url-shortener', () => {
   });
 
   describe('POST', () => {
-    const createMockRequest = (body: any) => {
+    const createMockRequest = (body: any, options: { bypassSecurity?: boolean } = {}) => {
+      // Update security validation mock for this specific request
+      if (options.bypassSecurity !== false) {
+        mockValidateHubSpotWebhook.mockResolvedValue({
+          isValid: true,
+          body: JSON.stringify(body)
+        });
+      }
+      
       return {
-        json: () => Promise.resolve(body)
+        json: () => Promise.resolve(body),
+        text: () => Promise.resolve(JSON.stringify(body)),
+        url: 'https://localhost:3000/api/webhook/url-shortener',
+        headers: new Headers({
+          'User-Agent': 'HubSpot Webhooks',
+          'Content-Type': 'application/json'
+        })
       } as NextRequest;
     };
 
@@ -311,6 +337,53 @@ describe('/api/webhook/url-shortener', () => {
           success: false,
           errorMessage: 'Service unavailable'
         })
+      );
+    });
+
+    it('should reject requests that fail security validation', async () => {
+      // Mock security validation failure
+      mockValidateHubSpotWebhook.mockResolvedValue({
+        isValid: false,
+        error: 'Invalid webhook signature'
+      });
+
+      const request = createMockRequest({
+        origin: { portalId: 123456 },
+        inputFields: {
+          urlToShorten: 'https://example.com'
+        }
+      }, { bypassSecurity: false });
+
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(401);
+      expect(responseData.error).toBe('Unauthorized');
+      expect(responseData.message).toBe('Invalid webhook request');
+
+      // Should not call the URL shortener service
+      expect(mockService.shortenUrl).not.toHaveBeenCalled();
+    });
+
+    it('should validate security with correct parameters', async () => {
+      const requestBody = {
+        origin: { portalId: 123456 },
+        inputFields: {
+          urlToShorten: 'https://example.com'
+        }
+      };
+
+      const request = createMockRequest(requestBody);
+
+      await POST(request);
+
+      expect(mockValidateHubSpotWebhook).toHaveBeenCalledWith(
+        expect.objectContaining({
+          url: 'https://localhost:3000/api/webhook/url-shortener',
+          headers: expect.any(Headers)
+        }),
+        'url-shortener',
+        'https://localhost:3000/api/webhook/url-shortener'
       );
     });
   });
