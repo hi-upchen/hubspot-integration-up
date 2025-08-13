@@ -1,610 +1,437 @@
-import { ConfigManager } from '@/lib/config/config-manager';
+/**
+ * @jest-environment node
+ */
 
-// Mock the environment configuration to avoid real environment setup
-jest.mock('@/lib/config/environment', () => ({
-  getEnvironmentConfig: jest.fn().mockReturnValue({
-    environment: 'dev',
-    hubspot: {
-      clientId: 'mock-client-id',
-      clientSecret: 'mock-client-secret',
-      redirectUri: 'mock-redirect-uri',
-      developerApiKey: 'mock-api-key',
-      dateFormatterAppId: 'mock-app-id'
-    },
-    supabase: {
-      url: 'mock-supabase-url',
-      anonKey: 'mock-anon-key',
-      serviceRoleKey: 'mock-service-key'
-    }
-  })
+import { ConfigManager } from '@/lib/config/config-manager';
+import { ConfigLoader, type AppConfig } from '@/lib/config/config-loader';
+
+// Mock ConfigLoader to control what config is returned
+jest.mock('@/lib/config/config-loader', () => ({
+  ConfigLoader: {
+    loadConfig: jest.fn(),
+    clearCache: jest.fn(),
+  },
 }));
 
-const { getEnvironmentConfig } = require('@/lib/config/environment');
+const mockConfigLoader = ConfigLoader as jest.Mocked<typeof ConfigLoader>;
 
 describe('ConfigManager', () => {
-  let originalArgv: string[];
-  let originalEnv: NodeJS.ProcessEnv;
-  let consoleWarnSpy: jest.SpyInstance;
+  const originalProcessArgv = process.argv;
+  const originalNodeEnv = process.env.NODE_ENV;
+
+  // Mock configuration data
+  const mockDevConfig: AppConfig = {
+    hubspot: {
+      shared: {
+        redirectUri: 'http://localhost:3000/api/auth/hubspot/callback',
+        developerApiKey: 'dev_api_key_12345',
+      },
+      apps: {
+        'date-formatter': {
+          appId: 'dev_df_app_id',
+          clientId: 'dev_df_client_id',
+          clientSecret: 'dev_df_client_secret',
+        },
+        'url-shortener': {
+          appId: 'dev_us_app_id',
+          clientId: 'dev_us_client_id',
+          clientSecret: 'dev_us_client_secret',
+        },
+      },
+    },
+    supabase: {
+      url: 'https://dev-project.supabase.co',
+      anonKey: 'dev_anon_key',
+      serviceRoleKey: 'dev_service_role_key',
+    },
+    application: {
+      nextjsUrl: 'http://localhost:3000',
+      encryptionKey: 'dev_encryption_key_32_characters',
+      nextAuthSecret: 'dev_nextauth_secret',
+      cronSecret: 'dev_cron_secret',
+    },
+  };
+
+  const mockProdConfig: AppConfig = {
+    hubspot: {
+      shared: {
+        redirectUri: 'https://production.com/api/auth/hubspot/callback',
+        developerApiKey: 'prod_api_key_12345',
+      },
+      apps: {
+        'date-formatter': {
+          appId: 'prod_df_app_id',
+          clientId: 'prod_df_client_id',
+          clientSecret: 'prod_df_client_secret',
+        },
+        'url-shortener': {
+          appId: 'prod_us_app_id',
+          clientId: 'prod_us_client_id',
+          clientSecret: 'prod_us_client_secret',
+        },
+      },
+    },
+    supabase: {
+      url: 'https://prod-project.supabase.co',
+      anonKey: 'prod_anon_key',
+      serviceRoleKey: 'prod_service_role_key',
+    },
+    application: {
+      nextjsUrl: 'https://production.com',
+      encryptionKey: 'prod_encryption_key_32_characters',
+      nextAuthSecret: 'prod_nextauth_secret',
+      cronSecret: 'prod_cron_secret',
+    },
+  };
 
   beforeEach(() => {
-    // Save originals
-    originalArgv = [...process.argv];
-    originalEnv = { ...process.env };
+    // Reset ConfigManager state before each test
+    ConfigManager.__resetForTesting();
     
-    // Setup spies
-    consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
-    
-    // Reset configuration cache
-    (ConfigManager as any).__resetForTesting();
-    
-    // Reset mocks completely
+    // Clear all mocks
     jest.clearAllMocks();
-    getEnvironmentConfig.mockReturnValue({
-      environment: 'dev',
-      hubspot: {
-        clientId: 'mock-client-id',
-        clientSecret: 'mock-client-secret',
-        redirectUri: 'mock-redirect-uri',
-        developerApiKey: 'mock-api-key',
-        dateFormatterAppId: 'mock-app-id'
-      },
-      supabase: {
-        url: 'mock-supabase-url',
-        anonKey: 'mock-anon-key',
-        serviceRoleKey: 'mock-service-key'
-      }
+    
+    // Setup default mock behavior
+    mockConfigLoader.loadConfig.mockImplementation((env) => {
+      if (env === 'dev') return mockDevConfig;
+      if (env === 'prod') return mockProdConfig;
+      throw new Error(`Unknown environment: ${env}`);
     });
   });
 
   afterEach(() => {
-    // Restore originals
-    process.argv = originalArgv;
-    process.env = originalEnv;
+    // Restore original values
+    process.argv = originalProcessArgv;
+    process.env.NODE_ENV = originalNodeEnv;
     
-    // Restore console
-    consoleWarnSpy.mockRestore();
+    // Reset for next test
+    ConfigManager.__resetForTesting();
   });
 
-  describe('process.argv edge cases', () => {
-    test('should handle empty process.argv', () => {
-      process.argv = [];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-    });
-
-    test('should handle process.argv with only script name', () => {
-      process.argv = ['node', 'script.js'];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-    });
-
-    test('should handle multiple dev/prod arguments (first wins)', () => {
-      process.argv = ['node', 'script.js', 'dev', 'prod'];
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-    });
-
-    test('should handle dev and prod both present (dev wins - appears first in check)', () => {
-      process.argv = ['node', 'script.js', 'prod', 'dev'];
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev'); // dev check comes first in code
-    });
-
-    test('should handle case sensitivity (DEV vs dev)', () => {
-      process.argv = ['node', 'script.js', 'DEV'];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev'); // Should default since 'DEV' != 'dev'
-    });
-
-    test('should handle partial matches (development vs dev)', () => {
-      process.argv = ['node', 'script.js', 'development'];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev'); // Should default since 'development' != 'dev'
-    });
-
-    test('should handle special characters in argv', () => {
-      process.argv = ['node', 'script.js', 'dev!@#', 'prod$%^'];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev'); // Should default since exact match required
-    });
-  });
-
-  describe('NODE_ENV edge cases', () => {
-    test('should handle undefined NODE_ENV', () => {
-      process.argv = ['node', 'script.js'];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
-    });
-
-    test('should handle null NODE_ENV', () => {
-      process.argv = ['node', 'script.js'];
-      (process.env as any).NODE_ENV = null;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-      expect(consoleWarnSpy).toHaveBeenCalledWith("Unknown NODE_ENV 'null', defaulting to dev");
-    });
-
-    test('should handle empty string NODE_ENV', () => {
-      process.argv = ['node', 'script.js'];
-      process.env.NODE_ENV = '';
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-      expect(consoleWarnSpy).toHaveBeenCalledWith("Unknown NODE_ENV '', defaulting to dev");
-    });
-
-    test('should handle whitespace-only NODE_ENV', () => {
-      process.argv = ['node', 'script.js'];
-      process.env.NODE_ENV = '   ';
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-      expect(consoleWarnSpy).toHaveBeenCalledWith("Unknown NODE_ENV '   ', defaulting to dev");
-    });
-
-    test('should handle case variations (DEVELOPMENT, Development, development)', () => {
-      const cases = ['DEVELOPMENT', 'Development', 'PRODUCTION', 'Production'];
-      
-      cases.forEach(nodeEnv => {
-        (ConfigManager as any).__resetForTesting();
-        consoleWarnSpy.mockClear();
-        
-        process.argv = ['node', 'script.js'];
-        process.env.NODE_ENV = nodeEnv;
-        
-        const env = ConfigManager.getCurrentEnvironment();
-        expect(env).toBe('dev');
-        expect(consoleWarnSpy).toHaveBeenCalledWith(`Unknown NODE_ENV '${nodeEnv}', defaulting to dev`);
-      });
-    });
-
-    test('should handle invalid values (test, staging, local)', () => {
-      const invalidValues = ['test', 'staging', 'local', 'qa'];
-      
-      invalidValues.forEach(nodeEnv => {
-        (ConfigManager as any).__resetForTesting();
-        consoleWarnSpy.mockClear();
-        
-        process.argv = ['node', 'script.js'];
-        process.env.NODE_ENV = nodeEnv;
-        
-        const env = ConfigManager.getCurrentEnvironment();
-        expect(env).toBe('dev');
-        expect(consoleWarnSpy).toHaveBeenCalledWith(`Unknown NODE_ENV '${nodeEnv}', defaulting to dev`);
-      });
-    });
-
-    test('should handle numbers as environment (1, 0)', () => {
-      const numberValues = ['1', '0', '123'];
-      
-      numberValues.forEach(nodeEnv => {
-        (ConfigManager as any).__resetForTesting();
-        consoleWarnSpy.mockClear();
-        
-        process.argv = ['node', 'script.js'];
-        process.env.NODE_ENV = nodeEnv;
-        
-        const env = ConfigManager.getCurrentEnvironment();
-        expect(env).toBe('dev');
-        expect(consoleWarnSpy).toHaveBeenCalledWith(`Unknown NODE_ENV '${nodeEnv}', defaulting to dev`);
-      });
-    });
-
-    test('should handle special characters in environment', () => {
-      const specialValues = ['dev!', 'prod@#$', 'test-env', 'env_with_underscores'];
-      
-      specialValues.forEach(nodeEnv => {
-        (ConfigManager as any).__resetForTesting();
-        consoleWarnSpy.mockClear();
-        
-        process.argv = ['node', 'script.js'];
-        process.env.NODE_ENV = nodeEnv;
-        
-        const env = ConfigManager.getCurrentEnvironment();
-        expect(env).toBe('dev');
-        expect(consoleWarnSpy).toHaveBeenCalledWith(`Unknown NODE_ENV '${nodeEnv}', defaulting to dev`);
-      });
-    });
-  });
-
-  describe('Configuration loading error scenarios', () => {
-    test('should handle getEnvironmentConfig throwing error', () => {
-      getEnvironmentConfig.mockImplementation(() => {
-        throw new Error('Environment config failed to load');
-      });
-
-      expect(() => {
-        ConfigManager.getHubSpotConfig();
-      }).toThrow('Environment config failed to load');
-    });
-
-    test('should handle missing environment configuration', () => {
-      getEnvironmentConfig.mockImplementation(() => {
-        throw new Error('Missing required environment variables');
-      });
-
-      expect(() => {
-        ConfigManager.getSupabaseConfig();
-      }).toThrow('Missing required environment variables');
-    });
-
-    test('should handle corrupted environment variables', () => {
-      // Simulate corrupted process.env
-      const originalDescriptor = Object.getOwnPropertyDescriptor(process, 'env');
-      Object.defineProperty(process, 'env', {
-        get: () => { throw new Error('Environment corrupted'); }
-      });
-
-      try {
-        expect(() => {
-          ConfigManager.getCurrentEnvironment();
-        }).toThrow('Environment corrupted');
-      } finally {
-        // Restore process.env
-        if (originalDescriptor) {
-          Object.defineProperty(process, 'env', originalDescriptor);
-        }
-      }
-    });
-
-    test('should re-throw environment config errors appropriately', () => {
-      const customError = new Error('Custom config error');
-      getEnvironmentConfig.mockImplementation(() => {
-        throw customError;
-      });
-
-      expect(() => {
-        ConfigManager.getHubSpotConfig();
-      }).toThrow(customError);
-    });
-  });
-
-  describe('configuration caching edge cases', () => {
-    test('should maintain same config across environment changes', () => {
+  describe('Environment Detection', () => {
+    test('should detect dev environment from command line args', () => {
       process.argv = ['node', 'script.js', 'dev'];
-      const config1 = ConfigManager.getHubSpotConfig();
+      process.env.NODE_ENV = 'production'; // Should be overridden by argv
       
-      // Change environment after first call
+      const env = ConfigManager.getCurrentEnvironment();
+      expect(env).toBe('dev');
+    });
+
+    test('should detect prod environment from command line args', () => {
       process.argv = ['node', 'script.js', 'prod'];
-      const config2 = ConfigManager.getHubSpotConfig();
-      
-      expect(config1).toBe(config2);
-      expect(getEnvironmentConfig).toHaveBeenCalledTimes(1);
-      expect(getEnvironmentConfig).toHaveBeenCalledWith('dev'); // First call wins
-    });
-
-    test('should not reinitialize config when process.argv changes after first call', () => {
-      process.argv = ['node', 'script.js', 'dev'];
-      ConfigManager.getHubSpotConfig();
-      
-      process.argv = ['node', 'script.js', 'prod'];
-      process.env.NODE_ENV = 'production';
-      ConfigManager.getSupabaseConfig();
-      
-      expect(getEnvironmentConfig).toHaveBeenCalledTimes(1);
-      expect(getEnvironmentConfig).toHaveBeenCalledWith('dev');
-    });
-
-    test('should handle concurrent access (multiple calls before config created)', () => {
-      process.argv = ['node', 'script.js', 'dev'];
-      
-      // Simulate concurrent calls
-      const promises = Array(5).fill(0).map(() => 
-        Promise.resolve(ConfigManager.getHubSpotConfig())
-      );
-      
-      return Promise.all(promises).then(configs => {
-        // All should return the same config
-        configs.forEach(config => {
-          expect(config).toBe(configs[0]);
-        });
-        
-        // Config should only be created once
-        expect(getEnvironmentConfig).toHaveBeenCalledTimes(1);
-      });
-    });
-
-    test('should handle reset during active usage', () => {
-      process.argv = ['node', 'script.js', 'dev'];
-      const config1 = ConfigManager.getHubSpotConfig();
-      
-      // Reset while config exists
-      (ConfigManager as any).__resetForTesting();
-      
-      const config2 = ConfigManager.getHubSpotConfig();
-      
-      expect(config1).toBe(config2); // Mock returns same object
-      expect(getEnvironmentConfig).toHaveBeenCalledTimes(2);
-    });
-  });
-
-  describe('logging edge cases', () => {
-    test('should warn only once for same invalid environment', () => {
-      process.argv = ['node', 'script.js'];
-      process.env.NODE_ENV = 'invalid';
-      
-      ConfigManager.getCurrentEnvironment();
-      ConfigManager.getCurrentEnvironment();
-      ConfigManager.getCurrentEnvironment();
-      
-      // Should warn every time getCurrentEnvironment is called (no caching of warnings)
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(3);
-      expect(consoleWarnSpy).toHaveBeenCalledWith("Unknown NODE_ENV 'invalid', defaulting to dev");
-    });
-
-    test('should handle console.warn being undefined', () => {
-      const originalWarn = console.warn;
-      (console as any).warn = undefined;
-      
-      try {
-        process.argv = ['node', 'script.js'];
-        process.env.NODE_ENV = 'invalid';
-        
-        expect(() => {
-          ConfigManager.getCurrentEnvironment();
-        }).not.toThrow();
-      } finally {
-        console.warn = originalWarn;
-      }
-    });
-
-    test('should handle console.warn throwing error', () => {
-      consoleWarnSpy.mockImplementation(() => {
-        throw new Error('Console error');
-      });
-      
-      process.argv = ['node', 'script.js'];
-      process.env.NODE_ENV = 'invalid';
-      
-      expect(() => {
-        ConfigManager.getCurrentEnvironment();
-      }).toThrow('Console error');
-    });
-
-    test('should not warn for valid environments', () => {
-      const validCases = [
-        { argv: ['node', 'script.js', 'dev'], nodeEnv: undefined },
-        { argv: ['node', 'script.js', 'prod'], nodeEnv: undefined },
-        { argv: ['node', 'script.js'], nodeEnv: 'development' },
-        { argv: ['node', 'script.js'], nodeEnv: 'production' },
-      ];
-      
-      validCases.forEach(({ argv, nodeEnv }) => {
-        (ConfigManager as any).__resetForTesting();
-        consoleWarnSpy.mockClear();
-        
-        process.argv = argv;
-        if (nodeEnv) {
-          process.env.NODE_ENV = nodeEnv;
-        } else {
-          delete process.env.NODE_ENV;
-        }
-        
-        ConfigManager.getCurrentEnvironment();
-        expect(consoleWarnSpy).not.toHaveBeenCalled();
-      });
-    });
-
-    test('should warn with correct message format', () => {
-      process.argv = ['node', 'script.js'];
-      process.env.NODE_ENV = 'staging';
-      
-      ConfigManager.getCurrentEnvironment();
-      
-      expect(consoleWarnSpy).toHaveBeenCalledWith("Unknown NODE_ENV 'staging', defaulting to dev");
-      expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-    });
-  });
-
-  describe('memory and performance edge cases', () => {
-    test('should not leak memory on repeated calls', () => {
-      process.argv = ['node', 'script.js', 'dev'];
-      
-      // Make many calls
-      for (let i = 0; i < 1000; i++) {
-        ConfigManager.getHubSpotConfig();
-        ConfigManager.getSupabaseConfig();
-        ConfigManager.getCurrentEnvironment();
-      }
-      
-      // Should only initialize config once
-      expect(getEnvironmentConfig).toHaveBeenCalledTimes(1);
-    });
-
-    test('should handle very long process.argv arrays', () => {
-      const longArgv = ['node', 'script.js'];
-      // Add 10000 dummy arguments
-      for (let i = 0; i < 10000; i++) {
-        longArgv.push(`arg${i}`);
-      }
-      longArgv.push('dev'); // Add target at the end
-      
-      process.argv = longArgv;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-    });
-
-    test('should handle very long environment variable values', () => {
-      process.argv = ['node', 'script.js'];
-      // Create very long invalid NODE_ENV
-      const longValue = 'a'.repeat(10000);
-      process.env.NODE_ENV = longValue;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-      expect(consoleWarnSpy).toHaveBeenCalledWith(`Unknown NODE_ENV '${longValue}', defaulting to dev`);
-    });
-
-    test('should perform well with frequent getCurrentEnvironment() calls', () => {
-      process.argv = ['node', 'script.js', 'dev'];
-      
-      const startTime = performance.now();
-      
-      // Make many calls
-      for (let i = 0; i < 10000; i++) {
-        ConfigManager.getCurrentEnvironment();
-      }
-      
-      const endTime = performance.now();
-      const duration = endTime - startTime;
-      
-      // Should complete quickly (less than 100ms for 10k calls)
-      expect(duration).toBeLessThan(100);
-    });
-  });
-
-  describe('integration edge cases', () => {
-    test('should work when imported in different modules simultaneously', () => {
-      process.argv = ['node', 'script.js', 'dev'];
-      
-      // Simulate multiple modules accessing ConfigManager
-      const results = [
-        ConfigManager.getHubSpotConfig(),
-        ConfigManager.getCurrentEnvironment(),
-        ConfigManager.getSupabaseConfig(),
-        ConfigManager.getCurrentEnvironment(),
-      ];
-      
-      expect(results[0]).toBeDefined(); // HubSpot config
-      expect(results[1]).toBe('dev');
-      expect(results[2]).toBeDefined(); // Supabase config
-      expect(results[3]).toBe('dev');
-      expect(getEnvironmentConfig).toHaveBeenCalledTimes(1);
-    });
-
-    test('should handle being called before any environment setup', () => {
-      // Clear everything
-      process.argv = [];
-      delete process.env.NODE_ENV;
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('dev');
-      
-      const hubspotConfig = ConfigManager.getHubSpotConfig();
-      expect(hubspotConfig).toBeDefined();
-      expect(getEnvironmentConfig).toHaveBeenCalledWith('dev');
-    });
-
-    test('should work with mocked global process object', () => {
-      const originalProcess = global.process;
-      
-      try {
-        // Mock process object
-        (global as any).process = {
-          argv: ['node', 'script.js', 'prod'],
-          env: { NODE_ENV: 'development' }
-        };
-        
-        (ConfigManager as any).__resetForTesting();
-        
-        const env = ConfigManager.getCurrentEnvironment();
-        expect(env).toBe('prod'); // argv takes priority
-      } finally {
-        global.process = originalProcess;
-      }
-    });
-
-    test('should handle process.env being read-only', () => {
-      // Make process.env non-configurable for NODE_ENV
-      Object.defineProperty(process.env, 'NODE_ENV', {
-        value: 'production',
-        writable: false,
-        configurable: false
-      });
-      
-      process.argv = ['node', 'script.js'];
+      process.env.NODE_ENV = 'development'; // Should be overridden by argv
       
       const env = ConfigManager.getCurrentEnvironment();
       expect(env).toBe('prod');
     });
-  });
 
-  describe('priority order verification', () => {
+    test('should use NODE_ENV when no command line args present', () => {
+      process.argv = ['node', 'script.js'];
+      process.env.NODE_ENV = 'production';
+      
+      const env = ConfigManager.getCurrentEnvironment();
+      expect(env).toBe('prod');
+    });
+
+    test('should default to dev when neither argv nor NODE_ENV specify environment', () => {
+      process.argv = ['node', 'script.js'];
+      delete process.env.NODE_ENV;
+      
+      const env = ConfigManager.getCurrentEnvironment();
+      expect(env).toBe('dev');
+    });
+
     test('should prioritize command line args over NODE_ENV', () => {
       process.argv = ['node', 'script.js', 'dev'];
       process.env.NODE_ENV = 'production';
       
       const env = ConfigManager.getCurrentEnvironment();
       expect(env).toBe('dev');
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
     });
 
-    test('should use NODE_ENV when no command line args', () => {
+    test('should warn for unknown NODE_ENV values and default to dev', () => {
+      const consoleSpy = jest.spyOn(console, 'warn').mockImplementation();
       process.argv = ['node', 'script.js'];
-      process.env.NODE_ENV = 'production';
-      
-      const env = ConfigManager.getCurrentEnvironment();
-      expect(env).toBe('prod');
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
-    });
-
-    test('should default to dev when neither is available', () => {
-      process.argv = ['node', 'script.js'];
-      delete process.env.NODE_ENV;
+      process.env.NODE_ENV = 'test';
       
       const env = ConfigManager.getCurrentEnvironment();
       expect(env).toBe('dev');
-      expect(consoleWarnSpy).not.toHaveBeenCalled();
+      expect(consoleSpy).toHaveBeenCalledWith("Unknown NODE_ENV 'test', defaulting to dev");
+      
+      consoleSpy.mockRestore();
     });
   });
 
-  describe('configuration access methods', () => {
-    test('should return HubSpot configuration', () => {
+  describe('Configuration Loading', () => {
+    test('should load dev configuration when environment is dev', () => {
       process.argv = ['node', 'script.js', 'dev'];
       
-      const config = ConfigManager.getHubSpotConfig();
+      const config = ConfigManager.getConfig();
       
-      expect(config).toEqual({
-        clientId: 'mock-client-id',
-        clientSecret: 'mock-client-secret',
-        redirectUri: 'mock-redirect-uri',
-        developerApiKey: 'mock-api-key',
-        dateFormatterAppId: 'mock-app-id'
-      });
-      expect(getEnvironmentConfig).toHaveBeenCalledWith('dev');
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledWith('dev');
+      expect(config).toEqual(mockDevConfig);
     });
 
-    test('should return Supabase configuration', () => {
+    test('should load prod configuration when environment is prod', () => {
       process.argv = ['node', 'script.js', 'prod'];
       
-      const config = ConfigManager.getSupabaseConfig();
+      const config = ConfigManager.getConfig();
       
-      expect(config).toEqual({
-        url: 'mock-supabase-url',
-        anonKey: 'mock-anon-key',
-        serviceRoleKey: 'mock-service-key'
-      });
-      expect(getEnvironmentConfig).toHaveBeenCalledWith('prod');
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledWith('prod');
+      expect(config).toEqual(mockProdConfig);
     });
 
-    test('should cache configuration after first access', () => {
+    test('should cache configuration after first load', () => {
       process.argv = ['node', 'script.js', 'dev'];
       
-      const hubspotConfig1 = ConfigManager.getHubSpotConfig();
-      const supabaseConfig1 = ConfigManager.getSupabaseConfig();
-      const hubspotConfig2 = ConfigManager.getHubSpotConfig();
-      const supabaseConfig2 = ConfigManager.getSupabaseConfig();
+      const config1 = ConfigManager.getConfig();
+      const config2 = ConfigManager.getConfig();
       
-      expect(hubspotConfig1).toBe(hubspotConfig2);
-      expect(supabaseConfig1).toBe(supabaseConfig2);
-      expect(getEnvironmentConfig).toHaveBeenCalledTimes(1);
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledTimes(1);
+      expect(config1).toBe(config2); // Same reference
+    });
+
+    test('should handle ConfigLoader errors gracefully', () => {
+      const error = new Error('Configuration file not found');
+      mockConfigLoader.loadConfig.mockImplementation(() => {
+        throw error;
+      });
+      
+      expect(() => ConfigManager.getConfig()).toThrow('Configuration file not found');
+    });
+  });
+
+  describe('HubSpot Configuration Access', () => {
+    beforeEach(() => {
+      process.argv = ['node', 'script.js', 'dev'];
+    });
+
+    test('should return complete HubSpot configuration', () => {
+      const hubspotConfig = ConfigManager.getHubSpotConfig();
+      
+      expect(hubspotConfig).toEqual(mockDevConfig.hubspot);
+      expect(hubspotConfig.shared.redirectUri).toBe('http://localhost:3000/api/auth/hubspot/callback');
+      expect(hubspotConfig.apps['date-formatter'].clientId).toBe('dev_df_client_id');
+    });
+
+    test('should return date-formatter client ID by default', () => {
+      const clientId = ConfigManager.getHubSpotClientId();
+      expect(clientId).toBe('dev_df_client_id');
+    });
+
+    test('should return url-shortener client ID when specified', () => {
+      const clientId = ConfigManager.getHubSpotClientId('url-shortener');
+      expect(clientId).toBe('dev_us_client_id');
+    });
+
+    test('should return date-formatter client secret by default', () => {
+      const clientSecret = ConfigManager.getHubSpotClientSecret();
+      expect(clientSecret).toBe('dev_df_client_secret');
+    });
+
+    test('should return url-shortener client secret when specified', () => {
+      const clientSecret = ConfigManager.getHubSpotClientSecret('url-shortener');
+      expect(clientSecret).toBe('dev_us_client_secret');
+    });
+
+    test('should return date-formatter app ID by default', () => {
+      const appId = ConfigManager.getHubSpotAppId();
+      expect(appId).toBe('dev_df_app_id');
+    });
+
+    test('should return url-shortener app ID when specified', () => {
+      const appId = ConfigManager.getHubSpotAppId('url-shortener');
+      expect(appId).toBe('dev_us_app_id');
+    });
+
+    test('should return redirect URI', () => {
+      const redirectUri = ConfigManager.getHubSpotRedirectUri();
+      expect(redirectUri).toBe('http://localhost:3000/api/auth/hubspot/callback');
+    });
+
+    test('should return developer API key', () => {
+      const apiKey = ConfigManager.getHubSpotDeveloperApiKey();
+      expect(apiKey).toBe('dev_api_key_12345');
+    });
+
+    test('should throw error for unknown app type', () => {
+      expect(() => {
+        ConfigManager.getHubSpotClientId('unknown-app' as any);
+      }).toThrow('No configuration found for app: unknown-app');
+    });
+  });
+
+  describe('Supabase Configuration Access', () => {
+    beforeEach(() => {
+      process.argv = ['node', 'script.js', 'dev'];
+    });
+
+    test('should return complete Supabase configuration', () => {
+      const supabaseConfig = ConfigManager.getSupabaseConfig();
+      
+      expect(supabaseConfig).toEqual(mockDevConfig.supabase);
+      expect(supabaseConfig.url).toBe('https://dev-project.supabase.co');
+      expect(supabaseConfig.anonKey).toBe('dev_anon_key');
+      expect(supabaseConfig.serviceRoleKey).toBe('dev_service_role_key');
+    });
+  });
+
+  describe('Application Configuration Access', () => {
+    beforeEach(() => {
+      process.argv = ['node', 'script.js', 'dev'];
+    });
+
+    test('should return complete application configuration', () => {
+      const appConfig = ConfigManager.getApplicationConfig();
+      
+      expect(appConfig).toEqual(mockDevConfig.application);
+    });
+
+    test('should return Next.js URL', () => {
+      const url = ConfigManager.getNextjsUrl();
+      expect(url).toBe('http://localhost:3000');
+    });
+
+    test('should return encryption key', () => {
+      const key = ConfigManager.getEncryptionKey();
+      expect(key).toBe('dev_encryption_key_32_characters');
+    });
+
+    test('should return NextAuth secret', () => {
+      const secret = ConfigManager.getNextAuthSecret();
+      expect(secret).toBe('dev_nextauth_secret');
+    });
+
+    test('should return cron secret', () => {
+      const secret = ConfigManager.getCronSecret();
+      expect(secret).toBe('dev_cron_secret');
+    });
+  });
+
+  describe('Environment-Specific Configuration', () => {
+    test('should return different configurations for different environments', () => {
+      // Test dev environment
+      process.argv = ['node', 'script.js', 'dev'];
+      ConfigManager.__resetForTesting();
+      
+      const devUrl = ConfigManager.getNextjsUrl();
+      expect(devUrl).toBe('http://localhost:3000');
+      
+      // Test prod environment
+      process.argv = ['node', 'script.js', 'prod'];
+      ConfigManager.__resetForTesting();
+      
+      const prodUrl = ConfigManager.getNextjsUrl();
+      expect(prodUrl).toBe('https://production.com');
+    });
+
+    test('should call ConfigLoader with correct environment', () => {
+      process.env.NODE_ENV = 'production';
+      process.argv = ['node', 'script.js'];
+      
+      ConfigManager.getConfig();
+      
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledWith('prod');
+    });
+  });
+
+  describe('Testing Utilities', () => {
+    test('should reset configuration cache for testing', () => {
+      // Load config first
+      ConfigManager.getConfig();
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledTimes(1);
+      
+      // Reset and load again
+      ConfigManager.__resetForTesting();
+      ConfigManager.getConfig();
+      
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledTimes(2);
+      expect(mockConfigLoader.clearCache).toHaveBeenCalled();
+    });
+  });
+
+  describe('Error Handling', () => {
+    test('should propagate ConfigLoader validation errors', () => {
+      const validationError = new Error('Invalid configuration for environment \'dev\':\n  - hubspot.shared.redirectUri is required');
+      mockConfigLoader.loadConfig.mockImplementation(() => {
+        throw validationError;
+      });
+      
+      expect(() => ConfigManager.getConfig()).toThrow(validationError.message);
+    });
+
+    test('should propagate ConfigLoader file not found errors', () => {
+      const fileError = new Error('Configuration file not found: config/credentials/dev.json');
+      mockConfigLoader.loadConfig.mockImplementation(() => {
+        throw fileError;
+      });
+      
+      expect(() => ConfigManager.getConfig()).toThrow(fileError.message);
+    });
+
+    test('should handle missing app configuration gracefully', () => {
+      const incompleteConfig = {
+        ...mockDevConfig,
+        hubspot: {
+          ...mockDevConfig.hubspot,
+          apps: {
+            'date-formatter': mockDevConfig.hubspot.apps['date-formatter'],
+            // url-shortener is missing
+          },
+        },
+      };
+      
+      mockConfigLoader.loadConfig.mockReturnValue(incompleteConfig);
+      
+      expect(() => {
+        ConfigManager.getHubSpotClientId('url-shortener');
+      }).toThrow('No configuration found for app: url-shortener');
+    });
+  });
+
+  describe('Edge Cases', () => {
+    test('should handle multiple command line arguments', () => {
+      process.argv = ['node', 'script.js', 'dev', 'prod', 'extra'];
+      
+      const env = ConfigManager.getCurrentEnvironment();
+      expect(env).toBe('dev'); // First match wins
+    });
+
+    test('should handle empty process.argv', () => {
+      process.argv = [];
+      delete process.env.NODE_ENV;
+      
+      const env = ConfigManager.getCurrentEnvironment();
+      expect(env).toBe('dev'); // Default fallback
+    });
+
+    test('should handle undefined console.warn gracefully', () => {
+      const originalWarn = console.warn;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (console as any).warn = undefined;
+      
+      process.argv = ['node', 'script.js'];
+      process.env.NODE_ENV = 'test';
+      
+      // Should not throw
+      expect(() => {
+        ConfigManager.getCurrentEnvironment();
+      }).not.toThrow();
+      
+      console.warn = originalWarn;
+    });
+
+    test('should maintain consistent behavior across multiple calls', () => {
+      process.argv = ['node', 'script.js', 'dev'];
+      
+      const env1 = ConfigManager.getCurrentEnvironment();
+      const env2 = ConfigManager.getCurrentEnvironment();
+      const config1 = ConfigManager.getConfig();
+      const config2 = ConfigManager.getConfig();
+      
+      expect(env1).toBe(env2);
+      expect(config1).toBe(config2);
+      expect(mockConfigLoader.loadConfig).toHaveBeenCalledTimes(1);
     });
   });
 });

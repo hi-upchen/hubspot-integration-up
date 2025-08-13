@@ -2,7 +2,7 @@
  * Tests for Encryption Service
  */
 
-import { EncryptionService, getEncryptionService, encryptApiKey, decryptApiKey } from '@/lib/shared/encryption';
+import { EncryptionService, getEncryptionService, encryptApiKey, decryptApiKey } from '@/lib/features/url-shortener/utils/encryption';
 
 describe('EncryptionService', () => {
   let encryptionService: EncryptionService;

@@ -3,7 +3,7 @@
  * Tracks usage statistics for URL shortening operations
  */
 
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/database/supabase';
 
 export interface UrlShortenerUsageData {
   portalId: number;

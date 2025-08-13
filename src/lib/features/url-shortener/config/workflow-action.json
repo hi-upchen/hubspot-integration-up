@@ -8,7 +8,7 @@
         "type": "string",
         "fieldType": "text"
       },
-      "supportedValueTypes": ["STATIC_VALUE", "OBJECT_PROPERTY"],
+      "supportedValueTypes": ["STATIC_VALUE"],
       "isRequired": true,
       "label": "URL to shorten",
       "description": "The long URL you want to shorten using Bitly"
@@ -19,10 +19,10 @@
         "type": "string", 
         "fieldType": "text"
       },
-      "supportedValueTypes": ["STATIC_VALUE", "OBJECT_PROPERTY"],
+      "supportedValueTypes": ["STATIC_VALUE"],
       "isRequired": false,
-      "label": "Your domain (optional)",
-      "description": "Custom branded domain (e.g., yourbrand.co). Leave blank to use your Bitly default"
+      "label": "Custom shorten domain (optional, default is bit.ly)",
+      "description": "Enter your custom Bitly domain (e.g., yourbrand.co) to create branded short links. Leave blank to use the default bit.ly domain. Your domain must be configured in your Bitly account first."
     }
   ],
   "outputFields": [
@@ -69,7 +69,7 @@
       "actionDescription": "Shorten URLs using Bitly service with custom domain support",
       "inputFieldLabels": {
         "urlToShorten": "URL to shorten",
-        "customDomain": "Your domain (optional)"
+        "customDomain": "Custom shorten domain (optional, default is bit.ly)"
       },
       "outputFieldLabels": {
         "shortUrl": "Shortened URL",

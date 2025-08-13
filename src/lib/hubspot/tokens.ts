@@ -1,4 +1,4 @@
-import type { OAuthTokens, HubSpotOAuthResponse } from '../types';
+import type { OAuthTokens, HubSpotOAuthResponse } from './types';
 import { ConfigManager } from '@/lib/config/config-manager';
 
 /**
@@ -115,35 +115,3 @@ export async function refreshAccessToken(refreshToken: string, appType: 'date-fo
   }
 }
 
-/**
- * Retrieves HubSpot portal information using access token
- * 
- * @param accessToken - Valid HubSpot access token
- * @returns Promise containing portal ID and domain information
- * @throws Error if API request fails or token is invalid
- */
-export async function getPortalInfo(accessToken: string): Promise<{ portalId: number; domain: string }> {
-  try {
-    // Make request to HubSpot account info API
-    const response = await fetch('https://api.hubapi.com/account-info/v3/details', {
-      headers: {
-        'Authorization': `Bearer ${accessToken}`
-      }
-    });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to get portal info: ${response.status} ${errorText}`);
-    }
-
-    const data = await response.json();
-    
-    // Return portal information
-    return {
-      portalId: data.portalId,
-      domain: data.domain || 'unknown'
-    };
-  } catch (error) {
-    throw new Error(`Failed to get portal info: ${error}`);
-  }
-}

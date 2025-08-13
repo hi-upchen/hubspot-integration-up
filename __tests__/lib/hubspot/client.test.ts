@@ -20,11 +20,9 @@ jest.mock('@/lib/config/config-manager', () => ({
   }
 }));
 
-jest.mock('@/lib/supabase/client', () => ({
-  HubSpotInstallationService: jest.fn().mockImplementation(() => ({
-    findByHubId: jest.fn(),
-    updateTokens: jest.fn()
-  }))
+jest.mock('@/lib/hubspot/installations', () => ({
+  findInstallationByHubId: jest.fn(),
+  updateInstallationTokensForApp: jest.fn()
 }));
 
 jest.mock('@/lib/hubspot/tokens', () => ({
@@ -36,18 +34,14 @@ jest.mock('@hubspot/api-client', () => ({
 }));
 
 import { HubSpotClientManager, hubspotClientManager } from '@/lib/hubspot/client';
-import { HubSpotInstallationService } from '@/lib/supabase/client';
+import { findInstallationByHubId, updateInstallationTokensForApp } from '@/lib/hubspot/installations';
 import { refreshAccessToken } from '@/lib/hubspot/tokens';
 import { Client } from '@hubspot/api-client';
 
-const mockInstallationService = {
-  findByHubId: jest.fn(),
-  updateTokens: jest.fn()
-};
-
+const mockFindInstallationByHubId = findInstallationByHubId as jest.MockedFunction<typeof findInstallationByHubId>;
+const mockUpdateInstallationTokensForApp = updateInstallationTokensForApp as jest.MockedFunction<typeof updateInstallationTokensForApp>;
 const mockRefreshAccessToken = refreshAccessToken as jest.MockedFunction<typeof refreshAccessToken>;
 const mockClient = Client as jest.MockedClass<typeof Client>;
-const mockHubSpotInstallationService = HubSpotInstallationService as jest.MockedClass<typeof HubSpotInstallationService>;
 
 describe('HubSpotClientManager', () => {
   beforeEach(() => {
@@ -57,26 +51,26 @@ describe('HubSpotClientManager', () => {
     jest.clearAllMocks();
     
     // Setup mocks
-    mockHubSpotInstallationService.mockImplementation(() => mockInstallationService as any);
-    
-    mockInstallationService.findByHubId.mockResolvedValue({
-      id: 1,
+    mockFindInstallationByHubId.mockResolvedValue({
+      id: 'test-id-1',
       hubId: 12345,
       accessToken: 'valid-token',
       refreshToken: 'refresh-token',
       expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      scope: 'oauth',
+      scope: ['oauth'],
+      appType: 'date-formatter',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
     
-    mockInstallationService.updateTokens.mockResolvedValue({
-      id: 1,
+    mockUpdateInstallationTokensForApp.mockResolvedValue({
+      id: 'test-id-1',
       hubId: 12345,
       accessToken: 'new-token',
       refreshToken: 'new-refresh-token',
       expiresAt: new Date(Date.now() + 3600000).toISOString(),
-      scope: 'oauth',
+      scope: ['oauth'],
+      appType: 'date-formatter',
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString()
     });
@@ -115,7 +109,7 @@ describe('HubSpotClientManager', () => {
       
       const client = await manager.getClient(12345);
       
-      expect(mockInstallationService.findByHubId).toHaveBeenCalledWith(12345);
+      expect(mockFindInstallationByHubId).toHaveBeenCalledWith(12345);
       expect(mockClient).toHaveBeenCalledWith({
         accessToken: 'valid-token',
         basePath: 'https://api.hubapi.com'
@@ -130,25 +124,26 @@ describe('HubSpotClientManager', () => {
       const client2 = await manager.getClient(12345);
       
       expect(client1).toBe(client2);
-      expect(mockInstallationService.findByHubId).toHaveBeenCalledTimes(1);
+      expect(mockFindInstallationByHubId).toHaveBeenCalledTimes(1);
       expect(mockClient).toHaveBeenCalledTimes(1);
     });
     
     it('should throw error when installation not found', async () => {
-      mockInstallationService.findByHubId.mockResolvedValue(null);
+      mockFindInstallationByHubId.mockResolvedValue(null);
       const manager = HubSpotClientManager.getInstance();
       
       await expect(manager.getClient(12345)).rejects.toThrow('No installation found for hub ID: 12345');
     });
     
     it('should refresh token when expired', async () => {
-      mockInstallationService.findByHubId.mockResolvedValue({
-        id: 1,
+      mockFindInstallationByHubId.mockResolvedValue({
+        id: 'test-id-1',
         hubId: 12345,
         accessToken: 'expired-token',
         refreshToken: 'refresh-token',
         expiresAt: new Date(Date.now() - 1000).toISOString(),
-        scope: 'oauth',
+        scope: ['oauth'],
+        appType: 'date-formatter' as const,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
@@ -157,8 +152,8 @@ describe('HubSpotClientManager', () => {
       
       await manager.getClient(12345);
       
-      expect(mockRefreshAccessToken).toHaveBeenCalledWith('refresh-token');
-      expect(mockInstallationService.updateTokens).toHaveBeenCalledWith(12345, {
+      expect(mockRefreshAccessToken).toHaveBeenCalledWith('refresh-token', 'date-formatter');
+      expect(mockUpdateInstallationTokensForApp).toHaveBeenCalledWith(12345, 'date-formatter', {
         accessToken: 'new-token',
         refreshToken: 'new-refresh-token',
         expiresAt: expect.any(String)
@@ -170,13 +165,14 @@ describe('HubSpotClientManager', () => {
     });
     
     it('should throw error when token refresh fails', async () => {
-      mockInstallationService.findByHubId.mockResolvedValue({
-        id: 1,
+      mockFindInstallationByHubId.mockResolvedValue({
+        id: 'test-id-1',
         hubId: 12345,
         accessToken: 'expired-token',
         refreshToken: 'refresh-token',
         expiresAt: new Date(Date.now() - 1000).toISOString(),
-        scope: 'oauth',
+        scope: ['oauth'],
+        appType: 'date-formatter' as const,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString()
       });
@@ -194,7 +190,7 @@ describe('HubSpotClientManager', () => {
       const client2 = await manager.getClient(67890);
       
       expect(client1).not.toBe(client2);
-      expect(mockInstallationService.findByHubId).toHaveBeenCalledTimes(2);
+      expect(mockFindInstallationByHubId).toHaveBeenCalledTimes(2);
       expect(mockClient).toHaveBeenCalledTimes(2);
     });
   });

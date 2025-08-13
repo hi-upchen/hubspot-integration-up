@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPortalInfo, updatePortalUserInfo } from '@/lib/shared/hubspot-portal';
+import { getPortalInfoRecord, updatePortalInfoRecord } from '@/lib/database/portal-info';
 import { validatePortalId, validateUpdatePortalRequest } from '../../_shared/validation';
 import { formatSuccessResponse, handleApiError } from '../../_shared/responses';
 import { PortalNotFoundError } from '../../_shared/errors';
@@ -14,7 +14,7 @@ export async function GET(request: NextRequest) {
     const portalId = validatePortalId(request.nextUrl.searchParams);
     
     // Get portal information from service
-    const portalInfo = await getPortalInfo(portalId);
+    const portalInfo = await getPortalInfoRecord(portalId);
     
     if (!portalInfo) {
       throw new PortalNotFoundError(portalId);
@@ -39,9 +39,9 @@ export async function PUT(request: NextRequest) {
     const validatedRequest = validateUpdatePortalRequest(body);
     
     // Update portal user information
-    const updatedInfo = await updatePortalUserInfo(validatedRequest.portalId, {
-      userName: validatedRequest.userName,
-      organizationName: validatedRequest.organizationName
+    const updatedInfo = await updatePortalInfoRecord(validatedRequest.portalId, {
+      user_name: validatedRequest.userName,
+      organization_name: validatedRequest.organizationName
     });
     
     if (!updatedInfo) {

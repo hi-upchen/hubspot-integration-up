@@ -1,4 +1,4 @@
-import type { DateFormat } from '@/lib/types';
+import type { DateFormat } from '../types';
 
 /**
  * Date formatter service for converting dates between different formats

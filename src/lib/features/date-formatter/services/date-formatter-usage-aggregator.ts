@@ -4,7 +4,7 @@
  * Designed for daily cron job execution
  */
 
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/database/supabase';
 import { ConfigManager } from '@/lib/config/config-manager';
 
 interface AggregationStats {

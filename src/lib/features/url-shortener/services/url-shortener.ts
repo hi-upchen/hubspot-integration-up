@@ -3,8 +3,8 @@
  * Main service for handling URL shortening operations
  */
 
-import { supabaseAdmin } from '@/lib/supabase/client';
-import { decryptApiKey } from '@/lib/shared/encryption';
+import { supabaseAdmin } from '@/lib/database/supabase';
+import { decryptApiKey } from '@/lib/features/url-shortener/utils/encryption';
 import { createBitlyService, type ShortenResult } from './bitly-service';
 import { isValidUrl, isValidDomain, isAlreadyShortened } from './url-validator';
 

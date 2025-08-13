@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { validateOAuthCallback } from '@/lib/hubspot/auth';
-import { exchangeCodeForTokens, getPortalInfo } from '@/lib/hubspot/tokens';
-import { HubSpotInstallationService } from '@/lib/supabase/client';
-import { HUBSPOT_OAUTH_SCOPES } from '@/lib/hubspot/auth';
+import { validateOAuthCallback, HUBSPOT_OAUTH_SCOPES } from '@/lib/hubspot/auth';
+import { exchangeCodeForTokens } from '@/lib/hubspot/tokens';
+import { fetchHubSpotAccessTokenInfo } from '@/lib/hubspot/portal-api';
+import { 
+  findInstallationByHubIdAndApp, 
+  createInstallation,
+  updateInstallationTokensForApp 
+} from '@/lib/hubspot/installations';
 
 /**
  * Handles HubSpot OAuth callback after user authorizes the app
@@ -54,24 +58,23 @@ export async function GET(request: NextRequest) {
     const tokens = await exchangeCodeForTokens(code, state as 'date-formatter' | 'url-shortener');
     
     // Get portal information using the access token
-    const portalInfo = await getPortalInfo(tokens.accessToken);
+    const tokenInfo = await fetchHubSpotAccessTokenInfo(tokens.accessToken);
 
     // Store or update installation in database (app-specific)
-    const installationService = new HubSpotInstallationService();
     const appType = state as 'date-formatter' | 'url-shortener';
-    const existingInstallation = await installationService.findByHubIdAndApp(portalInfo.portalId, appType);
+    const existingInstallation = await findInstallationByHubIdAndApp(tokenInfo.hub_id, appType);
     
     if (existingInstallation) {
       // Update existing installation with new tokens for this specific app
-      await installationService.updateTokensForApp(portalInfo.portalId, appType, {
+      await updateInstallationTokensForApp(tokenInfo.hub_id, appType, {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + tokens.expiresIn * 1000).toISOString()
       });
     } else {
       // Create new installation record for this specific app
-      await installationService.create({
-        hubId: portalInfo.portalId,
+      await createInstallation({
+        hubId: tokenInfo.hub_id,
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + tokens.expiresIn * 1000).toISOString(),
@@ -84,7 +87,7 @@ export async function GET(request: NextRequest) {
     let redirectUrl = '/install?success=true'; // Default fallback
     
     if (state && ['date-formatter', 'url-shortener'].includes(state)) {
-      redirectUrl = `/install/${state}/success?portalId=${portalInfo.portalId}`;
+      redirectUrl = `/install/${state}/success?portalId=${tokenInfo.hub_id}`;
     } else {
       // Check for custom return URL in cookies
       const returnUrl = request.cookies.get('hubspot_return_url')?.value;

@@ -84,6 +84,20 @@ describe('BitlyService', () => {
     it('should handle custom domain', async () => {
       const customDomain = 'example.co';
       
+      mockFetch.mockReset();
+      
+      // Mock groups request for getDefaultGroupGuid
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve({ groups: [{ guid: 'test-group-guid' }] })
+      } as Response);
+      
+      // Mock successful shorten request
+      mockFetch.mockResolvedValueOnce({
+        ok: true,
+        json: () => Promise.resolve(mockBitlyResponse)
+      } as Response);
+      
       await bitlyService.shortenUrl(mockLongUrl, customDomain);
 
       // Check that the shorten request was made with custom domain
@@ -103,24 +117,34 @@ describe('BitlyService', () => {
     it('should handle rate limit errors', async () => {
       mockFetch.mockReset();
       
-      // Mock successful user request
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ default_group_guid: null })
-      } as Response);
-      
-      // Mock successful groups request
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ groups: [{ guid: 'test-group-guid' }] })
-      } as Response);
-      
-      // Mock rate limit error on shorten request
-      mockFetch.mockResolvedValueOnce({
-        ok: false,
-        status: 429,
-        json: () => Promise.resolve({ message: 'Rate limit exceeded' })
-      } as Response);
+      // Use a custom implementation that tracks call order
+      let callCount = 0;
+      mockFetch.mockImplementation((url: string) => {
+        callCount++;
+        
+        if (url.includes('/user')) {
+          // getUserDefaultDomain call
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ default_group_guid: null })
+          } as Response);
+        } else if (url.includes('/groups')) {
+          // getDefaultGroupGuid call
+          return Promise.resolve({
+            ok: true,
+            json: () => Promise.resolve({ groups: [{ guid: 'test-group-guid' }] })
+          } as Response);
+        } else if (url.includes('/shorten')) {
+          // shorten call - return 429 error
+          return Promise.resolve({
+            ok: false,
+            status: 429,
+            json: () => Promise.resolve({ message: 'Rate limit exceeded' })
+          } as Response);
+        }
+        
+        return Promise.reject(new Error('Unexpected URL: ' + url));
+      });
 
       await expect(bitlyService.shortenUrl(mockLongUrl))
         .rejects
@@ -184,13 +208,7 @@ describe('BitlyService', () => {
     it('should handle invalid domain errors', async () => {
       mockFetch.mockReset();
       
-      // Mock successful user request
-      mockFetch.mockResolvedValueOnce({
-        ok: true,
-        json: () => Promise.resolve({ default_group_guid: null })
-      } as Response);
-      
-      // Mock successful groups request
+      // Mock successful groups request for getDefaultGroupGuid
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ groups: [{ guid: 'test-group-guid' }] })
@@ -209,22 +227,24 @@ describe('BitlyService', () => {
     });
 
     it('should retry on network errors', async () => {
-      mockFetch.mockReset();
+      mockFetch.mockClear();
       
-      // First attempt fails
-      mockFetch.mockRejectedValueOnce(new Error('Network error'));
-      
-      // Second attempt succeeds
+      // Mock successful user request (not used but expected by sequence)
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ default_group_guid: null })
       } as Response);
       
+      // Mock successful groups request (happens first)
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve({ groups: [{ guid: 'test-group-guid' }] })
       } as Response);
       
+      // First shorten attempt fails with network error
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+      
+      // Second shorten attempt succeeds (retry)
       mockFetch.mockResolvedValueOnce({
         ok: true,
         json: () => Promise.resolve(mockBitlyResponse)

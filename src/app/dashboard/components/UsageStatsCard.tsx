@@ -2,7 +2,7 @@
  * Usage stats card component
  */
 
-import type { UsageStats } from '@/lib/shared/types';
+import type { UsageStats } from '@/lib/database/types';
 
 interface UsageStatsCardProps {
   usageStats: UsageStats | null;

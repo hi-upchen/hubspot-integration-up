@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { refreshAccessToken } from '@/lib/hubspot/tokens';
-import { HubSpotInstallationService } from '@/lib/supabase/client';
+import { 
+  findInstallationByHubId,
+  updateInstallationTokens 
+} from '@/lib/hubspot/installations';
 
 export async function POST(request: NextRequest) {
   try {
@@ -13,8 +16,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const installationService = new HubSpotInstallationService();
-    const installation = await installationService.findByHubId(hubId);
+    const installation = await findInstallationByHubId(hubId);
 
     if (!installation) {
       return NextResponse.json(
@@ -26,7 +28,7 @@ export async function POST(request: NextRequest) {
     // Use the stored app_type from the installation record
     const refreshedTokens = await refreshAccessToken(installation.refreshToken, installation.appType);
     
-    const updatedInstallation = await installationService.updateTokens(hubId, {
+    const updatedInstallation = await updateInstallationTokens(hubId, {
       accessToken: refreshedTokens.accessToken,
       refreshToken: refreshedTokens.refreshToken,
       expiresAt: new Date(Date.now() + refreshedTokens.expiresIn * 1000).toISOString()
@@ -59,8 +61,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const installationService = new HubSpotInstallationService();
-    const installation = await installationService.findByHubId(parseInt(hubId));
+    const installation = await findInstallationByHubId(parseInt(hubId));
 
     if (!installation) {
       return NextResponse.json(

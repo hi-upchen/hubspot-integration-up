@@ -3,7 +3,7 @@
  */
 
 // Mock external dependencies BEFORE imports
-jest.mock('@/lib/supabase/client', () => ({
+jest.mock('@/lib/database/supabase', () => ({
   supabaseAdmin: {
     from: jest.fn(() => ({
       select: jest.fn(),
@@ -30,7 +30,7 @@ jest.mock('@/lib/config/config-manager', () => ({
 }));
 
 import { aggregateDateFormatterUsage } from '@/lib/features/date-formatter/services/date-formatter-usage-aggregator';
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/database/supabase';
 import { ConfigManager } from '@/lib/config/config-manager';
 
 const mockSupabaseAdmin = supabaseAdmin as jest.Mocked<typeof supabaseAdmin>;

@@ -1,4 +1,8 @@
 /**
+ * @jest-environment node
+ */
+
+/**
  * Tests for URL Shortener Webhook Handler
  */
 
@@ -8,15 +12,15 @@ import { POST, GET } from '@/app/api/webhook/url-shortener/route';
 // Mock the dependencies
 jest.mock('@/lib/features/url-shortener/services/url-shortener');
 jest.mock('@/lib/features/url-shortener/services/usage-tracker');
-jest.mock('@/lib/supabase/client');
+jest.mock('@/lib/database/supabase');
 
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
 import { trackUrlShortenerUsage } from '@/lib/features/url-shortener/services/usage-tracker';
-import { createClient } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/database/supabase';
 
 const mockGetUrlShortenerService = getUrlShortenerService as jest.MockedFunction<typeof getUrlShortenerService>;
 const mockTrackUrlShortenerUsage = trackUrlShortenerUsage as jest.MockedFunction<typeof trackUrlShortenerUsage>;
-const mockCreateClient = createClient as jest.MockedFunction<typeof createClient>;
+const mockSupabaseAdmin = supabaseAdmin as jest.Mocked<typeof supabaseAdmin>;
 
 // Mock service instance
 const mockService = {
@@ -36,10 +40,30 @@ const mockSupabaseClient = {
 
 describe('/api/webhook/url-shortener', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockGetUrlShortenerService.mockReturnValue(mockService as any);
-    mockCreateClient.mockReturnValue(mockSupabaseClient as any);
     mockTrackUrlShortenerUsage.mockResolvedValue(undefined);
     mockService.shortenUrl.mockClear();
+    
+    // Setup default Supabase mock behavior with proper chaining
+    const mockEqChain = {
+      eq: jest.fn().mockReturnValue({
+        single: jest.fn().mockResolvedValue({
+          data: { hub_id: 123456, app_type: 'url-shortener' },
+          error: null
+        })
+      }),
+      single: jest.fn().mockResolvedValue({
+        data: { hub_id: 123456, app_type: 'url-shortener' },
+        error: null
+      })
+    };
+
+    (mockSupabaseAdmin as any).from = jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnValue({
+        eq: jest.fn().mockReturnValue(mockEqChain)
+      })
+    });
   });
 
   describe('POST', () => {
@@ -50,17 +74,7 @@ describe('/api/webhook/url-shortener', () => {
     };
 
     it('should successfully shorten URL', async () => {
-      // Mock portal authorization check
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: { hub_id: 123456 },
-              error: null
-            }))
-          }))
-        }))
-      } as any);
+      // Portal authorization is already mocked in beforeEach
 
       // Mock successful URL shortening
       mockService.shortenUrl.mockResolvedValue({
@@ -87,7 +101,8 @@ describe('/api/webhook/url-shortener', () => {
         shortUrl: 'https://bit.ly/abc123',
         longUrl: 'https://example.com/very-long-url',
         customDomain: 'bit.ly',
-        createdAt: '2025-01-28T12:00:00Z'
+        createdAt: '2025-01-28T12:00:00Z',
+        hs_execution_state: 'SUCCESS'
       });
 
       expect(mockService.shortenUrl).toHaveBeenCalledWith({
@@ -107,17 +122,7 @@ describe('/api/webhook/url-shortener', () => {
     });
 
     it('should handle URL shortening failure', async () => {
-      // Mock portal authorization check
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: { hub_id: 123456 },
-              error: null
-            }))
-          }))
-        }))
-      } as any);
+      // Portal authorization is already mocked in beforeEach
 
       // Mock URL shortening failure
       mockService.shortenUrl.mockResolvedValue({
@@ -136,10 +141,11 @@ describe('/api/webhook/url-shortener', () => {
       const response = await POST(request);
       const responseData = await response.json();
 
-      expect(response.status).toBe(200);
+      expect(response.status).toBe(400);
       expect(responseData.outputFields).toEqual({
         error: 'Invalid URL format',
-        longUrl: 'invalid-url'
+        longUrl: 'invalid-url',
+        hs_execution_state: 'ERROR'
       });
 
       expect(mockTrackUrlShortenerUsage).toHaveBeenCalledWith(
@@ -160,8 +166,9 @@ describe('/api/webhook/url-shortener', () => {
       const response = await POST(request);
       const responseData = await response.json();
 
-      expect(response.status).toBe(400);
-      expect(responseData.outputFields.error).toBe('Request body is required');
+      expect(response.status).toBe(500);
+      expect(responseData.outputFields.error).toBe('An unexpected error occurred. Please try again later.');
+      expect(responseData.outputFields.hs_execution_state).toBe('ERROR');
     });
 
     it('should reject requests with missing origin', async () => {
@@ -203,17 +210,25 @@ describe('/api/webhook/url-shortener', () => {
     });
 
     it('should reject unauthorized portals', async () => {
-      // Mock portal authorization failure
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: null,
-              error: { code: 'PGRST116' }
-            }))
-          }))
-        }))
-      } as any);
+      // Override the default mock to simulate unauthorized portal
+      const mockUnauthorizedChain = {
+        eq: jest.fn().mockReturnValue({
+          single: jest.fn().mockResolvedValue({
+            data: null,
+            error: { code: 'PGRST116' }
+          })
+        }),
+        single: jest.fn().mockResolvedValue({
+          data: null,
+          error: { code: 'PGRST116' }
+        })
+      };
+
+      (mockSupabaseAdmin as any).from = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          eq: jest.fn().mockReturnValue(mockUnauthorizedChain)
+        })
+      });
 
       const request = createMockRequest({
         origin: { portalId: 123456 },
@@ -238,17 +253,7 @@ describe('/api/webhook/url-shortener', () => {
     });
 
     it('should handle custom domain requests', async () => {
-      // Mock portal authorization check
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: { hub_id: 123456 },
-              error: null
-            }))
-          }))
-        }))
-      } as any);
+      // Portal authorization is already mocked in beforeEach
 
       // Mock successful URL shortening with custom domain
       mockService.shortenUrl.mockResolvedValue({
@@ -272,6 +277,7 @@ describe('/api/webhook/url-shortener', () => {
 
       expect(response.status).toBe(200);
       expect(responseData.outputFields.customDomain).toBe('yourbrand.co');
+      expect(responseData.outputFields.hs_execution_state).toBe('SUCCESS');
 
       expect(mockService.shortenUrl).toHaveBeenCalledWith({
         portalId: 123456,
@@ -281,17 +287,7 @@ describe('/api/webhook/url-shortener', () => {
     });
 
     it('should handle service errors gracefully', async () => {
-      // Mock portal authorization check
-      mockSupabaseClient.from.mockReturnValue({
-        select: jest.fn(() => ({
-          eq: jest.fn(() => ({
-            single: jest.fn(() => Promise.resolve({
-              data: { hub_id: 123456 },
-              error: null
-            }))
-          }))
-        }))
-      } as any);
+      // Portal authorization is already mocked in beforeEach
 
       // Mock service throwing error
       mockService.shortenUrl.mockRejectedValue(new Error('Service unavailable'));

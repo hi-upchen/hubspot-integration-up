@@ -63,26 +63,35 @@ export async function GET() {
   const configStart = Date.now();
   try {
     const currentEnv = ConfigManager.getCurrentEnvironment();
-    const requiredVars = [
-      'HUBSPOT_CLIENT_ID',
-      'HUBSPOT_CLIENT_SECRET', 
-      'SUPABASE_URL',
-      'SUPABASE_ANON_KEY'
-    ];
+    const envName = currentEnv === 'prod' ? 'prod' : 'dev';
     
-    const missingVars = requiredVars.filter(varName => {
-      const envVar = currentEnv === 'prod' 
-        ? varName.replace('HUBSPOT_', 'HUBSPOT_PROD_').replace('SUPABASE_', 'SUPABASE_PROD_')
-        : varName.replace('HUBSPOT_', 'HUBSPOT_DEV_').replace('SUPABASE_', 'SUPABASE_DEV_');
-      return !process.env[envVar];
-    });
-
-    if (missingVars.length > 0) {
+    // Try to load the configuration from JSON files
+    const hubspotConfig = ConfigManager.getHubSpotConfig();
+    const supabaseConfig = ConfigManager.getSupabaseConfig();
+    
+    // Check if critical configuration values are present
+    const configChecks = {
+      dateFormatterApp: !!hubspotConfig.apps['date-formatter']?.clientId,
+      urlShortenerApp: !!hubspotConfig.apps['url-shortener']?.clientId,
+      supabaseUrl: !!supabaseConfig.url,
+      supabaseKey: !!supabaseConfig.anonKey,
+      redirectUri: !!hubspotConfig.shared.redirectUri
+    };
+    
+    const failedChecks = Object.entries(configChecks)
+      .filter(([_, passed]) => !passed)
+      .map(([name, _]) => name);
+    
+    if (failedChecks.length > 0) {
       response.checks.config = {
         status: 'unhealthy',
         responseTime: `${Date.now() - configStart}ms`,
-        error: `Missing environment variables: ${missingVars.join(', ')}`,
-        environment: currentEnv
+        error: `Missing configuration in config/credentials/${envName}.json: ${failedChecks.join(', ')}`,
+        environment: currentEnv,
+        details: {
+          configFile: `config/credentials/${envName}.json`,
+          missingFields: failedChecks
+        }
       };
     } else {
       response.checks.config = {
@@ -90,8 +99,9 @@ export async function GET() {
         responseTime: `${Date.now() - configStart}ms`,
         environment: currentEnv,
         details: {
-          requiredVars: 'all_present',
-          environment: currentEnv
+          configFile: `config/credentials/${envName}.json`,
+          configSource: 'JSON file',
+          appsConfigured: Object.keys(hubspotConfig.apps).length
         }
       };
     }

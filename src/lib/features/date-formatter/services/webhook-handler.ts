@@ -1,8 +1,8 @@
-import { formatDate } from '@/lib/features/date-formatter/services/date-formatter';
+import { formatDate } from './date-formatter';
 import { hubspotClientManager } from '@/lib/hubspot/client';
-import { trackUsage } from './usage-tracker';
-import type { WorkflowRequest, WorkflowResponse, DateFormat } from '@/lib/types';
-import type { UsageTrackingData } from './types';
+import { trackUsage } from '@/lib/database/usage';
+import type { WorkflowRequest, WorkflowResponse } from '@/lib/hubspot/types';
+import type { DateFormat, DateFormatterUsageData } from '../types';
 
 export interface WebhookResult {
   success: boolean;
@@ -14,7 +14,7 @@ export interface WebhookResult {
  * Track usage with proper error handling
  * Note: We must await this in Vercel serverless functions or the write will be killed
  */
-async function trackUsageWithErrorHandling(data: UsageTrackingData): Promise<void> {
+async function trackUsageWithErrorHandling(data: DateFormatterUsageData): Promise<void> {
   try {
     await trackUsage(data);
   } catch (error) {
@@ -32,7 +32,7 @@ function buildTrackingData(
   success: boolean,
   errorMessage?: string,
   formattedDate?: string
-): UsageTrackingData {
+): DateFormatterUsageData {
   const fields = inputFields || {};
   return {
     portalId,

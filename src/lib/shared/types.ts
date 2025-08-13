@@ -1,58 +1,31 @@
 /**
- * Domain types for portal services
+ * Truly shared types used across multiple features
+ * Only put types here that are used by 2+ different domains
  */
 
-export interface PortalInfo {
+// App type is truly shared - used by config, hubspot, and features
+export type AppType = 'date-formatter' | 'url-shortener';
+
+// Base tracking interface - extended by features
+export interface BaseUsageTrackingData {
   portalId: number;
-  portalName?: string;
-  userEmail?: string;
-  domain?: string;
-  userName?: string;
-  organizationName?: string;
-  hubspotUserId?: number;
-  hubId?: number;
-}
-
-export interface PortalUserData {
-  userName: string;
-  organizationName: string;
-}
-
-/**
- * Usage tracking types
- */
-
-export interface UsageTrackingData {
-  portalId: number;
-  sourceDate?: string; // Optional to allow tracking validation failures
-  sourceFormat?: string; // Optional to allow tracking validation failures
-  targetFormat?: string; // Optional to allow tracking validation failures
-  customTargetFormat?: string;
   success: boolean;
   errorMessage?: string;
   timestamp?: Date;
-  formattedDate?: string; // The actual formatted date returned to user
 }
 
-export interface TrackingResult {
+// Generic result type
+export interface Result<T = void> {
   success: boolean;
+  data?: T;
   error?: string;
 }
 
-export interface UsageStats {
-  currentUsage: number;
-  successCount: number;
-  errorCount: number;
-  monthYear: string;
-}
-
-export interface UsageAnalytics {
-  monthlyUsage: Array<{
-    monthYear: string;
-    requestCount: number;
-    successCount: number;
-    errorCount: number;
-  }>;
-  totalRequests: number;
-  averageMonthlyRequests: number;
+// Generic paginated response
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  hasMore: boolean;
 }

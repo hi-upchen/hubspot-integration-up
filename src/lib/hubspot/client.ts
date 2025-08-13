@@ -1,11 +1,14 @@
 import { Client } from '@hubspot/api-client';
-import { HubSpotInstallationService } from '../supabase/client';
+import { 
+  findInstallationByHubId, 
+  findInstallationByHubIdAndApp,
+  updateInstallationTokensForApp 
+} from './installations';
 import { refreshAccessToken } from './tokens';
 
 export class HubSpotClientManager {
   private static instance: HubSpotClientManager;
   private clients: Map<number, Client> = new Map();
-  private installationService = new HubSpotInstallationService();
 
   private constructor() {}
 
@@ -23,7 +26,7 @@ export class HubSpotClientManager {
       return cachedClient;
     }
 
-    const installation = await this.installationService.findByHubId(hubId);
+    const installation = await findInstallationByHubId(hubId);
     if (!installation) {
       throw new Error(`No installation found for hub ID: ${hubId}`);
     }
@@ -37,7 +40,7 @@ export class HubSpotClientManager {
       try {
         // Use the stored app_type from the installation record
         const refreshedTokens = await refreshAccessToken(installation.refreshToken, installation.appType);
-        const updatedInstallation = await this.installationService.updateTokensForApp(hubId, installation.appType, {
+        const updatedInstallation = await updateInstallationTokensForApp(hubId, installation.appType, {
           accessToken: refreshedTokens.accessToken,
           refreshToken: refreshedTokens.refreshToken,
           expiresAt: new Date(Date.now() + refreshedTokens.expiresIn * 1000).toISOString()
@@ -65,7 +68,7 @@ export class HubSpotClientManager {
       return cachedClient;
     }
 
-    const installation = await this.installationService.findByHubIdAndApp(hubId, appType);
+    const installation = await findInstallationByHubIdAndApp(hubId, appType);
     if (!installation) {
       throw new Error(`No ${appType} installation found for hub ID: ${hubId}`);
     }
@@ -78,7 +81,7 @@ export class HubSpotClientManager {
     if (now >= expiresAt) {
       try {
         const refreshedTokens = await refreshAccessToken(installation.refreshToken, appType);
-        const updatedInstallation = await this.installationService.updateTokensForApp(hubId, appType, {
+        const updatedInstallation = await updateInstallationTokensForApp(hubId, appType, {
           accessToken: refreshedTokens.accessToken,
           refreshToken: refreshedTokens.refreshToken,
           expiresAt: new Date(Date.now() + refreshedTokens.expiresIn * 1000).toISOString()

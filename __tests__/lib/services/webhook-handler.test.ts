@@ -5,7 +5,7 @@
 // Mock external dependencies BEFORE imports
 jest.mock('@/lib/features/date-formatter/services/date-formatter');
 jest.mock('@/lib/hubspot/client');
-jest.mock('@/lib/supabase/client');
+jest.mock('@/lib/database/supabase');
 jest.mock('@/lib/config/config-manager', () => ({
   ConfigManager: {
     getCurrentEnvironment: jest.fn(() => 'dev'),
@@ -24,7 +24,7 @@ jest.mock('@/lib/config/config-manager', () => ({
   }
 }));
 
-import { processDateFormatterWebhook } from '@/lib/shared/webhook-handler';
+import { processDateFormatterWebhook } from '@/lib/features/date-formatter/services/webhook-handler';
 import { formatDate } from '@/lib/features/date-formatter/services/date-formatter';
 import { hubspotClientManager } from '@/lib/hubspot/client';
 import type { WorkflowRequest } from '@/lib/types';

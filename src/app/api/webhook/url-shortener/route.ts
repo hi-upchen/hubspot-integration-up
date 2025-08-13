@@ -6,7 +6,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
 import { trackUrlShortenerUsage } from '@/lib/features/url-shortener/services/usage-tracker';
-import { supabaseAdmin } from '@/lib/supabase/client';
+import { supabaseAdmin } from '@/lib/database/supabase';
 import { 
   classifyError, 
   createErrorResponse, 

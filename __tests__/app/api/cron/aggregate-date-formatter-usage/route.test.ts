@@ -21,7 +21,7 @@ jest.mock('@/lib/config/config-manager', () => ({
     }))
   }
 }));
-jest.mock('@/lib/supabase/client', () => ({
+jest.mock('@/lib/database/supabase', () => ({
   supabaseAdmin: {
     from: jest.fn()
   }
