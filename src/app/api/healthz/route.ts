@@ -79,8 +79,8 @@ export async function GET() {
     };
     
     const failedChecks = Object.entries(configChecks)
-      .filter(([_, passed]) => !passed)
-      .map(([name, _]) => name);
+      .filter(([, passed]) => !passed)
+      .map(([name]) => name);
     
     if (failedChecks.length > 0) {
       response.checks.config = {

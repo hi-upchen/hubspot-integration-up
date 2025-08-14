@@ -311,7 +311,7 @@ export async function validateHubSpotWebhook(
           } else {
             uri = new URL(request.url).href;
           }
-        } catch (error) {
+        } catch {
           // Fallback to request URL if config loading fails
           uri = new URL(request.url).href;
         }

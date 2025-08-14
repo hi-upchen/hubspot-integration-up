@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Button } from '@/components/Button';
 
 interface ApiKeySettingsProps {
@@ -29,12 +29,7 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
     message: null
   });
 
-  // Load existing API key on mount
-  useEffect(() => {
-    loadApiKey();
-  }, [portalId]);
-
-  const loadApiKey = async () => {
+  const loadApiKey = useCallback(async () => {
     setState(prev => ({ ...prev, loading: true }));
     
     try {
@@ -59,7 +54,7 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
           loading: false
         }));
       }
-    } catch (error) {
+    } catch {
       setState(prev => ({
         ...prev,
         loading: false,
@@ -69,7 +64,12 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
         }
       }));
     }
-  };
+  }, [portalId]);
+
+  // Load existing API key on mount
+  useEffect(() => {
+    loadApiKey();
+  }, [loadApiKey]);
 
   const handleSaveApiKey = async () => {
     if (!state.key || state.key.startsWith('••••')) {
@@ -122,7 +122,7 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
           }
         }));
       }
-    } catch (error) {
+    } catch {
       setState(prev => ({
         ...prev,
         saving: false,
@@ -154,7 +154,7 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
 
     try {
       // Prepare the request body
-      const requestBody: any = {};
+      const requestBody: Record<string, unknown> = {};
       
       // If there's a new key entered, send it for testing
       if (hasNewKey) {
@@ -184,7 +184,7 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
           type: data.valid ? 'success' : 'error'
         }
       }));
-    } catch (error) {
+    } catch {
       setState(prev => ({
         ...prev,
         testing: false,
@@ -280,7 +280,7 @@ export function ApiKeySettings({ portalId }: ApiKeySettingsProps) {
             <li>Log in to your Bitly account</li>
             <li>Go to Settings → API</li>
             <li>Enter your password to access API settings</li>
-            <li>Click "Generate Token"</li>
+            <li>Click &quot;Generate Token&quot;</li>
             <li>Copy the token and paste it above</li>
           </ol>
           <p className="text-sm text-gray-600 mt-2">

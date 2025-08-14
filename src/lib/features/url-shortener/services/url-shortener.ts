@@ -5,7 +5,7 @@
 
 import { supabaseAdmin } from '@/lib/database/supabase';
 import { decryptApiKey } from '@/lib/features/url-shortener/utils/encryption';
-import { createBitlyService, type ShortenResult } from './bitly-service';
+import { createBitlyService } from './bitly-service';
 import { isValidUrl, isValidDomain, isAlreadyShortened } from './url-validator';
 
 export interface UrlShortenerConfig {
@@ -27,7 +27,7 @@ export interface ApiKeyRecord {
   portal_id: number;
   service_name: string;
   api_key: string;
-  settings_json: any;
+  settings_json: Record<string, unknown>;
   verified_at: string | null;
 }
 

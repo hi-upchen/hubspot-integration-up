@@ -22,7 +22,7 @@ export function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
     );
   }
 
-  const { totalRequests = 0, successfulRequests = 0, failedRequests = 0, successRate = 0, thisMonth = 0 } = usageStats || {};
+  const { totalRequests = 0, successfulRequests = 0, failedRequests = 0, successRate = 0 } = usageStats || {};
   const errorRate = totalRequests > 0 ? (failedRequests / totalRequests) * 100 : 0;
   // Use a more explicit date formatting to avoid timezone issues
   const now = new Date();
