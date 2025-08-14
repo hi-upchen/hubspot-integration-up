@@ -1,5 +1,6 @@
 import { supabaseAdmin } from '@/lib/database/supabase';
 import type { HubSpotInstallation } from './types';
+import type { AppType } from '@/lib/shared/types';
 
 /**
  * Database operations for managing HubSpot app installations
@@ -12,22 +13,21 @@ type TokenUpdateData = {
   expiresAt: string;
 };
 
-type AppType = 'date-formatter' | 'url-shortener';
 
 /**
  * Helper function to transform database record to domain model
  */
-function transformInstallationRecord(data: any): HubSpotInstallation {
+function transformInstallationRecord(data: Record<string, unknown>): HubSpotInstallation {
   return {
-    id: data.id,
-    hubId: data.hub_id,
-    accessToken: data.access_token,
-    refreshToken: data.refresh_token,
-    expiresAt: data.expires_at,
-    scope: data.scope,
-    appType: data.app_type,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at
+    id: data.id as string,
+    hubId: data.hub_id as number,
+    accessToken: data.access_token as string,
+    refreshToken: data.refresh_token as string,
+    expiresAt: data.expires_at as string,
+    scope: data.scope as string,
+    appType: data.app_type as AppType,
+    createdAt: data.created_at as string,
+    updatedAt: data.updated_at as string
   };
 }
 

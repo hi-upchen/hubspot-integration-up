@@ -34,7 +34,7 @@ export interface BitlyApiResponse {
   long_url: string;
   archived: boolean;
   tags: string[];
-  deeplinks: any[];
+  deeplinks: unknown[];
   references: {
     group: string;
   };
@@ -71,6 +71,7 @@ export interface UrlShortenerUsageData extends BaseUsageTrackingData {
   shortUrl?: string;
   customDomain?: string;
   responseTimeMs?: number;
+  [key: string]: unknown; // Add index signature for compatibility
 }
 
 export interface HubSpotWorkflowResponse {

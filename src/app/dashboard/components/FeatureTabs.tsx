@@ -3,11 +3,19 @@
 import React, { useState } from 'react';
 import { UsageStatsCard } from './UsageStatsCard';
 import { ApiKeySettings } from './ApiKeySettings';
+import type { UsageStats } from '@/lib/database/types';
+
+interface UrlShortenerStats {
+  total: number;
+  successful: number;
+  failed: number;
+  uniqueDomains: number;
+}
 
 interface FeatureTabsProps {
   portalId: number;
-  usageStats: any;
-  urlShortenerStats?: any;
+  usageStats: UsageStats | null;
+  urlShortenerStats?: UrlShortenerStats | null;
 }
 
 type TabId = 'date-formatter' | 'url-shortener';
@@ -51,21 +59,19 @@ export function FeatureTabs({ portalId, usageStats, urlShortenerStats }: Feature
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-blue-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-blue-600">
-                    {usageStats?.currentMonth?.totalRequests || 0}
+                    {usageStats?.thisMonth || 0}
                   </div>
                   <div className="text-sm text-blue-600">Requests This Month</div>
                 </div>
                 <div className="bg-green-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-green-600">
-                    {usageStats?.currentMonth ? 
-                      Math.round((usageStats.currentMonth.successfulRequests / usageStats.currentMonth.totalRequests) * 100) || 0
-                      : 0}%
+                    {usageStats?.successRate || 0}%
                   </div>
                   <div className="text-sm text-green-600">Success Rate</div>
                 </div>
                 <div className="bg-purple-50 rounded-lg p-4">
                   <div className="text-2xl font-bold text-purple-600">
-                    {usageStats?.allTimeRequests || 0}
+                    {usageStats?.totalRequests || 0}
                   </div>
                   <div className="text-sm text-purple-600">All Time Requests</div>
                 </div>

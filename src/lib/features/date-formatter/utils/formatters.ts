@@ -238,7 +238,8 @@ function parseUSFormat(dateString: string): Date {
     throw new Error(`Invalid US date format: ${dateString}`);
   }
 
-  let [, month, day, year] = match;
+  const [, month, day, rawYear] = match;
+  let year = rawYear;
   
   // Handle 2-digit years: 00-49 → 2000-2049, 50-99 → 1950-1999
   if (year.length === 2) {
@@ -259,7 +260,8 @@ function parseUKFormat(dateString: string): Date {
     throw new Error(`Invalid UK date format: ${dateString}`);
   }
 
-  let [, day, month, year] = match;
+  const [, day, month, rawYear] = match;
+  let year = rawYear;
   
   // Handle 2-digit years
   if (year.length === 2) {
@@ -280,7 +282,8 @@ function parseEUFormat(dateString: string): Date {
     throw new Error(`Invalid EU date format: ${dateString}`);
   }
 
-  let [, day, month, year] = match;
+  const [, day, month, rawYear] = match;
+  let year = rawYear;
   
   // Handle 2-digit years
   if (year.length === 2) {

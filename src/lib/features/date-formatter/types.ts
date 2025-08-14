@@ -11,6 +11,7 @@ export interface DateFormatterUsageData extends BaseUsageTrackingData {
   targetFormat?: string;
   customTargetFormat?: string;
   formattedDate?: string;
+  [key: string]: unknown; // Add index signature for compatibility
 }
 
 export type DateFormat = 
