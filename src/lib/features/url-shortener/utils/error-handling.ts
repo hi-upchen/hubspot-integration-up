@@ -161,7 +161,7 @@ export function createErrorResponse(
   };
 
   // Add random delay for rate limit errors
-  if (errorType === 'RATE_LIMIT_ERROR' && config.delayGenerator) {
+  if (errorType === 'RATE_LIMIT_ERROR' && 'delayGenerator' in config && config.delayGenerator) {
     const delaySeconds = config.delayGenerator();
     const delayMinutes = Math.floor(delaySeconds / 60);
     

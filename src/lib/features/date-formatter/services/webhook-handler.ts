@@ -111,13 +111,13 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     }
 
     // Get date value directly from inputFields (HubSpot pre-resolves the value)
-    const dateValue = inputFields.sourceDateField;
+    const dateValue = inputFields.sourceDateField as string;
     
     // Note: HubSpot workflow actions receive pre-resolved values, 
     // no need to resolve dynamic tokens like {{contact.createdate}}
 
     // Check if date value is empty
-    if (!dateValue || dateValue.trim() === '') {
+    if (!dateValue || (typeof dateValue === 'string' && dateValue.trim() === '')) {
       console.warn('Empty date value received', { portalId, dateValue, inputFields });
       await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source date field is empty', ''));
       return {
@@ -139,9 +139,9 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     try {
       formattedDate = formatDate(
         dateValue,
-        inputFields.sourceFormat,
+        inputFields.sourceFormat as string,
         inputFields.targetFormat as DateFormat,
-        inputFields.customTargetFormat
+        inputFields.customTargetFormat as string | undefined
       );
     } catch (error) {
       console.error('Date formatting error:', {

@@ -42,7 +42,7 @@ export class EncryptionService {
     ]);
     
     // Get the authentication tag
-    const tag = cipher.getAuthTag();
+    const tag = (cipher as crypto.CipherGCM).getAuthTag();
     
     // Combine salt, iv, tag, and encrypted data
     const combined = Buffer.concat([salt, iv, tag, encrypted]);
@@ -75,7 +75,7 @@ export class EncryptionService {
     
     // Create decipher
     const decipher = crypto.createDecipheriv(this.algorithm, key, iv);
-    decipher.setAuthTag(tag);
+    (decipher as crypto.DecipherGCM).setAuthTag(tag);
     
     // Decrypt
     const decrypted = Buffer.concat([
