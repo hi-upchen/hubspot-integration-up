@@ -15,10 +15,11 @@ jest.mock('@/lib/features/date-formatter/services/webhook-handler');
 jest.mock('@/lib/shared/webhook-security');
 
 import { processDateFormatterWebhook } from '@/lib/features/date-formatter/services/webhook-handler';
-import { validateHubSpotWebhook } from '@/lib/shared/webhook-security';
+import { validateHubSpotWebhook, createSecurityErrorResponse } from '@/lib/shared/webhook-security';
 
 const mockProcessDateFormatterWebhook = processDateFormatterWebhook as jest.MockedFunction<typeof processDateFormatterWebhook>;
 const mockValidateHubSpotWebhook = validateHubSpotWebhook as jest.MockedFunction<typeof validateHubSpotWebhook>;
+const mockCreateSecurityErrorResponse = createSecurityErrorResponse as jest.MockedFunction<typeof createSecurityErrorResponse>;
 
 describe('/api/webhook/date-formatter', () => {
   beforeEach(() => {
@@ -95,8 +96,7 @@ describe('/api/webhook/date-formatter', () => {
           url: 'https://localhost:3000/api/webhook/date-formatter',
           headers: expect.any(Headers)
         }),
-        'date-formatter',
-        'https://localhost:3000/api/webhook/date-formatter'
+        'date-formatter'
       );
 
       // Verify webhook handler was called with parsed body
@@ -109,6 +109,13 @@ describe('/api/webhook/date-formatter', () => {
         isValid: false,
         error: 'Invalid webhook signature'
       });
+
+      // Mock the security error response
+      const mockErrorResponse = new Response(
+        JSON.stringify({ error: 'Unauthorized', message: 'Invalid webhook request' }),
+        { status: 401, headers: { 'Content-Type': 'application/json' } }
+      );
+      mockCreateSecurityErrorResponse.mockReturnValue(mockErrorResponse);
 
       const request = createMockRequest({
         origin: { portalId: 123456 },
@@ -173,6 +180,9 @@ describe('/api/webhook/date-formatter', () => {
         body: 'invalid-json-content'
       });
 
+      // Don't call the successful webhook handler since JSON parsing will fail
+      mockProcessDateFormatterWebhook.mockClear();
+
       const request = createMockRequest({});
 
       const response = await POST(request);
@@ -181,6 +191,9 @@ describe('/api/webhook/date-formatter', () => {
       expect(response.status).toBe(400);
       expect(responseData.outputFields.error).toBe('Invalid JSON request body');
       expect(responseData.outputFields.format).toBe('ERROR');
+      
+      // Should not call webhook handler since JSON parsing failed
+      expect(mockProcessDateFormatterWebhook).not.toHaveBeenCalled();
     });
 
     it('should handle webhook handler errors gracefully', async () => {

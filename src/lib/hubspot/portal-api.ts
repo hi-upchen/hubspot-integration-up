@@ -3,18 +3,25 @@
  * Pure API communication layer - no business logic
  */
 
+import { withTokenRetry } from './api-client';
+import { tokenManager } from './token-manager';
 import type { HubSpotAccessTokenResponse } from './types';
 
 /**
  * Fetches access token information from HubSpot API
- * @param accessToken - The access token to get information for
+ * @param portalId - HubSpot portal ID
+ * @param appType - App type for token management
  * @returns Raw HubSpot API response with token metadata
  * @throws Error if API call fails
  */
-export async function fetchHubSpotAccessTokenInfo(accessToken: string): Promise<HubSpotAccessTokenResponse> {
-  const url = `https://api.hubapi.com/oauth/v1/access-tokens/${accessToken}`;
-  
-  try {
+export async function fetchHubSpotAccessTokenInfo(
+  portalId: number,
+  appType: 'date-formatter' | 'url-shortener'
+): Promise<HubSpotAccessTokenResponse> {
+  return withTokenRetry(async () => {
+    const accessToken = await tokenManager.getValidToken(portalId, appType);
+    const url = `https://api.hubapi.com/oauth/v1/access-tokens/${accessToken}`;
+    
     const response = await fetch(url, {
       method: 'GET',
       headers: {
@@ -23,27 +30,29 @@ export async function fetchHubSpotAccessTokenInfo(accessToken: string): Promise<
     });
     
     if (!response.ok) {
-      throw new Error(`HubSpot API error: ${response.status} ${response.statusText}`);
+      const error = new Error(`HubSpot API error: ${response.status} ${response.statusText}`);
+      (error as any).status = response.status;
+      throw error;
     }
     
-    const data = await response.json();
-    return data as HubSpotAccessTokenResponse;
-  } catch (error) {
-    console.error('Failed to fetch HubSpot access token info:', error);
-    throw error instanceof Error 
-      ? error 
-      : new Error('Unknown error occurred while fetching access token info');
-  }
+    return await response.json() as HubSpotAccessTokenResponse;
+  }, portalId, appType);
 }
 
 /**
  * Retrieves HubSpot portal information using access token
- * @param accessToken - Valid HubSpot access token
+ * @param portalId - HubSpot portal ID
+ * @param appType - App type for token management
  * @returns Promise containing portal ID and domain information
  * @throws Error if API request fails or token is invalid
  */
-export async function fetchPortalInfo(accessToken: string): Promise<{ portalId: number; domain: string }> {
-  try {
+export async function fetchPortalInfo(
+  portalId: number,
+  appType: 'date-formatter' | 'url-shortener'
+): Promise<{ portalId: number; domain: string }> {
+  return withTokenRetry(async () => {
+    const accessToken = await tokenManager.getValidToken(portalId, appType);
+    
     const response = await fetch('https://api.hubapi.com/account-info/v3/details', {
       headers: {
         'Authorization': `Bearer ${accessToken}`
@@ -51,8 +60,15 @@ export async function fetchPortalInfo(accessToken: string): Promise<{ portalId: 
     });
 
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`Failed to get portal info: ${response.status} ${errorText}`);
+      const error = new Error(`Failed to get portal info: ${response.status}`);
+      (error as any).status = response.status;
+      
+      // 401 after retry means app was uninstalled
+      if (response.status === 401) {
+        (error as any).message = `App ${appType} has been uninstalled from portal ${portalId}`;
+      }
+      
+      throw error;
     }
 
     const data = await response.json();
@@ -61,7 +77,5 @@ export async function fetchPortalInfo(accessToken: string): Promise<{ portalId: 
       portalId: data.portalId,
       domain: data.domain || 'unknown'
     };
-  } catch (error) {
-    throw new Error(`Failed to get portal info: ${error}`);
-  }
+  }, portalId, appType);
 }

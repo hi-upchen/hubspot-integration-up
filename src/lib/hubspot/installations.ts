@@ -55,27 +55,6 @@ export async function createInstallation(installation: Omit<HubSpotInstallation,
   return transformInstallationRecord(data);
 }
 
-/**
- * Finds any installation for hub (legacy compatibility - gets most recent)
- */
-export async function findInstallationByHubId(hubId: number): Promise<HubSpotInstallation | null> {
-  const { data, error } = await supabaseAdmin
-    .from('hubspot_installations')
-    .select('*')
-    .eq('hub_id', hubId)
-    .order('created_at', { ascending: false })
-    .limit(1);
-
-  if (error) {
-    throw new Error(`Failed to find installation: ${error.message}`);
-  }
-
-  if (!data || data.length === 0) {
-    return null;
-  }
-
-  return transformInstallationRecord(data[0]);
-}
 
 /**
  * Finds specific app installation for hub
@@ -98,30 +77,6 @@ export async function findInstallationByHubIdAndApp(hubId: number, appType: AppT
   return transformInstallationRecord(data);
 }
 
-/**
- * Updates tokens for first found installation (legacy compatibility)
- */
-export async function updateInstallationTokens(hubId: number, tokens: TokenUpdateData): Promise<HubSpotInstallation> {
-  const { data, error } = await supabaseAdmin
-    .from('hubspot_installations')
-    .update({
-      access_token: tokens.accessToken,
-      refresh_token: tokens.refreshToken,
-      expires_at: tokens.expiresAt,
-      updated_at: new Date().toISOString()
-    })
-    .eq('hub_id', hubId)
-    .order('created_at', { ascending: false })
-    .limit(1)
-    .select()
-    .single();
-
-  if (error) {
-    throw new Error(`Failed to update tokens: ${error.message}`);
-  }
-
-  return transformInstallationRecord(data);
-}
 
 /**
  * Updates tokens for specific app installation

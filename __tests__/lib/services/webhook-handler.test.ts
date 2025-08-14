@@ -4,7 +4,6 @@
 
 // Mock external dependencies BEFORE imports
 jest.mock('@/lib/features/date-formatter/services/date-formatter');
-jest.mock('@/lib/hubspot/client');
 jest.mock('@/lib/database/supabase');
 jest.mock('@/lib/config/config-manager', () => ({
   ConfigManager: {
@@ -26,11 +25,9 @@ jest.mock('@/lib/config/config-manager', () => ({
 
 import { processDateFormatterWebhook } from '@/lib/features/date-formatter/services/webhook-handler';
 import { formatDate } from '@/lib/features/date-formatter/services/date-formatter';
-import { hubspotClientManager } from '@/lib/hubspot/client';
 import type { WorkflowRequest } from '@/lib/types';
 
 const mockFormatDate = formatDate as jest.MockedFunction<typeof formatDate>;
-const mockHubspotClientManager = hubspotClientManager as jest.Mocked<typeof hubspotClientManager>;
 
 describe('webhook-handler.ts', () => {
   beforeEach(() => {
@@ -38,7 +35,6 @@ describe('webhook-handler.ts', () => {
     
     // Default mock implementations
     mockFormatDate.mockReturnValue('2025-01-26');
-    mockHubspotClientManager.getClient.mockResolvedValue({} as any);
   });
 
   // Helper function to create valid workflow requests
@@ -126,7 +122,6 @@ describe('webhook-handler.ts', () => {
 
         expect(result.success).toBe(true);
         expect(result.status).toBe(200);
-        expect(mockHubspotClientManager.getClient).toHaveBeenCalledWith(999999999999);
       });
     });
 
@@ -285,82 +280,6 @@ describe('webhook-handler.ts', () => {
           'YYYY-MM-DD'
         );
       });
-    });
-  });
-
-  describe('Authentication Failure Scenarios', () => {
-    test('should return 401 error when HubSpot client authentication fails', async () => {
-      mockHubspotClientManager.getClient.mockRejectedValue(new Error('Authentication failed'));
-      const request = createValidWorkflowRequest();
-
-      const result = await processDateFormatterWebhook(request);
-
-      expect(result).toEqual({
-        success: false,
-        status: 401,
-        data: {
-          error: 'Portal not authorized or installation not found',
-          details: 'Please reinstall the app for this HubSpot portal'
-        }
-      });
-    });
-
-    test('should return 401 error when HubSpot client throws any error', async () => {
-      mockHubspotClientManager.getClient.mockRejectedValue(new Error('Token refresh failed'));
-      const request = createValidWorkflowRequest();
-
-      const result = await processDateFormatterWebhook(request);
-
-      expect(result).toEqual({
-        success: false,
-        status: 401,
-        data: {
-          error: 'Portal not authorized or installation not found',
-          details: 'Please reinstall the app for this HubSpot portal'
-        }
-      });
-    });
-
-    test('should return 401 error when HubSpot client throws non-Error object', async () => {
-      mockHubspotClientManager.getClient.mockRejectedValue('String error');
-      const request = createValidWorkflowRequest();
-
-      const result = await processDateFormatterWebhook(request);
-
-      expect(result).toEqual({
-        success: false,
-        status: 401,
-        data: {
-          error: 'Portal not authorized or installation not found',
-          details: 'Please reinstall the app for this HubSpot portal'
-        }
-      });
-    });
-
-    test('should return 401 error when HubSpot client throws null', async () => {
-      mockHubspotClientManager.getClient.mockRejectedValue(null);
-      const request = createValidWorkflowRequest();
-
-      const result = await processDateFormatterWebhook(request);
-
-      expect(result).toEqual({
-        success: false,
-        status: 401,
-        data: {
-          error: 'Portal not authorized or installation not found',
-          details: 'Please reinstall the app for this HubSpot portal'
-        }
-      });
-    });
-
-    test('should call getClient with correct portal ID', async () => {
-      const request = createValidWorkflowRequest({
-        origin: { ...createValidWorkflowRequest().origin!, portalId: 555666777 }
-      });
-
-      await processDateFormatterWebhook(request);
-
-      expect(mockHubspotClientManager.getClient).toHaveBeenCalledWith(555666777);
     });
   });
 
@@ -594,14 +513,12 @@ describe('webhook-handler.ts', () => {
       let result = await processDateFormatterWebhook(badRequest);
       expect(result.status).toBe(400);
 
-      // Test 401 (auth error)
-      mockHubspotClientManager.getClient.mockRejectedValue(new Error('Auth failed'));
-      const authRequest = createValidWorkflowRequest();
-      result = await processDateFormatterWebhook(authRequest);
-      expect(result.status).toBe(401);
+      // Test validation error (400)
+      const invalidRequest = createValidWorkflowRequest({ inputFields: {} });
+      result = await processDateFormatterWebhook(invalidRequest);
+      expect(result.status).toBe(400);
 
       // Test 200 (success)
-      mockHubspotClientManager.getClient.mockResolvedValue({} as any);
       const successRequest = createValidWorkflowRequest();
       result = await processDateFormatterWebhook(successRequest);
       expect(result.status).toBe(200);
@@ -698,72 +615,30 @@ describe('webhook-handler.ts', () => {
       );
     });
 
-    test('should call hubspotClientManager.getClient exactly once per request', async () => {
+    test('should call formatDate for valid requests', async () => {
       const request = createValidWorkflowRequest();
 
       await processDateFormatterWebhook(request);
 
-      expect(mockHubspotClientManager.getClient).toHaveBeenCalledTimes(1);
+      expect(mockFormatDate).toHaveBeenCalledTimes(1);
     });
 
-    test('should not call formatDate if authentication fails', async () => {
-      mockHubspotClientManager.getClient.mockRejectedValue(new Error('Auth failed'));
-      const request = createValidWorkflowRequest();
+    test('should not call formatDate if validation fails', async () => {
+      const request = createValidWorkflowRequest({ inputFields: {} });
 
       await processDateFormatterWebhook(request);
 
       expect(mockFormatDate).not.toHaveBeenCalled();
     });
 
-    test('should not call getClient if validation fails', async () => {
+    test('should not call formatDate if portal ID is invalid', async () => {
       const request = createValidWorkflowRequest({
         origin: { ...createValidWorkflowRequest().origin!, portalId: null as any }
       });
 
       await processDateFormatterWebhook(request);
 
-      expect(mockHubspotClientManager.getClient).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('Global Error Handling', () => {
-    test('should handle authentication errors as 401 responses', async () => {
-      // Mock an error in the authentication step
-      mockHubspotClientManager.getClient.mockRejectedValue(new Error('Unexpected system error'));
-      
-      const request = createValidWorkflowRequest();
-      const result = await processDateFormatterWebhook(request);
-
-      expect(result).toEqual({
-        success: false,
-        status: 401,
-        data: {
-          error: 'Portal not authorized or installation not found',
-          details: 'Please reinstall the app for this HubSpot portal'
-        }
-      });
-    });
-
-    test('should handle all authentication errors consistently', async () => {
-      // Different types of auth errors should all return 401
-      const authErrors = [
-        new Error('Token expired'),
-        new Error('Invalid client'),
-        'String error',
-        null,
-        undefined
-      ];
-
-      for (const error of authErrors) {
-        mockHubspotClientManager.getClient.mockRejectedValue(error);
-        
-        const request = createValidWorkflowRequest();
-        const result = await processDateFormatterWebhook(request);
-
-        expect(result.success).toBe(false);
-        expect(result.status).toBe(401);
-        expect(result.data).toHaveProperty('error', 'Portal not authorized or installation not found');
-      }
+      expect(mockFormatDate).not.toHaveBeenCalled();
     });
   });
 });
