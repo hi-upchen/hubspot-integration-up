@@ -132,10 +132,10 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
       };
     }
 
-    // Calculate aggregated stats
-    const totalRequests = data.reduce((sum, month) => sum + month.total_requests, 0);
-    const successfulRequests = data.reduce((sum, month) => sum + month.successful_requests, 0);
-    const failedRequests = totalRequests - successfulRequests;
+    // Calculate aggregated stats with null safety
+    const totalRequests = data.reduce((sum, month) => sum + (month.total_requests || 0), 0);
+    const successfulRequests = data.reduce((sum, month) => sum + (month.successful_requests || 0), 0);
+    const failedRequests = data.reduce((sum, month) => sum + (month.failed_requests || 0), 0);
     const successRate = totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0;
 
     const currentMonth = getCurrentMonthYear();
@@ -165,6 +165,75 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
 
   } catch (error) {
     console.error('Failed to get usage stats:', error);
+    throw error;
+  }
+}
+
+/**
+ * Gets 12-month historical usage analytics for dashboard charts
+ */
+export async function getUsageAnalytics(portalId: number) {
+  try {
+    validatePortalId(portalId);
+
+    // Get last 12 months of data
+    const twelveMonthsAgo = new Date();
+    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
+    const startMonth = twelveMonthsAgo.toISOString().slice(0, 7);
+
+    const { data, error } = await supabaseAdmin
+      .from('portal_usage_monthly')
+      .select('*')
+      .eq('portal_id', portalId)
+      .gte('month_year', startMonth)
+      .order('month_year', { ascending: true });
+
+    if (error) {
+      throw new Error(`Failed to get usage analytics: ${error.message}`);
+    }
+
+    // Create array of last 12 months
+    const months = [];
+    const monthlyData = new Map();
+    
+    // Map data by month
+    if (data) {
+      data.forEach(item => {
+        monthlyData.set(item.month_year, {
+          total: item.total_requests,
+          successful: item.successful_requests,
+          failed: item.failed_requests
+        });
+      });
+    }
+
+    // Fill in all 12 months with zeros for missing data
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date();
+      date.setMonth(date.getMonth() - i);
+      const monthKey = date.toISOString().slice(0, 7);
+      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+      
+      const data = monthlyData.get(monthKey) || { total: 0, successful: 0, failed: 0 };
+      months.push({
+        month: monthKey,
+        monthName,
+        ...data
+      });
+    }
+
+    return {
+      months,
+      summary: {
+        totalRequests: months.reduce((sum, m) => sum + m.total, 0),
+        successRate: months.reduce((sum, m) => sum + m.total, 0) > 0 
+          ? (months.reduce((sum, m) => sum + m.successful, 0) / months.reduce((sum, m) => sum + m.total, 0)) * 100 
+          : 0
+      }
+    };
+
+  } catch (error) {
+    console.error('Failed to get usage analytics:', error);
     throw error;
   }
 }

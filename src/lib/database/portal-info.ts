@@ -6,12 +6,15 @@
 import { supabaseAdmin } from './supabase';
 
 export interface PortalInfoRecord {
+  id: number;
   portal_id: number;
-  name: string;
-  domain: string;
+  portal_name: string;
   user_email: string | null;
+  domain: string;
   user_name: string | null;
-  organization: string | null;
+  organization_name: string | null;
+  hubspot_user_id: number | null;
+  hub_id: number | null;
   created_at: string;
   updated_at: string;
 }
@@ -39,7 +42,7 @@ export async function getPortalInfoRecord(portalId: number): Promise<PortalInfoR
 /**
  * Creates portal info record in database
  */
-export async function createPortalInfoRecord(portalInfo: Omit<PortalInfoRecord, 'created_at' | 'updated_at'>): Promise<PortalInfoRecord> {
+export async function createPortalInfoRecord(portalInfo: Omit<PortalInfoRecord, 'id' | 'created_at' | 'updated_at'>): Promise<PortalInfoRecord> {
   const { data, error } = await supabaseAdmin
     .from('portal_info')
     .insert(portalInfo)
@@ -58,7 +61,7 @@ export async function createPortalInfoRecord(portalInfo: Omit<PortalInfoRecord, 
  */
 export async function updatePortalInfoRecord(
   portalId: number, 
-  updates: Partial<Omit<PortalInfoRecord, 'portal_id' | 'created_at' | 'updated_at'>>
+  updates: Partial<Omit<PortalInfoRecord, 'id' | 'portal_id' | 'created_at' | 'updated_at'>>
 ): Promise<PortalInfoRecord> {
   const { data, error } = await supabaseAdmin
     .from('portal_info')
