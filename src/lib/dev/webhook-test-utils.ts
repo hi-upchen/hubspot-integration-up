@@ -21,7 +21,7 @@ export interface TestWebhookRequest {
 
 export interface TestWebhookOptions {
   portalId: number;
-  inputFields: Record<string, any>;
+  inputFields: Record<string, unknown>;
   appType: 'date-formatter' | 'url-shortener';
   timestamp?: number;
   method?: string;

@@ -16,9 +16,9 @@ export async function withTokenRetry<T>(
 ): Promise<T> {
   try {
     return await apiCall();
-  } catch (error: any) {
+  } catch (error: unknown) {
     // Only retry once for 401 errors (token might be invalid for other reasons)
-    if (error.status === 401) {
+    if ((error as { status?: number }).status === 401) {
       // Force refresh token and retry once
       await tokenManager.getValidToken(portalId, appType, { forceRefresh: true });
       return await apiCall();

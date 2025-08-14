@@ -8,7 +8,7 @@ import type { BaseUsageTrackingData } from '@/lib/shared/types';
 import type { UsageStats, TrackingResult } from './types';
 
 // Generic usage tracking type that can be extended by features
-export type UsageTrackingData = BaseUsageTrackingData & Record<string, any>;
+export type UsageTrackingData = BaseUsageTrackingData & Record<string, unknown>;
 
 /**
  * Gets current month-year string in YYYY-MM format

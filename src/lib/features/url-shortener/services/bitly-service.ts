@@ -53,7 +53,7 @@ export class BitlyService {
       }
     }
     
-    const payload: any = {
+    const payload: Record<string, unknown> = {
       long_url: longUrl,
       domain: domain || 'bit.ly',
       group_guid: await this.getDefaultGroupGuid()

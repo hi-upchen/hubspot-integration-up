@@ -23,7 +23,7 @@ export async function fetchAccessTokenInfo(accessToken: string): Promise<HubSpot
   
   if (!response.ok) {
     const error = new Error(`HubSpot API error: ${response.status} ${response.statusText}`);
-    (error as any).status = response.status;
+    (error as Error & { status?: number }).status = response.status;
     throw error;
   }
   
