@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
-import { encryptApiKey } from '@/lib/shared/encryption';
+import { encryptApiKey } from '@/lib/features/url-shortener/utils/encryption';
 
 export const runtime = 'nodejs';
 export const maxDuration = 30;

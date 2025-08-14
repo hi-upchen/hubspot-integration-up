@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { processDateFormatterWebhook } from '@/lib/features/date-formatter/services/webhook-handler';
 import { validateHubSpotWebhook, createSecurityErrorResponse } from '@/lib/shared/webhook-security';
-import type { WorkflowRequest } from '@/lib/shared/types';
+import type { WorkflowRequest } from '@/lib/hubspot/types';
 
 /**
  * HubSpot Workflow Activity endpoint for date formatting

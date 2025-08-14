@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getUsageAnalytics } from '@/lib/shared/usage-tracker';
+import { getUsageAnalytics } from '@/lib/database/usage';
 import { validatePortalId } from '../../_shared/validation';
 import { formatSuccessResponse, handleApiError } from '../../_shared/responses';
 
