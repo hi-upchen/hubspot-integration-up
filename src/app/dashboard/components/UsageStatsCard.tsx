@@ -22,9 +22,19 @@ export function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
     );
   }
 
-  const { currentUsage, successCount, errorCount, monthYear } = usageStats;
-  const successRate = currentUsage > 0 ? (successCount / currentUsage) * 100 : 0;
-  const errorRate = currentUsage > 0 ? (errorCount / currentUsage) * 100 : 0;
+  const { totalRequests = 0, successfulRequests = 0, failedRequests = 0, successRate = 0, thisMonth = 0 } = usageStats || {};
+  const errorRate = totalRequests > 0 ? (failedRequests / totalRequests) * 100 : 0;
+  // Use a more explicit date formatting to avoid timezone issues
+  const now = new Date();
+  const currentMonth = now.getMonth(); // 0-based (0 = January)
+  const currentYear = now.getFullYear();
+  
+  const monthNames = [
+    'January', 'February', 'March', 'April', 'May', 'June',
+    'July', 'August', 'September', 'October', 'November', 'December'
+  ];
+  
+  const monthYear = `${monthNames[currentMonth]} ${currentYear}`;
 
   return (
     <div className="bg-white border border-gray-200 rounded-lg p-6">
@@ -37,7 +47,7 @@ export function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
       <div className="bg-gradient-to-br from-green-50 to-emerald-100 rounded-lg p-6 mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-3xl font-bold text-gray-900">{successCount.toLocaleString()}</div>
+            <div className="text-3xl font-bold text-gray-900">{successfulRequests.toLocaleString()}</div>
             <div className="text-sm font-medium text-gray-600">Successful API Calls</div>
             <div className="text-xs text-gray-500">{monthYear}</div>
           </div>
@@ -52,11 +62,11 @@ export function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
       </div>
 
       {/* Success/Error Progress Bar - Show breakdown if there are any attempts */}
-      {currentUsage > 0 && (
+      {totalRequests > 0 && (
         <div className="bg-gray-50 rounded-lg p-4 mb-4">
           <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
-            <span className="text-green-600">{successCount.toLocaleString()} successful</span>
-            <span className="text-red-600">{errorCount.toLocaleString()} failed attempts</span>
+            <span className="text-green-600">{successfulRequests.toLocaleString()} successful</span>
+            <span className="text-red-600">{failedRequests.toLocaleString()} failed attempts</span>
           </div>
           <div className="w-full bg-gray-200 rounded-full h-4 overflow-hidden flex">
             {/* Success segment */}
@@ -76,7 +86,7 @@ export function UsageStatsCard({ usageStats }: UsageStatsCardProps) {
           </div>
           <div className="flex justify-between text-xs text-gray-500 mt-2">
             <span></span>
-            <span>{currentUsage.toLocaleString()} total attempts</span>
+            <span>{totalRequests.toLocaleString()} total attempts</span>
           </div>
         </div>
       )}

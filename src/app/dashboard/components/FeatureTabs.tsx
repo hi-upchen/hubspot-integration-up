@@ -72,7 +72,7 @@ export function FeatureTabs({ portalId, usageStats, urlShortenerStats }: Feature
               </div>
             </div>
             
-            {usageStats && <UsageStatsCard usageStats={usageStats} />}
+            {usageStats && <UsageStatsCard usageStats={usageStats} portalId={portalId} />}
           </div>
         );
 

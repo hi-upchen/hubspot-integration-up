@@ -2,9 +2,10 @@
  * Server-side API utilities for dashboard data fetching
  */
 
-import { getPortalInfo } from '@/lib/shared/hubspot-portal';
-import { getUsageStats } from '@/lib/shared/usage-tracker';
-import type { PortalInfo, UsageStats } from '@/lib/shared/types';
+import { portalService } from '@/lib/hubspot/portal';
+import { getUsageStats } from '@/lib/database/usage';
+import type { PortalInfo } from '@/lib/hubspot/types';
+import type { UsageStats } from '@/lib/database/types';
 
 export interface DashboardData {
   portalInfo: PortalInfo | null;
@@ -30,9 +31,10 @@ export async function fetchDashboardData(portalId: number): Promise<DashboardDat
 
     // Fetch data in parallel
     const [portalInfo, usageStats] = await Promise.allSettled([
-      getPortalInfo(portalId),
+      portalService.getPortalInfo(portalId),
       getUsageStats(portalId)
     ]);
+
 
     // Handle portal info result
     const portalInfoData = portalInfo.status === 'fulfilled' ? portalInfo.value : null;
