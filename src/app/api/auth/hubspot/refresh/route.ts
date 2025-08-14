@@ -1,22 +1,23 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { refreshAccessToken } from '@/lib/hubspot/tokens';
 import { 
-  findInstallationByHubId,
-  updateInstallationTokens 
+  findInstallationByHubIdAndApp,
+  updateInstallationTokensForApp 
 } from '@/lib/hubspot/installations';
+import type { AppType } from '@/lib/shared/types';
 
 export async function POST(request: NextRequest) {
   try {
-    const { hubId } = await request.json();
+    const { hubId, appType } = await request.json();
 
-    if (!hubId) {
+    if (!hubId || !appType) {
       return NextResponse.json(
-        { error: 'Hub ID is required' },
+        { error: 'Hub ID and app type are required' },
         { status: 400 }
       );
     }
 
-    const installation = await findInstallationByHubId(hubId);
+    const installation = await findInstallationByHubIdAndApp(hubId, appType as AppType);
 
     if (!installation) {
       return NextResponse.json(
@@ -28,7 +29,7 @@ export async function POST(request: NextRequest) {
     // Use the stored app_type from the installation record
     const refreshedTokens = await refreshAccessToken(installation.refreshToken, installation.appType);
     
-    const updatedInstallation = await updateInstallationTokens(hubId, {
+    const updatedInstallation = await updateInstallationTokensForApp(hubId, appType as AppType, {
       accessToken: refreshedTokens.accessToken,
       refreshToken: refreshedTokens.refreshToken,
       expiresAt: new Date(Date.now() + refreshedTokens.expiresIn * 1000).toISOString()
@@ -52,16 +53,17 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
   const hubId = searchParams.get('hubId');
+  const appType = searchParams.get('appType');
 
-  if (!hubId) {
+  if (!hubId || !appType) {
     return NextResponse.json(
-      { error: 'Hub ID is required' },
+      { error: 'Hub ID and app type are required' },
       { status: 400 }
     );
   }
 
   try {
-    const installation = await findInstallationByHubId(parseInt(hubId));
+    const installation = await findInstallationByHubIdAndApp(parseInt(hubId), appType as AppType);
 
     if (!installation) {
       return NextResponse.json(

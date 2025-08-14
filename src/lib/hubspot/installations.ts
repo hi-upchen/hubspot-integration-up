@@ -116,6 +116,7 @@ export async function deleteInstallation(hubId: number): Promise<void> {
   }
 }
 
+
 /**
  * Deletes specific app installation for a hub
  */
