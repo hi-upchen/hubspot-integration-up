@@ -3,10 +3,8 @@
  * Handles portal business logic and orchestrates API calls and database operations
  */
 
-import { fetchPortalInfo } from './portal-api';
 import { 
   getPortalInfoRecord, 
-  createPortalInfoRecord, 
   updatePortalInfoRecord 
 } from '@/lib/database/portal-info';
 import type { PortalInfo } from './types';
@@ -42,11 +40,13 @@ export class PortalService {
 
       return {
         portalId: record.portal_id,
-        name: record.name,
+        portalName: record.portal_name,
         domain: record.domain,
         userEmail: record.user_email,
         userName: record.user_name,
-        organization: record.organization,
+        organizationName: record.organization_name,
+        hubspotUserId: record.hubspot_user_id,
+        hubId: record.hub_id,
         createdAt: record.created_at,
         updatedAt: record.updated_at
       };
@@ -56,42 +56,6 @@ export class PortalService {
     }
   }
 
-  /**
-   * Creates portal information by fetching from HubSpot API
-   * @param portalId - The portal ID
-   * @param accessToken - Valid HubSpot access token
-   * @returns Newly created portal information
-   */
-  async createPortalInfo(portalId: number, accessToken: string): Promise<PortalInfo> {
-    try {
-      // Fetch portal info from HubSpot
-      const hubspotPortalInfo = await fetchPortalInfo(accessToken);
-
-      // Create database record
-      const record = await createPortalInfoRecord({
-        portal_id: portalId,
-        name: `Portal ${portalId}`,
-        domain: hubspotPortalInfo.domain,
-        user_email: null, // Will be updated when we have user info
-        user_name: null,
-        organization: null
-      });
-
-      return {
-        portalId: record.portal_id,
-        name: record.name,
-        domain: record.domain,
-        userEmail: record.user_email,
-        userName: record.user_name,
-        organization: record.organization,
-        createdAt: record.created_at,
-        updatedAt: record.updated_at
-      };
-    } catch (error) {
-      console.error(`Failed to create portal info for ${portalId}:`, error);
-      throw error;
-    }
-  }
 
   /**
    * Updates portal user information
@@ -102,22 +66,24 @@ export class PortalService {
   async updatePortalUserInfo(portalId: number, userData: {
     userEmail?: string;
     userName?: string;
-    organization?: string;
+    organizationName?: string;
   }): Promise<PortalInfo> {
     try {
       const record = await updatePortalInfoRecord(portalId, {
         user_email: userData.userEmail,
         user_name: userData.userName,
-        organization: userData.organization
+        organization_name: userData.organizationName
       });
 
       return {
         portalId: record.portal_id,
-        name: record.name,
+        portalName: record.portal_name,
         domain: record.domain,
         userEmail: record.user_email,
         userName: record.user_name,
-        organization: record.organization,
+        organizationName: record.organization_name,
+        hubspotUserId: record.hubspot_user_id,
+        hubId: record.hub_id,
         createdAt: record.created_at,
         updatedAt: record.updated_at
       };

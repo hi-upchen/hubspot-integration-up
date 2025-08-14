@@ -19,11 +19,13 @@ export interface HubSpotInstallation {
 
 export interface PortalInfo {
   portalId: number;
-  name: string;
+  portalName: string;
   domain: string;
   userEmail: string | null;
   userName: string | null;
-  organization: string | null;
+  organizationName: string | null;
+  hubspotUserId: number | null;
+  hubId: number | null;
   createdAt: string;
   updatedAt: string;
 }

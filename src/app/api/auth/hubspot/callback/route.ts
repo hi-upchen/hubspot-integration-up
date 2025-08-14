@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { validateOAuthCallback, HUBSPOT_OAUTH_SCOPES } from '@/lib/hubspot/auth';
 import { exchangeCodeForTokens } from '@/lib/hubspot/tokens';
-import { fetchHubSpotAccessTokenInfo } from '@/lib/hubspot/portal-api';
+import { fetchAccessTokenInfo } from '@/lib/hubspot/portal-api';
 import { 
   findInstallationByHubIdAndApp, 
   createInstallation,
@@ -58,7 +58,7 @@ export async function GET(request: NextRequest) {
     const tokens = await exchangeCodeForTokens(code, state as 'date-formatter' | 'url-shortener');
     
     // Get portal information using the access token
-    const tokenInfo = await fetchHubSpotAccessTokenInfo(tokens.accessToken);
+    const tokenInfo = await fetchAccessTokenInfo(tokens.accessToken);
 
     // Store or update installation in database (app-specific)
     const appType = state as 'date-formatter' | 'url-shortener';
@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
         accessToken: tokens.accessToken,
         refreshToken: tokens.refreshToken,
         expiresAt: new Date(Date.now() + tokens.expiresIn * 1000).toISOString(),
-        scope: HUBSPOT_OAUTH_SCOPES,
+        scope: HUBSPOT_OAUTH_SCOPES.join(' '),
         appType: appType
       });
     }
