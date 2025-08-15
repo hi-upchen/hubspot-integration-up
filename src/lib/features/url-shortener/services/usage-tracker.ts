@@ -35,7 +35,7 @@ export async function trackUrlShortenerUsage(data: UrlShortenerUsageData): Promi
         success: data.success,
         error_message: data.errorMessage?.substring(0, 500),
         response_time_ms: data.responseTimeMs,
-        timestamp: new Date().toISOString()
+        request_timestamp: new Date().toISOString()
       });
     
     if (error) {
@@ -43,7 +43,7 @@ export async function trackUrlShortenerUsage(data: UrlShortenerUsageData): Promi
       console.error('Failed to track URL shortener usage:', {
         error,
         portalId: data.portalId,
-        timestamp: new Date().toISOString()
+        request_timestamp: new Date().toISOString()
       });
     }
   } catch (error) {
@@ -74,14 +74,14 @@ export async function getUrlShortenerUsageStats(
       .from('url_shortener_usage')
       .select('*')
       .eq('portal_id', portalId)
-      .order('timestamp', { ascending: false });
+      .order('request_timestamp', { ascending: false });
     
     if (startDate) {
-      query = query.gte('timestamp', startDate.toISOString());
+      query = query.gte('request_timestamp', startDate.toISOString());
     }
     
     if (endDate) {
-      query = query.lte('timestamp', endDate.toISOString());
+      query = query.lte('request_timestamp', endDate.toISOString());
     }
     
     const { data, error } = await query;
@@ -169,8 +169,8 @@ export async function aggregateMonthlyUsage(portalId: number, month: string): Pr
       .from('url_shortener_usage')
       .select('*')
       .eq('portal_id', portalId)
-      .gte('timestamp', startDate.toISOString())
-      .lt('timestamp', endDate.toISOString());
+      .gte('request_timestamp', startDate.toISOString())
+      .lt('request_timestamp', endDate.toISOString());
     
     if (error) {
       throw error;

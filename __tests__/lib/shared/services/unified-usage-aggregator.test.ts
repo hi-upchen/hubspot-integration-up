@@ -94,7 +94,7 @@ describe('UnifiedUsageAggregator', () => {
         );
         
         expect(mockPool.query).toHaveBeenCalledWith(
-          expect.stringContaining('FROM usage_requests'),
+          expect.stringContaining('FROM date_formatter_usage'),
           [new Date('2025-01-15T00:00:00Z')]
         );
         
@@ -131,7 +131,7 @@ describe('UnifiedUsageAggregator', () => {
         
         // Should query with null timestamp
         expect(mockPool.query).toHaveBeenCalledWith(
-          expect.stringContaining('FROM usage_requests'),
+          expect.stringContaining('FROM date_formatter_usage'),
           [null]
         );
       });

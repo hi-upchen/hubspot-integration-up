@@ -52,7 +52,7 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
     
     // Insert detailed usage record
     const { error: insertError } = await supabaseAdmin
-      .from('usage_requests')
+      .from('date_formatter_usage')
       .insert({
         portal_id: data.portalId,
         source_date: data.sourceDate || null,
@@ -62,6 +62,7 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
         formatted_date: data.formattedDate || null,
         success: data.success,
         error_message: data.errorMessage || null,
+        request_timestamp: timestamp.toISOString(),
         created_at: timestamp.toISOString()
       });
 

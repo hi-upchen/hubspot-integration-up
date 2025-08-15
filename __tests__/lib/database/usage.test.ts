@@ -100,7 +100,7 @@ describe('Database Usage Operations', () => {
         message: 'Usage tracked successfully'
       });
 
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_requests');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
       expect(mockSupabaseAdmin.from().insert).toHaveBeenCalledWith({
         portal_id: 12345678,
         source_date: '01/26/2025',
@@ -110,6 +110,7 @@ describe('Database Usage Operations', () => {
         formatted_date: '2025-01-26',
         success: true,
         error_message: null,
+        request_timestamp: '2025-01-26T10:30:00.000Z',
         created_at: '2025-01-26T10:30:00.000Z'
       });
 
@@ -164,6 +165,7 @@ describe('Database Usage Operations', () => {
         formatted_date: null,
         success: false,
         error_message: null,
+        request_timestamp: '2025-01-26T10:30:00.000Z',
         created_at: '2025-01-26T10:30:00.000Z'
       });
     });
@@ -437,7 +439,7 @@ describe('Database Usage Operations', () => {
       // Should not throw
       await expect(trackUsageAsync(validUsageData)).resolves.toBeUndefined();
 
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_requests');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
     });
 
     it('should log errors but not throw them', async () => {
@@ -495,7 +497,7 @@ describe('Database Usage Operations', () => {
       const result = await usageService.track(validUsageData);
 
       expect(result.success).toBe(true);
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_requests');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
     });
 
     it('should provide getStats method', async () => {
@@ -521,7 +523,7 @@ describe('Database Usage Operations', () => {
 
       await expect(usageService.trackAsync(validUsageData)).resolves.toBeUndefined();
 
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_requests');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
     });
   });
 

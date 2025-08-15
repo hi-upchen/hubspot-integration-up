@@ -1,6 +1,6 @@
 /**
  * Date Formatter Usage Aggregator Service
- * Aggregates usage data from usage_requests into portal_usage_monthly
+ * Aggregates usage data from date_formatter_usage into portal_usage_monthly
  * Designed for daily cron job execution
  */
 
@@ -39,19 +39,19 @@ export async function aggregateDateFormatterUsage(): Promise<AggregationResult> 
     console.log(`🔄 Starting usage aggregation (${environment.toUpperCase()}) at ${startTime.toISOString()}`);
     console.log('⚠️  WARNING: Fetching ALL historical data - optimize for production use');
 
-    // PERFORMANCE WARNING: This fetches ALL historical data from usage_requests table
+    // PERFORMANCE WARNING: This fetches ALL historical data from date_formatter_usage table
     // and processes it on the client side. This approach may cause high network traffic
     // and memory usage as the dataset grows larger over time.
     //
     // TODO: Optimize this in the future by:
-    // 1. Adding a 'processed' flag to usage_requests table to track aggregated records
+    // 1. Adding a 'processed' flag to date_formatter_usage table to track aggregated records
     // 2. Only fetching records where processed = false
     // 3. Using database-side aggregation with custom SQL functions
     // 4. Implementing incremental aggregation (only new data since last run)
     // 5. Adding pagination for very large datasets
     
     const { data: rawData, error: fetchError } = await supabaseAdmin
-      .from('usage_requests')
+      .from('date_formatter_usage')
       .select('portal_id, month_year, success');
 
     if (fetchError) {

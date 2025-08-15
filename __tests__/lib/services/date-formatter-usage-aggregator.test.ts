@@ -143,12 +143,12 @@ describe('Date Formatter Usage Aggregator Service', () => {
   });
 
   describe('Database Operations - Fetch', () => {
-    test('should fetch data from usage_requests table with correct columns', async () => {
+    test('should fetch data from date_formatter_usage table with correct columns', async () => {
       const selectMock = setupSupabaseSelectMock([]);
 
       await aggregateDateFormatterUsage();
 
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_requests');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
       expect(selectMock).toHaveBeenCalledWith('portal_id, month_year, success');
     });
 

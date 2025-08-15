@@ -18,14 +18,14 @@ export class UnifiedUsageAggregator {
    */
   private readonly appConfigs: Record<AppType, AppAggregationConfig> = {
     'date-formatter': {
-      sourceTable: 'usage_requests',
+      sourceTable: 'date_formatter_usage',
       timestampColumn: 'request_timestamp',
       monthFormat: `DATE_TRUNC('month', request_timestamp)::date`
     },
     'url-shortener': {
       sourceTable: 'url_shortener_usage',
-      timestampColumn: 'timestamp',
-      monthFormat: `DATE_TRUNC('month', timestamp)::date`
+      timestampColumn: 'request_timestamp',
+      monthFormat: `DATE_TRUNC('month', request_timestamp)::date`
     }
   };
 
