@@ -54,6 +54,7 @@ describe('Database Usage Operations', () => {
       month_year: '2025-01',
       total_requests: 150,
       successful_requests: 142,
+      failed_requests: 8, // 150 - 142
       created_at: '2025-01-01T00:00:00Z',
       updated_at: '2025-01-26T10:30:00Z'
     },
@@ -62,6 +63,7 @@ describe('Database Usage Operations', () => {
       month_year: '2024-12',
       total_requests: 95,
       successful_requests: 88,
+      failed_requests: 7, // 95 - 88
       created_at: '2024-12-01T00:00:00Z',
       updated_at: '2024-12-31T23:59:59Z'
     }
@@ -404,6 +406,7 @@ describe('Database Usage Operations', () => {
         month_year: '2025-01',
         total_requests: 100,
         successful_requests: 0,
+        failed_requests: 100, // All requests failed
         created_at: '2025-01-01T00:00:00Z',
         updated_at: '2025-01-26T10:30:00Z'
       }];

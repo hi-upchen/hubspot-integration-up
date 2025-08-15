@@ -191,8 +191,8 @@ describe('HubSpot Installation Functions', () => {
       const mockChain = {
         eq: jest.fn().mockReturnThis()
       };
-      // Chain the eq calls
-      mockChain.eq.mockReturnValue({ error: null });
+      // Set up the final return value for the last eq call
+      mockChain.eq.mockReturnValueOnce(mockChain).mockReturnValueOnce({ error: null });
       
       const deleteMockChain = {
         delete: jest.fn().mockReturnValue(mockChain)
