@@ -22,6 +22,9 @@ export interface AppConfig {
     url: string;
     anonKey: string;
     serviceRoleKey: string;
+    postgres?: {
+      pooledConnectionString: string;
+    };
   };
   application: {
     nextjsUrl: string;
