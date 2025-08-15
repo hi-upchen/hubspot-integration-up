@@ -48,22 +48,49 @@ describe('Database Usage Operations', () => {
     errorMessage: undefined
   };
 
-  const mockMonthlyUsageData = [
+  // Mock data for unified usage_monthly table (multi-app structure)
+  const mockUnifiedUsageData = [
     {
       portal_id: 12345678,
-      month_year: '2025-01',
-      total_requests: 150,
-      successful_requests: 142,
-      failed_requests: 8, // 150 - 142
+      app_type: 'date-formatter',
+      month_start: '2025-01-01',
+      total_requests: 100,
+      successful_requests: 95,
+      failed_requests: 5,
+      last_request_at: '2025-01-26T10:30:00Z',
       created_at: '2025-01-01T00:00:00Z',
       updated_at: '2025-01-26T10:30:00Z'
     },
     {
       portal_id: 12345678,
-      month_year: '2024-12',
-      total_requests: 95,
-      successful_requests: 88,
-      failed_requests: 7, // 95 - 88
+      app_type: 'url-shortener',
+      month_start: '2025-01-01',
+      total_requests: 50,
+      successful_requests: 47,
+      failed_requests: 3,
+      last_request_at: '2025-01-26T10:30:00Z',
+      created_at: '2025-01-01T00:00:00Z',
+      updated_at: '2025-01-26T10:30:00Z'
+    },
+    {
+      portal_id: 12345678,
+      app_type: 'date-formatter',
+      month_start: '2024-12-01',
+      total_requests: 60,
+      successful_requests: 55,
+      failed_requests: 5,
+      last_request_at: '2024-12-31T23:59:59Z',
+      created_at: '2024-12-01T00:00:00Z',
+      updated_at: '2024-12-31T23:59:59Z'
+    },
+    {
+      portal_id: 12345678,
+      app_type: 'url-shortener',
+      month_start: '2024-12-01',
+      total_requests: 35,
+      successful_requests: 33,
+      failed_requests: 2,
+      last_request_at: '2024-12-31T23:59:59Z',
       created_at: '2024-12-01T00:00:00Z',
       updated_at: '2024-12-31T23:59:59Z'
     }
@@ -288,28 +315,28 @@ describe('Database Usage Operations', () => {
       const mockSelectChain = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockResolvedValue({ data: mockMonthlyUsageData, error: null })
+        order: jest.fn().mockResolvedValue({ data: mockUnifiedUsageData, error: null })
       };
       mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
     });
 
-    it('should calculate usage statistics correctly', async () => {
+    it('should calculate usage statistics correctly with multi-app aggregation', async () => {
       const result = await getUsageStats(12345678);
 
       expect(result).toEqual({
-        totalRequests: 245, // 150 + 95
-        successfulRequests: 230, // 142 + 88
-        failedRequests: 15, // 245 - 230
+        totalRequests: 245, // (100+50) + (60+35) = 150 + 95
+        successfulRequests: 230, // (95+47) + (55+33) = 142 + 88
+        failedRequests: 15, // (5+3) + (5+2) = 8 + 7
         successRate: 93.88, // (230/245) * 100, rounded to 2 decimals
-        thisMonth: 150, // Current month (2025-01)
-        lastMonth: 95, // Previous month (2024-12) 
+        thisMonth: 150, // Current month (2025-01): 100+50
+        lastMonth: 95, // Previous month (2024-12): 60+35
         averagePerDay: 5.77 // 150 requests / 26 days in month, rounded to 2 decimals
       });
 
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('portal_usage_monthly');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_monthly');
       expect(mockSupabaseAdmin.from().select).toHaveBeenCalledWith('*');
       expect(mockSupabaseAdmin.from().eq).toHaveBeenCalledWith('portal_id', 12345678);
-      expect(mockSupabaseAdmin.from().order).toHaveBeenCalledWith('month_year', { ascending: false });
+      expect(mockSupabaseAdmin.from().order).toHaveBeenCalledWith('month_start', { ascending: false });
     });
 
     it('should return zero stats when no data found', async () => {
@@ -372,7 +399,7 @@ describe('Database Usage Operations', () => {
 
     it('should handle partial month data correctly', async () => {
       // Test with data that only has current month
-      const currentMonthOnly = [mockMonthlyUsageData[0]]; // Only 2025-01 data
+      const currentMonthOnly = [mockUnifiedUsageData[0], mockUnifiedUsageData[1]]; // Only 2025-01 data
       
       const mockSelectChain = {
         select: jest.fn().mockReturnThis(),
@@ -383,10 +410,10 @@ describe('Database Usage Operations', () => {
 
       const result = await getUsageStats(12345678);
 
-      expect(result.totalRequests).toBe(150);
+      expect(result.totalRequests).toBe(150); // 100+50
       expect(result.thisMonth).toBe(150);
       expect(result.lastMonth).toBe(0); // No last month data
-      expect(result.successRate).toBe(94.67); // 142/150 * 100
+      expect(result.successRate).toBe(94.67); // (95+47)/150 * 100 = 142/150 * 100
     });
 
     it('should calculate averagePerDay based on current date', async () => {
@@ -405,10 +432,12 @@ describe('Database Usage Operations', () => {
     it('should handle zero successful requests', async () => {
       const noSuccessData = [{
         portal_id: 12345678,
-        month_year: '2025-01',
+        app_type: 'date-formatter',
+        month_start: '2025-01-01',
         total_requests: 100,
         successful_requests: 0,
         failed_requests: 100, // All requests failed
+        last_request_at: '2025-01-26T10:30:00Z',
         created_at: '2025-01-01T00:00:00Z',
         updated_at: '2025-01-26T10:30:00Z'
       }];
@@ -425,6 +454,120 @@ describe('Database Usage Operations', () => {
       expect(result.successRate).toBe(0);
       expect(result.failedRequests).toBe(100);
       expect(result.successfulRequests).toBe(0);
+    });
+
+    it('should handle single app type data', async () => {
+      // Test portal with only date-formatter data
+      const dateFormatterOnly = [mockUnifiedUsageData[0], mockUnifiedUsageData[2]]; // Only date-formatter records
+      
+      const mockSelectChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({ data: dateFormatterOnly, error: null })
+      };
+      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
+
+      const result = await getUsageStats(12345678);
+
+      expect(result.totalRequests).toBe(160); // 100 + 60
+      expect(result.successfulRequests).toBe(150); // 95 + 55
+      expect(result.thisMonth).toBe(100); // Only date-formatter current month
+      expect(result.lastMonth).toBe(60); // Only date-formatter last month
+    });
+
+    it('should handle mixed months across app types', async () => {
+      // Test where different apps have different month coverage
+      const mixedData = [
+        mockUnifiedUsageData[0], // date-formatter 2025-01
+        mockUnifiedUsageData[3]  // url-shortener 2024-12
+      ];
+      
+      const mockSelectChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({ data: mixedData, error: null })
+      };
+      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
+
+      const result = await getUsageStats(12345678);
+
+      expect(result.totalRequests).toBe(135); // 100 + 35
+      expect(result.thisMonth).toBe(100); // Only date-formatter in current month
+      expect(result.lastMonth).toBe(35); // Only url-shortener in last month
+    });
+  });
+
+  describe('getUsageAnalytics', () => {
+    it('should return 12-month analytics with multi-app aggregation', async () => {
+      const mockSelectChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({ data: mockUnifiedUsageData, error: null })
+      };
+      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
+
+      const { getUsageAnalytics } = await import('@/lib/database/usage');
+      const result = await getUsageAnalytics(12345678);
+
+      expect(result.months).toHaveLength(12);
+      expect(result.summary.totalRequests).toBe(245); // Total across all months and apps
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_monthly');
+      expect(mockSupabaseAdmin.from().gte).toHaveBeenCalledWith('month_start', expect.any(String));
+    });
+
+    it('should handle missing months with zero data', async () => {
+      // Test with only partial data
+      const partialData = [mockUnifiedUsageData[0]]; // Only one record
+      
+      const mockSelectChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({ data: partialData, error: null })
+      };
+      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
+
+      const { getUsageAnalytics } = await import('@/lib/database/usage');
+      const result = await getUsageAnalytics(12345678);
+
+      expect(result.months).toHaveLength(12);
+      // Most months should have zero data
+      const zeroMonths = result.months.filter(m => m.total === 0);
+      expect(zeroMonths.length).toBeGreaterThan(8);
+    });
+
+    it('should aggregate across app types per month', async () => {
+      const mockSelectChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({ data: mockUnifiedUsageData, error: null })
+      };
+      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
+
+      const { getUsageAnalytics } = await import('@/lib/database/usage');
+      const result = await getUsageAnalytics(12345678);
+
+      // Find January 2025 data (should aggregate both app types)
+      const jan2025 = result.months.find(m => m.month === '2025-01');
+      expect(jan2025?.total).toBe(150); // 100 + 50 from both apps
+      expect(jan2025?.successful).toBe(142); // 95 + 47 from both apps
+    });
+
+    it('should handle database errors gracefully', async () => {
+      const mockSelectChain = {
+        select: jest.fn().mockReturnThis(),
+        eq: jest.fn().mockReturnThis(),
+        gte: jest.fn().mockReturnThis(),
+        order: jest.fn().mockResolvedValue({ data: null, error: { message: 'Connection failed' } })
+      };
+      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
+
+      const { getUsageAnalytics } = await import('@/lib/database/usage');
+      
+      await expect(getUsageAnalytics(12345678))
+        .rejects.toThrow('Failed to get usage analytics: Connection failed');
     });
   });
 
@@ -504,14 +647,14 @@ describe('Database Usage Operations', () => {
       const mockSelectChain = {
         select: jest.fn().mockReturnThis(),
         eq: jest.fn().mockReturnThis(),
-        order: jest.fn().mockResolvedValue({ data: mockMonthlyUsageData, error: null })
+        order: jest.fn().mockResolvedValue({ data: mockUnifiedUsageData, error: null })
       };
       mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
 
       const result = await usageService.getStats(12345678);
 
       expect(result.totalRequests).toBe(245);
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('portal_usage_monthly');
+      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_monthly');
     });
 
     it('should provide trackAsync method', async () => {
@@ -578,9 +721,11 @@ describe('Database Usage Operations', () => {
         order: jest.fn().mockResolvedValue({ 
           data: [{
             portal_id: 12345678,
-            month_year: 'invalid-date',
+            app_type: 'date-formatter',
+            month_start: 'invalid-date',
             total_requests: 'not-a-number',
-            successful_requests: null
+            successful_requests: null,
+            failed_requests: 0
           }], 
           error: null 
         })
@@ -590,7 +735,7 @@ describe('Database Usage Operations', () => {
       const result = await getUsageStats(12345678);
 
       // JavaScript string concatenation behavior - this shows the current limitation
-      expect(result.totalRequests).toBe("0not-a-number"); // String concatenation occurs
+      expect(result.totalRequests).toBe("00not-a-number"); // String concatenation occurs (includes failed_requests: 0)
       expect(result.successfulRequests).toBe(0); // null gets coerced to 0
     });
   });

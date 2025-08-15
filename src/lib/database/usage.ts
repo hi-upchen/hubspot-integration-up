@@ -111,11 +111,12 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
   try {
     validatePortalId(portalId);
 
+    // Query unified usage_monthly table
     const { data, error } = await supabaseAdmin
-      .from('portal_usage_monthly')
+      .from('usage_monthly')
       .select('*')
       .eq('portal_id', portalId)
-      .order('month_year', { ascending: false });
+      .order('month_start', { ascending: false });
 
     if (error) {
       throw new Error(`Failed to get usage stats: ${error.message}`);
@@ -133,10 +134,34 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
       };
     }
 
-    // Calculate aggregated stats with null safety
-    const totalRequests = data.reduce((sum, month) => sum + (month.total_requests || 0), 0);
-    const successfulRequests = data.reduce((sum, month) => sum + (month.successful_requests || 0), 0);
-    const failedRequests = data.reduce((sum, month) => sum + (month.failed_requests || 0), 0);
+    // Group data by month_start and aggregate across app types
+    const monthlyAggregates = new Map();
+    
+    data.forEach(record => {
+      const monthKey = record.month_start; // Date string in YYYY-MM-DD format
+      const existing = monthlyAggregates.get(monthKey) || {
+        total_requests: 0,
+        successful_requests: 0,
+        failed_requests: 0
+      };
+      
+      monthlyAggregates.set(monthKey, {
+        total_requests: existing.total_requests + (record.total_requests || 0),
+        successful_requests: existing.successful_requests + (record.successful_requests || 0),
+        failed_requests: existing.failed_requests + (record.failed_requests || 0)
+      });
+    });
+
+    // Convert aggregated data to array for processing
+    const aggregatedData = Array.from(monthlyAggregates.entries()).map(([monthStart, stats]) => ({
+      month_year: typeof monthStart === 'string' && monthStart.length >= 7 ? monthStart.slice(0, 7) : monthStart, // Convert YYYY-MM-DD to YYYY-MM for compatibility
+      ...stats
+    }));
+
+    // Calculate total stats across all months and apps
+    const totalRequests = aggregatedData.reduce((sum, month) => sum + (month.total_requests || 0), 0);
+    const successfulRequests = aggregatedData.reduce((sum, month) => sum + (month.successful_requests || 0), 0);
+    const failedRequests = aggregatedData.reduce((sum, month) => sum + (month.failed_requests || 0), 0);
     const successRate = totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0;
 
     const currentMonth = getCurrentMonthYear();
@@ -144,8 +169,8 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
     lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
     const lastMonth = lastMonthDate.toISOString().slice(0, 7);
 
-    const thisMonthData = data.find(month => month.month_year === currentMonth);
-    const lastMonthData = data.find(month => month.month_year === lastMonth);
+    const thisMonthData = aggregatedData.find(month => month.month_year === currentMonth);
+    const lastMonthData = aggregatedData.find(month => month.month_year === lastMonth);
 
     const thisMonthRequests = thisMonthData?.total_requests || 0;
     const lastMonthRequests = lastMonthData?.total_requests || 0;
@@ -180,34 +205,43 @@ export async function getUsageAnalytics(portalId: number) {
     // Get last 12 months of data
     const twelveMonthsAgo = new Date();
     twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
-    const startMonth = twelveMonthsAgo.toISOString().slice(0, 7);
+    const startMonth = twelveMonthsAgo.toISOString().slice(0, 10); // Use YYYY-MM-DD format
 
     const { data, error } = await supabaseAdmin
-      .from('portal_usage_monthly')
+      .from('usage_monthly')
       .select('*')
       .eq('portal_id', portalId)
-      .gte('month_year', startMonth)
-      .order('month_year', { ascending: true });
+      .gte('month_start', startMonth)
+      .order('month_start', { ascending: true });
 
     if (error) {
       throw new Error(`Failed to get usage analytics: ${error.message}`);
     }
 
-    // Create array of last 12 months
-    const months = [];
-    const monthlyData = new Map();
+    // Group data by month_start and aggregate across app types
+    const monthlyAggregates = new Map();
     
-    // Map data by month
+    // Map data by month and aggregate across app types
     if (data) {
       data.forEach(item => {
-        monthlyData.set(item.month_year, {
-          total: item.total_requests,
-          successful: item.successful_requests,
-          failed: item.failed_requests
+        const monthKey = item.month_start.slice(0, 7); // Convert YYYY-MM-DD to YYYY-MM
+        const existing = monthlyAggregates.get(monthKey) || {
+          total: 0,
+          successful: 0,
+          failed: 0
+        };
+        
+        monthlyAggregates.set(monthKey, {
+          total: existing.total + (item.total_requests || 0),
+          successful: existing.successful + (item.successful_requests || 0),
+          failed: existing.failed + (item.failed_requests || 0)
         });
       });
     }
 
+    // Create array of last 12 months
+    const months = [];
+    
     // Fill in all 12 months with zeros for missing data
     for (let i = 11; i >= 0; i--) {
       const date = new Date();
@@ -215,11 +249,11 @@ export async function getUsageAnalytics(portalId: number) {
       const monthKey = date.toISOString().slice(0, 7);
       const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
       
-      const data = monthlyData.get(monthKey) || { total: 0, successful: 0, failed: 0 };
+      const monthData = monthlyAggregates.get(monthKey) || { total: 0, successful: 0, failed: 0 };
       months.push({
         month: monthKey,
         monthName,
-        ...data
+        ...monthData
       });
     }
 
