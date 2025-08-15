@@ -37,7 +37,6 @@ export class UnifiedUsageAggregator {
    */
   async aggregateApp(appType: AppType, fullRebuild: boolean = false): Promise<AggregationResult> {
     const startTime = new Date();
-    const config = this.appConfigs[appType];
     
     try {
       // Get last aggregated timestamp (unless doing full rebuild)

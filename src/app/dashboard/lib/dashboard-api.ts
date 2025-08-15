@@ -35,7 +35,6 @@ export async function fetchDashboardData(portalId: number): Promise<DashboardDat
       getUsageStats(portalId)
     ]);
 
-
     // Handle portal info result
     const portalInfoData = portalInfo.status === 'fulfilled' ? portalInfo.value : null;
     

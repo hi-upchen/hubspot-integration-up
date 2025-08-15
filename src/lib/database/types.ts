@@ -2,14 +2,21 @@
  * Database-related types
  */
 
-export interface UsageStats {
-  totalRequests: number;
+export interface MonthlyUsage {
+  month: string;              // "2025-01"
   successfulRequests: number;
   failedRequests: number;
-  successRate: number;
-  thisMonth: number;
-  lastMonth: number;
-  averagePerDay: number;
+  isCurrentMonth: boolean;
+}
+
+export interface AppUsageData {
+  appType: string;           // "date-formatter" | "url-shortener"
+  monthlyData: MonthlyUsage[]; // 3 months for this app
+}
+
+export interface UsageStats {
+  portalId: number;
+  apps: AppUsageData[];      // Separate data per app
 }
 
 export interface TrackingResult {

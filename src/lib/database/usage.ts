@@ -105,88 +105,62 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
 }
 
 /**
- * Gets usage statistics for a specific portal
+ * Gets usage statistics for a specific portal (last 3 months, separated by app)
  */
 export async function getUsageStats(portalId: number): Promise<UsageStats> {
   try {
     validatePortalId(portalId);
 
-    // Query unified usage_monthly table
+    // Get current month + last 2 months (3 total)
+    const months: string[] = [];
+    const now = new Date();
+    for (let i = 0; i < 3; i++) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0'); // Convert 0-based to 1-based month
+      months.push(`${year}-${month}-01`);
+    }
+
+    // Query unified usage_monthly table for last 3 months
     const { data, error } = await supabaseAdmin
       .from('usage_monthly')
-      .select('*')
+      .select('month_start, app_type, successful_requests, failed_requests')
       .eq('portal_id', portalId)
-      .order('month_start', { ascending: false });
+      .in('month_start', months);
 
     if (error) {
       throw new Error(`Failed to get usage stats: ${error.message}`);
     }
 
-    if (!data || data.length === 0) {
-      return {
-        totalRequests: 0,
-        successfulRequests: 0,
-        failedRequests: 0,
-        successRate: 0,
-        thisMonth: 0,
-        lastMonth: 0,
-        averagePerDay: 0
-      };
-    }
-
-    // Group data by month_start and aggregate across app types
-    const monthlyAggregates = new Map();
+    const currentMonth = now.toISOString().slice(0, 7); // "2025-01"
+    const appTypes = ['date-formatter', 'url-shortener'];
     
-    data.forEach(record => {
-      const monthKey = record.month_start; // Date string in YYYY-MM-DD format
-      const existing = monthlyAggregates.get(monthKey) || {
-        total_requests: 0,
-        successful_requests: 0,
-        failed_requests: 0
-      };
-      
-      monthlyAggregates.set(monthKey, {
-        total_requests: existing.total_requests + (record.total_requests || 0),
-        successful_requests: existing.successful_requests + (record.successful_requests || 0),
-        failed_requests: existing.failed_requests + (record.failed_requests || 0)
+    // Create app-specific data structure
+    const apps = appTypes.map(appType => {
+      const monthlyData = months.map(monthStart => {
+        const monthKey = monthStart.slice(0, 7); // Convert "2025-01-01" to "2025-01"
+        const record = data?.find(d => 
+          d.app_type === appType && 
+          d.month_start === monthStart
+        );
+        
+        return {
+          month: monthKey,
+          successfulRequests: record?.successful_requests || 0,
+          failedRequests: record?.failed_requests || 0,
+          isCurrentMonth: monthKey === currentMonth
+        };
       });
+      
+      return {
+        appType,
+        monthlyData
+      };
     });
 
-    // Convert aggregated data to array for processing
-    const aggregatedData = Array.from(monthlyAggregates.entries()).map(([monthStart, stats]) => ({
-      month_year: typeof monthStart === 'string' && monthStart.length >= 7 ? monthStart.slice(0, 7) : monthStart, // Convert YYYY-MM-DD to YYYY-MM for compatibility
-      ...stats
-    }));
-
-    // Calculate total stats across all months and apps
-    const totalRequests = aggregatedData.reduce((sum, month) => sum + (month.total_requests || 0), 0);
-    const successfulRequests = aggregatedData.reduce((sum, month) => sum + (month.successful_requests || 0), 0);
-    const failedRequests = aggregatedData.reduce((sum, month) => sum + (month.failed_requests || 0), 0);
-    const successRate = totalRequests > 0 ? (successfulRequests / totalRequests) * 100 : 0;
-
-    const currentMonth = getCurrentMonthYear();
-    const lastMonthDate = new Date();
-    lastMonthDate.setMonth(lastMonthDate.getMonth() - 1);
-    const lastMonth = lastMonthDate.toISOString().slice(0, 7);
-
-    const thisMonthData = aggregatedData.find(month => month.month_year === currentMonth);
-    const lastMonthData = aggregatedData.find(month => month.month_year === lastMonth);
-
-    const thisMonthRequests = thisMonthData?.total_requests || 0;
-    const lastMonthRequests = lastMonthData?.total_requests || 0;
-
-    // Calculate average per day based on current month
-    const daysInMonth = new Date().getDate();
-    const averagePerDay = daysInMonth > 0 ? thisMonthRequests / daysInMonth : 0;
-
     return {
-      totalRequests,
-      successfulRequests,
-      failedRequests,
-      successRate: Math.round(successRate * 100) / 100, // Round to 2 decimal places
-      thisMonth: thisMonthRequests,
-      lastMonth: lastMonthRequests,
-      averagePerDay: Math.round(averagePerDay * 100) / 100
+      portalId,
+      apps
     };
 
   } catch (error) {
@@ -195,83 +169,6 @@ export async function getUsageStats(portalId: number): Promise<UsageStats> {
   }
 }
 
-/**
- * Gets 12-month historical usage analytics for dashboard charts
- */
-export async function getUsageAnalytics(portalId: number) {
-  try {
-    validatePortalId(portalId);
-
-    // Get last 12 months of data
-    const twelveMonthsAgo = new Date();
-    twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 11);
-    const startMonth = twelveMonthsAgo.toISOString().slice(0, 10); // Use YYYY-MM-DD format
-
-    const { data, error } = await supabaseAdmin
-      .from('usage_monthly')
-      .select('*')
-      .eq('portal_id', portalId)
-      .gte('month_start', startMonth)
-      .order('month_start', { ascending: true });
-
-    if (error) {
-      throw new Error(`Failed to get usage analytics: ${error.message}`);
-    }
-
-    // Group data by month_start and aggregate across app types
-    const monthlyAggregates = new Map();
-    
-    // Map data by month and aggregate across app types
-    if (data) {
-      data.forEach(item => {
-        const monthKey = item.month_start.slice(0, 7); // Convert YYYY-MM-DD to YYYY-MM
-        const existing = monthlyAggregates.get(monthKey) || {
-          total: 0,
-          successful: 0,
-          failed: 0
-        };
-        
-        monthlyAggregates.set(monthKey, {
-          total: existing.total + (item.total_requests || 0),
-          successful: existing.successful + (item.successful_requests || 0),
-          failed: existing.failed + (item.failed_requests || 0)
-        });
-      });
-    }
-
-    // Create array of last 12 months
-    const months = [];
-    
-    // Fill in all 12 months with zeros for missing data
-    for (let i = 11; i >= 0; i--) {
-      const date = new Date();
-      date.setMonth(date.getMonth() - i);
-      const monthKey = date.toISOString().slice(0, 7);
-      const monthName = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-      
-      const monthData = monthlyAggregates.get(monthKey) || { total: 0, successful: 0, failed: 0 };
-      months.push({
-        month: monthKey,
-        monthName,
-        ...monthData
-      });
-    }
-
-    return {
-      months,
-      summary: {
-        totalRequests: months.reduce((sum, m) => sum + m.total, 0),
-        successRate: months.reduce((sum, m) => sum + m.total, 0) > 0 
-          ? (months.reduce((sum, m) => sum + m.successful, 0) / months.reduce((sum, m) => sum + m.total, 0)) * 100 
-          : 0
-      }
-    };
-
-  } catch (error) {
-    console.error('Failed to get usage analytics:', error);
-    throw error;
-  }
-}
 
 /**
  * Fire-and-forget usage tracking wrapper

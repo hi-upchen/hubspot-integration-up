@@ -1,21 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { UsageStatsCard } from './UsageStatsCard';
+import { AppUsageChart } from './AppUsageChart';
 import { ApiKeySettings } from './ApiKeySettings';
 import type { UsageStats } from '@/lib/database/types';
-
-interface UrlShortenerStats {
-  total: number;
-  successful: number;
-  failed: number;
-  uniqueDomains: number;
-}
 
 interface FeatureTabsProps {
   portalId: number;
   usageStats: UsageStats | null;
-  urlShortenerStats?: UrlShortenerStats | null;
 }
 
 type TabId = 'date-formatter' | 'url-shortener';
@@ -42,7 +34,7 @@ const tabs: Tab[] = [
   }
 ];
 
-export function FeatureTabs({ portalId, usageStats, urlShortenerStats }: FeatureTabsProps) {
+export function FeatureTabs({ portalId, usageStats }: FeatureTabsProps) {
   const [activeTab, setActiveTab] = useState<TabId>('date-formatter');
 
   const renderTabContent = () => {
@@ -50,35 +42,7 @@ export function FeatureTabs({ portalId, usageStats, urlShortenerStats }: Feature
       case 'date-formatter':
         return (
           <div className="space-y-6">
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold mb-4">Date Formatter</h3>
-              <p className="text-gray-600 mb-4">
-                Convert dates between different formats in your HubSpot workflows. 
-                Supports US, UK, ISO, Taiwan, Korea, Japan, and custom formats.
-              </p>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {usageStats?.thisMonth || 0}
-                  </div>
-                  <div className="text-sm text-blue-600">Requests This Month</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-green-600">
-                    {usageStats?.successRate || 0}%
-                  </div>
-                  <div className="text-sm text-green-600">Success Rate</div>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {usageStats?.totalRequests || 0}
-                  </div>
-                  <div className="text-sm text-purple-600">All Time Requests</div>
-                </div>
-              </div>
-            </div>
-            
-            {usageStats && <UsageStatsCard usageStats={usageStats} portalId={portalId} />}
+            <AppUsageChart appData={usageStats?.apps.find(app => app.appType === 'date-formatter')} />
           </div>
         );
 
@@ -87,43 +51,7 @@ export function FeatureTabs({ portalId, usageStats, urlShortenerStats }: Feature
           <div className="space-y-6">
             <ApiKeySettings portalId={portalId} />
             
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-              <h3 className="text-lg font-semibold mb-4">URL Shortener Statistics</h3>
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div className="bg-blue-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-blue-600">
-                    {urlShortenerStats?.total || 0}
-                  </div>
-                  <div className="text-sm text-blue-600">URLs Shortened</div>
-                </div>
-                <div className="bg-green-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-green-600">
-                    {urlShortenerStats?.successful || 0}
-                  </div>
-                  <div className="text-sm text-green-600">Successful</div>
-                </div>
-                <div className="bg-red-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-red-600">
-                    {urlShortenerStats?.failed || 0}
-                  </div>
-                  <div className="text-sm text-red-600">Failed</div>
-                </div>
-                <div className="bg-purple-50 rounded-lg p-4">
-                  <div className="text-2xl font-bold text-purple-600">
-                    {urlShortenerStats?.uniqueDomains || 0}
-                  </div>
-                  <div className="text-sm text-purple-600">Custom Domains</div>
-                </div>
-              </div>
-              
-              {(!urlShortenerStats || urlShortenerStats.total === 0) && (
-                <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                  <p className="text-gray-600 text-center">
-                    No URL shortening activity yet. Configure your Bitly API key above and start shortening URLs in your HubSpot workflows!
-                  </p>
-                </div>
-              )}
-            </div>
+            <AppUsageChart appData={usageStats?.apps.find(app => app.appType === 'url-shortener')} />
           </div>
         );
 
