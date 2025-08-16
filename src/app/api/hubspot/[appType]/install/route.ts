@@ -52,14 +52,8 @@ export async function POST(
         );
     }
     
-    // Build OAuth URL
-    const baseUrl = process.env.VERCEL_URL 
-      ? `https://${process.env.VERCEL_URL}`
-      : process.env.NODE_ENV === 'development'
-      ? 'http://localhost:3000'
-      : 'https://your-domain.vercel.app';
-    
-    const redirectUri = `${baseUrl}/api/auth/hubspot/callback`;
+    // Build OAuth URL using configured redirect URI
+    const redirectUri = ConfigManager.getHubSpotRedirectUri();
     
     const authUrl = new URL('https://app.hubspot.com/oauth/authorize');
     authUrl.searchParams.set('client_id', clientId);
