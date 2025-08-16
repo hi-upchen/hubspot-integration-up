@@ -10,12 +10,6 @@ import type { UsageStats, TrackingResult } from './types';
 // Generic usage tracking type that can be extended by features
 export type UsageTrackingData = BaseUsageTrackingData & Record<string, unknown>;
 
-/**
- * Gets current month-year string in YYYY-MM format
- */
-function getCurrentMonthYear(): string {
-  return new Date().toISOString().slice(0, 7); // '2025-01'
-}
 
 /**
  * Validates only essential tracking data
@@ -47,7 +41,6 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
     // Only validate essential fields - we want to track ALL requests
     validateTrackingData(data);
     
-    const monthYear = getCurrentMonthYear();
     const timestamp = new Date();
     
     // Insert detailed usage record

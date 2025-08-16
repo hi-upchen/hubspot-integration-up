@@ -27,7 +27,7 @@ export async function GET() {
         },
         timestamp: new Date().toISOString()
       });
-    } catch (configError) {
+    } catch {
       // Configuration loading failed
       return NextResponse.json({
         status: 'error', 
@@ -44,7 +44,7 @@ export async function GET() {
         timestamp: new Date().toISOString()
       }, { status: 500 });
     }
-  } catch (systemError) {
+  } catch {
     // System-level error
     return NextResponse.json({
       status: 'error',
