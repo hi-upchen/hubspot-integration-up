@@ -154,6 +154,16 @@ export class ConfigManager {
   }
 
   /**
+   * Gets the source of configuration loading
+   * Useful for health endpoint and debugging
+   * 
+   * @returns Configuration source ('environment', 'file', or 'none')
+   */
+  static getConfigSource(): 'environment' | 'file' | 'none' {
+    return ConfigLoader.getConfigSource();
+  }
+
+  /**
    * Determines the current environment based on context
    * Priority: Command line args > NODE_ENV > Default to 'dev'
    * 

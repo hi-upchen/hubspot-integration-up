@@ -10,6 +10,7 @@ jest.mock('@/lib/config/config-loader', () => ({
   ConfigLoader: {
     loadConfig: jest.fn(),
     clearCache: jest.fn(),
+    getConfigSource: jest.fn(),
   },
 }));
 
@@ -97,6 +98,7 @@ describe('ConfigManager', () => {
       if (env === 'prod') return mockProdConfig;
       throw new Error(`Unknown environment: ${env}`);
     });
+    mockConfigLoader.getConfigSource.mockReturnValue('file');
   });
 
   afterEach(() => {
@@ -347,6 +349,26 @@ describe('ConfigManager', () => {
       
       expect(mockConfigLoader.loadConfig).toHaveBeenCalledTimes(2);
       expect(mockConfigLoader.clearCache).toHaveBeenCalled();
+    });
+  });
+
+  describe('Configuration Source Tracking', () => {
+    test('should return configuration source from ConfigLoader', () => {
+      mockConfigLoader.getConfigSource.mockReturnValue('environment');
+      
+      const source = ConfigManager.getConfigSource();
+      
+      expect(source).toBe('environment');
+      expect(mockConfigLoader.getConfigSource).toHaveBeenCalled();
+    });
+
+    test('should handle different source types', () => {
+      const sources: Array<'environment' | 'file' | 'none'> = ['environment', 'file', 'none'];
+      
+      sources.forEach(source => {
+        mockConfigLoader.getConfigSource.mockReturnValue(source);
+        expect(ConfigManager.getConfigSource()).toBe(source);
+      });
     });
   });
 

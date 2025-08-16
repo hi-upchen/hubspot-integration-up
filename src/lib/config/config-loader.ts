@@ -1,4 +1,4 @@
-import { readFileSync } from 'fs';
+import { readFileSync, existsSync } from 'fs';
 import { resolve, join } from 'path';
 
 /**
@@ -35,15 +35,17 @@ export interface AppConfig {
 }
 
 /**
- * ConfigLoader handles loading configuration from JSON files
- * Replaces the complex environment variable system with structured config files
+ * ConfigLoader handles loading configuration from environment variables (first) or JSON files (fallback)
+ * Environment-first approach for production-ready deployment
  */
 export class ConfigLoader {
   private static configCache: { [environment: string]: AppConfig } = {};
   private static readonly CONFIG_DIR = join(process.cwd(), 'config', 'credentials');
+  private static lastLoadSource: 'environment' | 'file' | 'none' = 'none';
 
   /**
    * Loads configuration for the specified environment
+   * Environment-first approach: checks environment variables before files
    * @param environment - 'dev' or 'prod'
    * @returns Complete configuration object
    */
@@ -53,30 +55,52 @@ export class ConfigLoader {
       return ConfigLoader.configCache[environment];
     }
 
-    try {
-      const configPath = resolve(ConfigLoader.CONFIG_DIR, `${environment}.json`);
-      const configFile = readFileSync(configPath, 'utf-8');
-      const config: AppConfig = JSON.parse(configFile);
+    let config: AppConfig | undefined;
 
-      // Validate required structure
-      ConfigLoader.validateConfig(config, environment);
-
-      // Cache the configuration
-      ConfigLoader.configCache[environment] = config;
-
-      return config;
-    } catch (error) {
-      if (error instanceof Error && error.message.includes('ENOENT')) {
-        throw new Error(
-          `Configuration file not found: config/credentials/${environment}.json\n` +
-          `Please ensure the configuration file exists and contains valid JSON.`
-        );
+    // 1. Check environment variables first (production standard)
+    const envVarName = environment === 'dev' ? 'VERCEL_DEV_CONFIG_JSON' : 'VERCEL_PROD_CONFIG_JSON';
+    if (process.env[envVarName]) {
+      try {
+        const decodedConfig = Buffer.from(process.env[envVarName]!, 'base64').toString('utf-8');
+        config = JSON.parse(decodedConfig);
+        ConfigLoader.lastLoadSource = 'environment';
+        console.log(`✅ Loaded ${environment} config from environment`);
+      } catch (error) {
+        console.warn(`⚠️ Environment variable exists but failed to parse:`, error instanceof Error ? error.message : 'Unknown error');
+        // Continue to file fallback
       }
-      
+    }
+
+    // 2. Fallback to JSON files (development convenience)
+    if (!config) {
+      const configPath = resolve(ConfigLoader.CONFIG_DIR, `${environment}.json`);
+      if (existsSync(configPath)) {
+        try {
+          const configFile = readFileSync(configPath, 'utf-8');
+          config = JSON.parse(configFile);
+          ConfigLoader.lastLoadSource = 'file';
+          console.log(`✅ Loaded ${environment} config from file`);
+        } catch (error) {
+          console.warn(`⚠️ File exists but failed to parse:`, error instanceof Error ? error.message : 'Unknown error');
+        }
+      }
+    }
+
+    // Both methods failed
+    if (!config) {
+      ConfigLoader.lastLoadSource = 'none';
       throw new Error(
-        `Failed to load configuration for environment '${environment}': ${error instanceof Error ? error.message : 'Unknown error'}`
+        `No configuration found for environment '${environment}':\n` +
+        `  - Environment variable: ${envVarName} not set or invalid\n` +
+        `  - File: config/credentials/${environment}.json not found or invalid`
       );
     }
+
+    // Validate and cache
+    ConfigLoader.validateConfig(config, environment);
+    ConfigLoader.configCache[environment] = config;
+
+    return config;
   }
 
   /**
@@ -140,10 +164,19 @@ export class ConfigLoader {
   }
 
   /**
+   * Gets the source of the last loaded configuration
+   * @returns Source type for health endpoint and debugging
+   */
+  static getConfigSource(): 'environment' | 'file' | 'none' {
+    return ConfigLoader.lastLoadSource;
+  }
+
+  /**
    * Clears the configuration cache (useful for testing)
    */
   static clearCache(): void {
     ConfigLoader.configCache = {};
+    ConfigLoader.lastLoadSource = 'none';
   }
 
   /**

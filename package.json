@@ -29,6 +29,11 @@
     "hubspot:url-shortener:list:prod": "node scripts/hubspot-app.mjs list url-shortener prod",
     "hubspot:url-shortener:delete:dev": "node scripts/hubspot-app.mjs delete url-shortener dev",
     "hubspot:url-shortener:delete:prod": "node scripts/hubspot-app.mjs delete url-shortener prod",
+    "config:deploy": "node scripts/deploy-config.mjs",
+    "config:deploy:dev": "node scripts/deploy-config.mjs dev",
+    "config:deploy:prod": "node scripts/deploy-config.mjs prod",
+    "config:deploy:all": "node scripts/deploy-config.mjs all",
+    "health:check": "curl -s http://localhost:3000/api/health | jq",
     "clean": "rm -rf .next node_modules/.cache",
     "clean:all": "rm -rf .next node_modules/.cache .turbo .swc"
   },
