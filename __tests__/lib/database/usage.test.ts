@@ -28,7 +28,6 @@ import {
   trackUsage,
   trackUsageAsync,
   getUsageStats,
-  usageService,
   type UsageTrackingData
 } from '@/lib/database/usage';
 import { supabaseAdmin } from '@/lib/database/supabase';
@@ -138,7 +137,6 @@ describe('Database Usage Operations', () => {
         insert: jest.fn().mockResolvedValue({ error: null })
       };
       mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ error: null });
     });
 
     it('should track usage successfully with all fields', async () => {
@@ -163,11 +161,8 @@ describe('Database Usage Operations', () => {
         created_at: '2025-01-26T10:30:00.000Z'
       });
 
-      expect(mockSupabaseAdmin.rpc).toHaveBeenCalledWith('upsert_monthly_usage', {
-        p_portal_id: 12345678,
-        p_month_year: '2025-01',
-        p_success: true
-      });
+      // Monthly aggregation is now handled by UnifiedUsageAggregator via cron job
+      // No longer expecting RPC calls for real-time aggregation
     });
 
     it('should track failed request with error message', async () => {
@@ -189,11 +184,8 @@ describe('Database Usage Operations', () => {
         })
       );
 
-      expect(mockSupabaseAdmin.rpc).toHaveBeenCalledWith('upsert_monthly_usage', {
-        p_portal_id: 12345678,
-        p_month_year: '2025-01',
-        p_success: false
-      });
+      // Monthly aggregation is now handled by UnifiedUsageAggregator via cron job
+      // No longer expecting RPC calls for real-time aggregation
     });
 
     it('should track minimal data with only portal ID and success', async () => {
@@ -272,27 +264,7 @@ describe('Database Usage Operations', () => {
       });
     });
 
-    it('should continue if monthly aggregation fails but log error', async () => {
-      const mockFromChain = {
-        insert: jest.fn().mockResolvedValue({ error: null })
-      };
-      mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ 
-        error: { message: 'RPC function failed' } 
-      });
-
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
-
-      const result = await trackUsage(validUsageData);
-
-      expect(result.success).toBe(true); // Should still succeed
-      expect(consoleErrorSpy).toHaveBeenCalledWith(
-        'Failed to update monthly aggregates:',
-        { message: 'RPC function failed' }
-      );
-
-      consoleErrorSpy.mockRestore();
-    });
+    // Test removed: Monthly aggregation is now handled by UnifiedUsageAggregator via cron job
 
     it('should generate correct month-year for different dates', async () => {
       // Test with December date
@@ -301,11 +273,8 @@ describe('Database Usage Operations', () => {
 
       await trackUsage(validUsageData);
 
-      expect(mockSupabaseAdmin.rpc).toHaveBeenCalledWith('upsert_monthly_usage', {
-        p_portal_id: 12345678,
-        p_month_year: '2024-12',
-        p_success: true
-      });
+      // Monthly aggregation is now handled by UnifiedUsageAggregator via cron job
+      // No longer expecting RPC calls for real-time aggregation
 
       // Reset to original mock
       jest.setSystemTime(mockDate);
@@ -618,7 +587,6 @@ describe('Database Usage Operations', () => {
         insert: jest.fn().mockResolvedValue({ error: null })
       };
       mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ error: null });
 
       // Should not throw
       await expect(trackUsageAsync(validUsageData)).resolves.toBeUndefined();
@@ -670,47 +638,6 @@ describe('Database Usage Operations', () => {
     });
   });
 
-  describe('UsageService class', () => {
-    it('should provide track method', async () => {
-      const mockFromChain = {
-        insert: jest.fn().mockResolvedValue({ error: null })
-      };
-      mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ error: null });
-
-      const result = await usageService.track(validUsageData);
-
-      expect(result.success).toBe(true);
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
-    });
-
-    it('should provide getStats method', async () => {
-      const mockSelectChain = {
-        select: jest.fn().mockReturnThis(),
-        eq: jest.fn().mockReturnThis(),
-        in: jest.fn().mockResolvedValue({ data: mockUnifiedUsageData, error: null })
-      };
-      mockSupabaseAdmin.from.mockReturnValue(mockSelectChain as any);
-
-      const result = await usageService.getStats(12345678);
-
-      expect(result.portalId).toBe(12345678);
-      expect(result.apps).toHaveLength(2);
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('usage_monthly');
-    });
-
-    it('should provide trackAsync method', async () => {
-      const mockFromChain = {
-        insert: jest.fn().mockResolvedValue({ error: null })
-      };
-      mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ error: null });
-
-      await expect(usageService.trackAsync(validUsageData)).resolves.toBeUndefined();
-
-      expect(mockSupabaseAdmin.from).toHaveBeenCalledWith('date_formatter_usage');
-    });
-  });
 
   describe('Edge cases and boundary conditions', () => {
     it('should handle extremely large portal IDs', async () => {
@@ -718,7 +645,6 @@ describe('Database Usage Operations', () => {
         insert: jest.fn().mockResolvedValue({ error: null })
       };
       mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ error: null });
 
       const largePortalId = 999999999999999;
       const data = { ...validUsageData, portalId: largePortalId };
@@ -736,7 +662,6 @@ describe('Database Usage Operations', () => {
         insert: jest.fn().mockResolvedValue({ error: null })
       };
       mockSupabaseAdmin.from.mockReturnValue(mockFromChain as any);
-      mockSupabaseAdmin.rpc.mockResolvedValue({ error: null });
 
       const longString = 'x'.repeat(10000);
       const data: UsageTrackingData = {

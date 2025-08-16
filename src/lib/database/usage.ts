@@ -70,18 +70,8 @@ export async function trackUsage(data: UsageTrackingData): Promise<TrackingResul
       throw new Error(`Failed to insert usage record: ${insertError.message}`);
     }
 
-    // Update monthly aggregates using atomic operations
-    const { error: upsertError } = await supabaseAdmin
-      .rpc('upsert_monthly_usage', {
-        p_portal_id: data.portalId,
-        p_month_year: monthYear,
-        p_success: data.success
-      });
-
-    if (upsertError) {
-      // Log but don't throw - detailed record was saved successfully
-      console.error('Failed to update monthly aggregates:', upsertError);
-    }
+    // Monthly aggregation is now handled by UnifiedUsageAggregator via cron job
+    // This provides better performance and reliability than real-time aggregation
 
     return {
       success: true,
@@ -187,28 +177,3 @@ export async function trackUsageAsync(data: UsageTrackingData): Promise<void> {
   }
 }
 
-export class UsageService {
-  /**
-   * Track usage for any feature type
-   */
-  async track(data: UsageTrackingData): Promise<TrackingResult> {
-    return trackUsage(data);
-  }
-
-  /**
-   * Get usage statistics for a portal
-   */  
-  async getStats(portalId: number): Promise<UsageStats> {
-    return getUsageStats(portalId);
-  }
-
-  /**
-   * Fire-and-forget tracking (for webhooks)
-   */
-  async trackAsync(data: UsageTrackingData): Promise<void> {
-    return trackUsageAsync(data);
-  }
-}
-
-// Export singleton instance
-export const usageService = new UsageService();
