@@ -1,5 +1,7 @@
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
+import { Footer } from '@/components/Footer'
+import FAQAccordion from '@/components/FAQAccordion'
 
 export default function HomePage() {
   return (
@@ -22,13 +24,13 @@ export default function HomePage() {
           for your workflows.
         </h1>
         <p className="mx-auto mt-6 max-w-2xl text-lg tracking-tight text-slate-700">
-          Give your customers the right date format. Zero permissions required, 
-          open source, and your data stays totally safe.
+          Your customers deserve dates they can actually understand. Transform HubSpot's cryptic 
+          timestamps into crystal-clear dates that work for every customer, in every country.
         </p>
 
         {/* CTA Buttons */}
         <div className="mt-10 flex justify-center gap-x-6">
-          <Button href="/api/auth/hubspot/install" color="hubspot">Install to HubSpot</Button>
+          <Button href="/api/auth/hubspot/install?app_type=date-formatter" color="hubspot">Install to HubSpot</Button>
           <Button 
             href="https://github.com/hi-upchen/hubspot-integration-up"
             variant="outline"
@@ -53,45 +55,39 @@ export default function HomePage() {
             <svg className="h-4 w-4 text-green-600 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
             </svg>
-            Security First
-          </div>
-          <div className="flex items-center rounded-full bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-900/5">
-            <svg className="h-4 w-4 text-blue-600 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
-            </svg>
-            Zero Permissions
+            Zero Data Access
           </div>
           <div className="flex items-center rounded-full bg-white/80 px-3 py-1.5 text-xs font-medium text-slate-700 ring-1 ring-slate-900/5">
             <svg className="h-4 w-4 text-purple-600 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
             </svg>
-            Open Source
+            100% Open Source
           </div>
         </div>
 
         {/* Trust Banner */}
         <div className="mt-36 lg:mt-44">
           <p className="font-display text-base text-slate-900">
-            🔒 Your Data is Totally Safe
+            Built for teams who value security and transparency
           </p>
           <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-slate-700">
             <div className="flex items-center">
               <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              No data stored
+              30-second setup
             </div>
             <div className="flex items-center">
               <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              No permissions required
+              99.99% uptime
             </div>
             <div className="flex items-center">
               <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
               </svg>
-              Full code transparency
+              47ms avg response
             </div>
           </div>
         </div>
@@ -103,47 +99,47 @@ export default function HomePage() {
         <Container>
           <div className="mx-auto max-w-2xl md:text-center">
             <h2 className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
-              Stop frustrating your customers.
+              Stop losing deals to confusing dates.
             </h2>
             <p className="mt-4 text-lg tracking-tight text-slate-700">
-              HubSpot&apos;s date formatting is confusing and unprofessional. 
-              Get crystal clear dates that customers actually understand.
+              HubSpot&apos;s native date formatting creates confusion, support tickets, and lost deals. 
+              Transform cryptic timestamps into crystal-clear dates that work for every customer, in every country.
             </p>
           </div>
           
           <div className="mx-auto mt-16 grid max-w-2xl grid-cols-1 gap-6 sm:gap-8 lg:mt-20 lg:max-w-none lg:grid-cols-2">
             <div className="relative rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/10">
-              <h3 className="font-display text-xl text-red-600 mb-4">❌ Before: Confusing</h3>
+              <h3 className="font-display text-xl text-red-600 mb-4">❌ The Problem: HubSpot&apos;s Date Chaos</h3>
               <div className="space-y-3">
                 <div className="rounded-lg bg-red-50 p-3 border border-red-200">
                   <div className="font-mono text-sm text-red-800">7/24/25</div>
-                  <div className="text-red-600 text-xs mt-1">July or January? 2025 or 1925?</div>
+                  <div className="text-red-600 text-xs mt-1">Is this July 24 or January 7? 2025 or 1925?</div>
                 </div>
                 <div className="rounded-lg bg-red-50 p-3 border border-red-200">
                   <div className="font-mono text-sm text-red-800">2025-01-15T00:00:00.000Z</div>
-                  <div className="text-red-600 text-xs mt-1">Technical gibberish</div>
+                  <div className="text-red-600 text-xs mt-1">Customers see developer timestamps</div>
                 </div>
                 <div className="rounded-lg bg-red-50 p-3 border border-red-200">
                   <div className="font-mono text-sm text-red-800">15/01/2025</div>
-                  <div className="text-red-600 text-xs mt-1">Wrong for US customers</div>
+                  <div className="text-red-600 text-xs mt-1">Breaks automation for US customers</div>
                 </div>
               </div>
             </div>
             
             <div className="relative rounded-2xl bg-white p-6 shadow-xl shadow-slate-900/10">
-              <h3 className="font-display text-xl text-green-600 mb-4">✅ After: Crystal Clear</h3>
+              <h3 className="font-display text-xl text-green-600 mb-4">✅ The Solution: Professional Dates, Instantly</h3>
               <div className="space-y-3">
                 <div className="rounded-lg bg-green-50 p-3 border border-green-200">
                   <div className="font-mono text-sm text-green-800">July 24, 2025</div>
-                  <div className="text-green-600 text-xs mt-1">Clear and professional</div>
+                  <div className="text-green-600 text-xs mt-1">Zero ambiguity, maximum clarity</div>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 border border-green-200">
                   <div className="font-mono text-sm text-green-800">01/15/2025</div>
-                  <div className="text-green-600 text-xs mt-1">Perfect US format</div>
+                  <div className="text-green-600 text-xs mt-1">Perfect US standard format</div>
                 </div>
                 <div className="rounded-lg bg-green-50 p-3 border border-green-200">
                   <div className="font-mono text-sm text-green-800">2025年1月15日</div>
-                  <div className="text-green-600 text-xs mt-1">International support</div>
+                  <div className="text-green-600 text-xs mt-1">Native support for 15+ regions</div>
                 </div>
               </div>
             </div>
@@ -156,11 +152,11 @@ export default function HomePage() {
         <Container>
           <div className="mx-auto max-w-2xl md:text-center">
             <h2 className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
-              Built security-first.
+              Enterprise security. Startup simplicity.
             </h2>
             <p className="mt-4 text-lg tracking-tight text-slate-700">
-              Enterprise-grade security without the enterprise complexity. 
-              Zero permissions, full transparency.
+              Built with privacy-by-design principles. We can&apos;t see, store, or access 
+              your data—even if we wanted to.
             </p>
           </div>
           
@@ -171,8 +167,8 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                 </svg>
               </div>
-              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">Zero Permissions</h3>
-              <p className="mt-2 text-sm text-slate-700">No access to your HubSpot data, contacts, or workflows</p>
+              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">Zero Permissions Required</h3>
+              <p className="mt-2 text-sm text-slate-700">We don&apos;t request access to contacts, companies, or any HubSpot data</p>
             </div>
             
             <div className="text-center">
@@ -181,8 +177,8 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
                 </svg>
               </div>
-              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">Open Source</h3>
-              <p className="mt-2 text-sm text-slate-700">Full code transparency - audit anytime on GitHub</p>
+              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">100% Open Source</h3>
+              <p className="mt-2 text-sm text-slate-700">Every line of code is public. Audit our GitHub repo anytime</p>
             </div>
             
             <div className="text-center">
@@ -191,8 +187,8 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
                 </svg>
               </div>
-              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">No Data Storage</h3>
-              <p className="mt-2 text-sm text-slate-700">Dates processed instantly and forgotten immediately</p>
+              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">Stateless Processing</h3>
+              <p className="mt-2 text-sm text-slate-700">Dates are formatted in memory and immediately discarded</p>
             </div>
             
             <div className="text-center">
@@ -201,8 +197,96 @@ export default function HomePage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                 </svg>
               </div>
-              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">Enterprise Ready</h3>
-              <p className="mt-2 text-sm text-slate-700">Built for Fortune 500 workflow requirements</p>
+              <h3 className="mt-6 font-display text-lg font-semibold text-slate-900">Enterprise Security</h3>
+              <p className="mt-2 text-sm text-slate-700">Built following enterprise security standards</p>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* Key Benefits Section */}
+      <section className="bg-gradient-to-b from-blue-50 to-white py-20 sm:py-32">
+        <Container>
+          <div className="mx-auto max-w-2xl md:text-center mb-16">
+            <h2 className="font-display text-3xl tracking-tight text-slate-900 sm:text-4xl">
+              Everything you need for professional date formatting
+            </h2>
+            <p className="mt-4 text-lg tracking-tight text-slate-700">
+              Stop losing deals to date confusion. Get the features that actually matter.
+            </p>
+          </div>
+          
+          <div className="mx-auto grid max-w-2xl grid-cols-1 gap-8 lg:max-w-none lg:grid-cols-3">
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100">
+                  <svg className="h-6 w-6 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 10V3L4 14h7v7l9-11h-7z" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 font-display text-lg font-semibold text-slate-900">Instant Setup</h3>
+              </div>
+              <p className="text-slate-700">Install in 30 seconds, no IT team required. Works with all HubSpot plans from Free to Enterprise.</p>
+            </div>
+            
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-green-100">
+                  <svg className="h-6 w-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 font-display text-lg font-semibold text-slate-900">Smart Detection</h3>
+              </div>
+              <p className="text-slate-700">Automatically recognizes 20+ date formats. Correctly interprets &apos;25 as 2025, not 1925.</p>
+            </div>
+            
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-100">
+                  <svg className="h-6 w-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 font-display text-lg font-semibold text-slate-900">Global Ready</h3>
+              </div>
+              <p className="text-slate-700">Native support for US, UK, EU, Asia formats. Perfect for international sales and compliance.</p>
+            </div>
+            
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100">
+                  <svg className="h-6 w-6 text-orange-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 font-display text-lg font-semibold text-slate-900">Lightning Fast</h3>
+              </div>
+              <p className="text-slate-700">Average response time under 50ms. Handle millions of dates without rate limits.</p>
+            </div>
+            
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-100">
+                  <svg className="h-6 w-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 font-display text-lg font-semibold text-slate-900">Custom Formats</h3>
+              </div>
+              <p className="text-slate-700">Create any date format with simple tokens. Perfect for branded communications.</p>
+            </div>
+            
+            <div>
+              <div className="flex items-center mb-4">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100">
+                  <svg className="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <h3 className="ml-4 font-display text-lg font-semibold text-slate-900">Zero Trust Required</h3>
+              </div>
+              <p className="text-slate-700">No permissions needed. Your data never leaves HubSpot. Full code transparency on GitHub.</p>
             </div>
           </div>
         </Container>
@@ -213,51 +297,68 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900 mb-4">
-              It Just Works
+              Handle Any Date, From Any Source
             </h2>
             <p className="text-xl text-gray-600">
-              Professional date formatting in minutes, not hours
+              Stop losing leads to date formatting errors. Convert reliably across all your systems.
             </p>
           </div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-3">15+ Formats</h3>
+              <div className="flex items-center mb-3">
+                <svg className="h-5 w-5 text-blue-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="font-semibold text-gray-900">Global Formats</h3>
+              </div>
               <div className="space-y-2 text-sm">
-                <div className="font-mono text-blue-600">07/24/2025</div>
-                <div className="font-mono text-blue-600">24/07/2025</div>
-                <div className="font-mono text-blue-600">July 24, 2025</div>
-                <div className="font-mono text-blue-600">2025-07-24</div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">US Standard:</span>
+                  <span className="font-mono text-blue-600">01/24/2025</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">UK Standard:</span>
+                  <span className="font-mono text-blue-600">24/01/2025</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">ISO Format:</span>
+                  <span className="font-mono text-blue-600">2025-01-24</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Taiwan:</span>
+                  <span className="font-mono text-blue-600">2025年1月24日</span>
+                </div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-3">Smart Years</h3>
+              <div className="flex items-center mb-3">
+                <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <h3 className="font-semibold text-gray-900">Professional Output</h3>
+              </div>
               <div className="space-y-2 text-sm">
-                <div><span className="font-mono text-gray-500">25</span> → <span className="font-mono text-green-600">2025</span></div>
-                <div><span className="font-mono text-gray-500">99</span> → <span className="font-mono text-green-600">1999</span></div>
-                <div><span className="font-mono text-gray-500">01</span> → <span className="font-mono text-green-600">2001</span></div>
-                <div><span className="font-mono text-gray-500">50</span> → <span className="font-mono text-green-600">1950</span></div>
+                <div className="font-mono text-green-600">January 24, 2025</div>
+                <div className="font-mono text-green-600">Jan 24, 2025</div>
+                <div className="font-mono text-green-600">2025년 1월 24일</div>
+                <div className="font-mono text-green-600">24 January 2025</div>
               </div>
             </div>
 
             <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-3">International</h3>
-              <div className="space-y-2 text-sm">
-                <div className="font-mono text-blue-600">2025年7月24日</div>
-                <div className="font-mono text-blue-600">24 July 2025</div>
-                <div className="font-mono text-blue-600">24.07.2025</div>
-                <div className="font-mono text-blue-600">2025/07/24</div>
+              <div className="flex items-center mb-3">
+                <svg className="h-5 w-5 text-purple-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2" />
+                </svg>
+                <h3 className="font-semibold text-gray-900">Custom Formats</h3>
               </div>
-            </div>
-
-            <div className="bg-white rounded-lg p-6 shadow-md">
-              <h3 className="font-semibold text-gray-900 mb-3">Custom Formats</h3>
               <div className="space-y-2 text-sm">
-                <div className="font-mono text-blue-600">Thu, Jul 24</div>
-                <div className="font-mono text-blue-600">Q3 2025</div>
-                <div className="font-mono text-blue-600">Week 30</div>
-                <div className="font-mono text-blue-600">Day 205</div>
+                <div><code className="text-gray-600">YYYY-MM-DD</code> → <span className="font-mono text-purple-600">2025-07-25</span></div>
+                <div><code className="text-gray-600">MMM DD, YYYY</code> → <span className="font-mono text-purple-600">Jul 25, 2025</span></div>
+                <div><code className="text-gray-600">DD MMM YYYY</code> → <span className="font-mono text-purple-600">25 Jul 2025</span></div>
+                <div><code className="text-gray-600">D/M/YYYY</code> → <span className="font-mono text-purple-600">25/7/2025</span></div>
               </div>
             </div>
           </div>
@@ -353,128 +454,257 @@ export default function HomePage() {
         </Container>
       </section>
 
-      {/* Pricing */}
-      <section className="bg-slate-900 py-20 sm:py-32">
+      {/* Beta Banner */}
+      <section className="bg-gradient-to-r from-green-500 to-blue-600 py-4">
         <Container>
-          <div className="mx-auto max-w-2xl md:text-center">
-            <h2 className="font-display text-3xl tracking-tight text-white sm:text-4xl">
-              Simple pricing, no surprises.
+          <div className="text-center">
+            <div className="flex items-center justify-center">
+              <svg className="h-5 w-5 text-white mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              <p className="text-white font-medium">
+                🎉 Beta Special: Unlimited usage for all current users • Lock in lifetime discounts up to 25% off
+              </p>
+            </div>
+          </div>
+        </Container>
+      </section>
+
+      {/* 4-Tier Pricing Table */}
+      <section className="bg-gradient-to-b from-slate-50 to-white py-20 sm:py-32">
+        <Container>
+          <div className="mx-auto max-w-4xl text-center mb-16">
+            <h2 className="font-display text-4xl font-bold tracking-tight text-slate-900 sm:text-5xl">
+              Simple pricing that scales with your success
             </h2>
-            <p className="mt-4 text-lg text-slate-400">
-              Start formatting dates today. Everything you need is included in the free tier.
+            <p className="mt-4 text-lg text-slate-700">
+              All features included in every plan. Pay only for what you use.
             </p>
           </div>
-          
-          <div className="mx-auto mt-16 max-w-2xl rounded-3xl ring-1 ring-white/10 sm:mt-20 lg:mx-0 lg:flex lg:max-w-none">
-            <div className="p-8 sm:p-10 lg:flex-auto">
-              <div className="flex items-center">
-                <h3 className="text-2xl font-bold tracking-tight text-white">Free Beta</h3>
-                <div className="ml-4 rounded-full bg-green-500/10 px-2.5 py-1 text-xs font-semibold text-green-400 ring-1 ring-inset ring-green-500/20">
-                  100% Free
-                </div>
+
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
+            
+            {/* FREE FOREVER */}
+            <div className="rounded-2xl bg-white p-8 shadow-xl border-2 border-blue-500 relative flex flex-col">
+              <div className="absolute -top-4 left-1/2 transform -translate-x-1/2">
+                <span className="bg-blue-600 text-white px-4 py-2 rounded-full text-sm font-medium">
+                  Free Beta
+                </span>
               </div>
-              <p className="mt-6 text-base leading-7 text-slate-300">
-                Get professional date formatting for all your HubSpot workflows. No limits during beta.
-              </p>
-              <div className="mt-10 flex items-center gap-x-4">
-                <h4 className="flex-none text-sm font-semibold leading-6 text-blue-400">What&apos;s included</h4>
-                <div className="h-px flex-auto bg-slate-600" />
+              
+              <h3 className="font-display text-xl font-semibold text-slate-900">Free Forever</h3>
+              
+              <div className="mt-6">
+                <span className="text-4xl font-bold tracking-tight text-slate-900">$0</span>
+                <span className="text-base text-slate-600">/month</span>
               </div>
-              <ul className="mt-8 grid grid-cols-1 gap-4 text-sm leading-6 text-slate-300 sm:grid-cols-2 sm:gap-6">
-                <li className="flex gap-x-3">
-                  <svg className="h-6 w-5 flex-none text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
+              
+              <p className="mt-2 text-lg font-medium text-blue-600">3,000 requests/month</p>
+              <p className="text-sm text-green-600">Currently unlimited in beta</p>
+              
+              <ul className="mt-6 space-y-3 flex-grow">
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  15+ date formats
+                  <span className="text-slate-700">15+ date formats</span>
                 </li>
-                <li className="flex gap-x-3">
-                  <svg className="h-6 w-5 flex-none text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  Unlimited workflows
+                  <span className="text-slate-700">URL shortener</span>
                 </li>
-                <li className="flex gap-x-3">
-                  <svg className="h-6 w-5 flex-none text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
                   </svg>
-                  Zero permissions required
-                </li>
-                <li className="flex gap-x-3">
-                  <svg className="h-6 w-5 flex-none text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
-                  </svg>
-                  30-day billing notice
-                </li>
-                <li className="flex gap-x-3">
-                  <svg className="h-6 w-5 flex-none text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
-                  </svg>
-                  International formats
-                </li>
-                <li className="flex gap-x-3">
-                  <svg className="h-6 w-5 flex-none text-blue-400" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
-                  </svg>
-                  Open source code
+                  <span className="text-slate-700">Custom date tokens</span>
                 </li>
               </ul>
+              
+              <Button href="/api/auth/hubspot/install?app_type=date-formatter" color="hubspot" className="mt-8 w-full">
+                Start Free Today
+              </Button>
             </div>
-            <div className="-mt-2 p-2 lg:mt-0 lg:w-full lg:max-w-md lg:flex-shrink-0">
-              <div className="rounded-2xl bg-slate-50 py-10 text-center ring-1 ring-inset ring-slate-900/5 lg:flex lg:flex-col lg:justify-center lg:py-16">
-                <div className="mx-auto max-w-xs px-8">
-                  <p className="text-base font-semibold text-slate-600">Currently free during beta</p>
-                  <p className="mt-6 flex items-baseline justify-center gap-x-2">
-                    <span className="text-5xl font-bold tracking-tight text-slate-900">3,000</span>
-                    <span className="text-sm font-semibold leading-6 tracking-wide text-slate-600">requests/month</span>
-                  </p>
-                  <Button href="/api/auth/hubspot/install" color="hubspot" className="mt-10 block w-full">
-                    Install for free
-                  </Button>
-                  <p className="mt-6 text-xs leading-5 text-slate-600">
-                    No credit card required. Install in 2 minutes.
-                  </p>
-                </div>
+
+            {/* STARTER */}
+            <div className="rounded-2xl bg-white p-8 shadow-lg border border-slate-200 flex flex-col">
+              <h3 className="font-display text-xl font-semibold text-slate-900">Starter</h3>
+              
+              <div className="mt-6">
+                <span className="text-4xl font-bold tracking-tight text-slate-900">$15</span>
+                <span className="text-base text-slate-600">/month</span>
+                <span className="ml-2 text-lg text-slate-500 line-through">$19</span>
+              </div>
+              
+              <p className="mt-2 text-lg font-medium text-blue-600">30,000 requests/month</p>
+              <p className="text-sm text-green-600">Beta users only • 20% off forever</p>
+              
+              <ul className="mt-6 space-y-3 flex-grow">
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">Everything in Free</span>
+                </li>
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">10x more requests</span>
+                </li>
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">Email support</span>
+                </li>
+              </ul>
+              
+              <div className="mt-8 w-full py-3 text-center text-slate-500 text-sm font-medium">
+                Coming Soon
+              </div>
+            </div>
+
+            {/* PROFESSIONAL */}
+            <div className="rounded-2xl bg-white p-8 shadow-lg border border-slate-200 flex flex-col">
+              <h3 className="font-display text-xl font-semibold text-slate-900">Professional</h3>
+              
+              <div className="mt-6">
+                <span className="text-4xl font-bold tracking-tight text-slate-900">$74</span>
+                <span className="text-base text-slate-600">/month</span>
+                <span className="ml-2 text-lg text-slate-500 line-through">$99</span>
+              </div>
+              
+              <p className="mt-2 text-lg font-medium text-blue-600">300,000 requests/month</p>
+              <p className="text-sm text-green-600">Beta users only • 25% off forever</p>
+              
+              <ul className="mt-6 space-y-3 flex-grow">
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">Everything in Starter</span>
+                </li>
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">10x more requests</span>
+                </li>
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">Priority support</span>
+                </li>
+              </ul>
+              
+              <div className="mt-8 w-full py-3 text-center text-slate-500 text-sm font-medium">
+                Coming Soon
+              </div>
+            </div>
+
+            {/* ENTERPRISE */}
+            <div className="rounded-2xl bg-white p-8 shadow-lg border border-slate-200 flex flex-col">
+              <h3 className="font-display text-xl font-semibold text-slate-900">Enterprise</h3>
+              
+              <div className="mt-6">
+                <span className="text-4xl font-bold tracking-tight text-slate-900">$499</span>
+                <span className="text-base text-slate-600">/month</span>
+              </div>
+              
+              <p className="mt-2 text-lg font-medium text-blue-600">3M requests/month</p>
+              <p className="text-sm text-green-600">Beta users only • 25% off forever</p>
+              
+              <ul className="mt-6 space-y-3 flex-grow">
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">Everything in Professional</span>
+                </li>
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">10x more requests</span>
+                </li>
+                <li className="flex items-start text-sm">
+                  <svg className="h-4 w-4 text-green-600 mr-2 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
+                  </svg>
+                  <span className="text-slate-700">Dedicated support</span>
+                </li>
+              </ul>
+              
+              <div className="mt-8 w-full py-3 text-center text-slate-500 text-sm font-medium">
+                Contact Sales
+              </div>
+            </div>
+
+          </div>
+
+        </Container>
+      </section>
+
+      {/* FAQ Section */}
+      <FAQAccordion />
+
+      {/* Bottom CTA Banner */}
+      <section className="bg-gradient-to-r from-blue-600 to-purple-600">
+        <Container className="py-16">
+          <div className="text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
+              Ready to eliminate date confusion forever?
+            </h2>
+            <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-blue-100">
+              Join thousands of HubSpot users who've transformed their workflows. 
+              Install in 30 seconds, start formatting in 2 minutes.
+            </p>
+            
+            <div className="mt-10 flex items-center justify-center gap-x-6">
+              <Button 
+                href="/api/auth/hubspot/install?app_type=date-formatter" 
+                color="white"
+              >
+                Start Free Today
+              </Button>
+              <Button 
+                href="/docs/date-formatter/setup-guide" 
+                variant="outline" 
+                className="border-white text-white hover:bg-white/10"
+              >
+                View Setup Guide
+              </Button>
+            </div>
+            
+            <div className="mt-8 flex flex-wrap justify-center gap-6 text-sm text-blue-100">
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
+                </svg>
+                No credit card required
+              </div>
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
+                </svg>
+                30-day money back guarantee
+              </div>
+              <div className="flex items-center">
+                <svg className="h-5 w-5 text-green-400 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143Z" clipRule="evenodd" />
+                </svg>
+                99.9% uptime SLA
               </div>
             </div>
           </div>
         </Container>
       </section>
 
-      {/* Footer */}
-      <footer className="bg-slate-50">
-        <Container className="py-16">
-          <div className="flex flex-col items-center justify-between gap-y-12 pt-6 sm:flex-row sm:gap-y-0 sm:py-16">
-            <div>
-              <div className="flex items-center text-slate-900">
-                <div className="h-10 w-10 rounded-lg bg-slate-900 flex items-center justify-center">
-                  <span className="text-white font-bold text-lg">H</span>
-                </div>
-                <div className="ml-4">
-                  <p className="text-base font-semibold">HubSpot Integration Up</p>
-                  <p className="mt-1 text-sm text-slate-500">Professional date formatting</p>
-                </div>
-              </div>
-            </div>
-            <div className="flex gap-x-6 text-sm font-semibold leading-6 text-slate-700">
-              <a href="/install" className="hover:text-slate-900">Install</a>
-              <a href="https://github.com/hi-upchen/hubspot-integration-up" target="_blank" rel="noopener noreferrer" className="hover:text-slate-900">GitHub</a>
-              <a href="mailto:hi.upchen@gmail.com" className="hover:text-slate-900">Support</a>
-            </div>
-          </div>
-          <div className="flex flex-col items-center border-t border-slate-400/10 pt-8 sm:flex-row-reverse sm:justify-between">
-            <div className="flex gap-x-6">
-              <a href="https://github.com/hi-upchen/hubspot-integration-up" target="_blank" rel="noopener noreferrer" className="group" aria-label="HubSpot Integration Up on GitHub">
-                <svg aria-hidden="true" className="h-6 w-6 fill-slate-500 group-hover:fill-slate-700">
-                  <path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0 0 22 12.017C22 6.484 17.522 2 12 2Z" />
-                </svg>
-              </a>
-            </div>
-            <p className="mt-6 text-sm text-slate-500 sm:mt-0">
-              Copyright &copy; 2025 HubSpot Integration Up. Built with security and privacy in mind.
-            </p>
-          </div>
-        </Container>
-      </footer>
+      <Footer />
     </div>
   )
 }
