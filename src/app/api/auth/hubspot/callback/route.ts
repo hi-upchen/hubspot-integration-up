@@ -33,13 +33,14 @@ export async function GET(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Validate required authorization code
+    // Handle direct access (no OAuth code) - HubSpot validates this endpoint
     if (!code) {
       return NextResponse.json({
-        success: false,
-        error: 'missing_code',
-        message: 'Authorization code is required'
-      }, { status: 400 });
+        success: true,
+        message: 'OAuth callback endpoint is ready',
+        endpoint: 'https://www.integration-up.com/api/auth/hubspot/callback',
+        note: 'This endpoint processes HubSpot OAuth callbacks'
+      }, { status: 200 });
     }
 
     // Validate the authorization code format
