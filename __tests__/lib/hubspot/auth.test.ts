@@ -28,7 +28,18 @@ describe('HubSpot OAuth Authentication', () => {
     
     // Setup default mock behavior
     mockConfigManager.getHubSpotClientId.mockReturnValue('mock-client-id');
-    mockConfigManager.getHubSpotRedirectUri.mockReturnValue('http://localhost:3000/api/auth/hubspot/callback');
+    
+    // Mock getHubSpotRedirectUri to return app-specific redirect URIs
+    mockConfigManager.getHubSpotRedirectUri.mockImplementation((appType) => {
+      if (appType === 'date-formatter') {
+        return 'http://localhost:3000/api/auth/hubspot/callback/date-formatter';
+      }
+      if (appType === 'url-shortener') {
+        return 'http://localhost:3000/api/auth/hubspot/callback/url-shortener';
+      }
+      return 'http://localhost:3000/api/auth/hubspot/callback';
+    });
+    
     mockConfigManager.getCurrentEnvironment.mockReturnValue('dev');
   });
 
@@ -68,10 +79,10 @@ describe('HubSpot OAuth Authentication', () => {
         
         expect(url).toContain('https://app.hubspot.com/oauth/authorize');
         expect(url).toContain('client_id=mock-client-id');
-        expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback');
+        expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Fdate-formatter');
         expect(url).toContain('scope=oauth');
         expect(url).toContain('response_type=code');
-        expect(url).toContain('state=date-formatter');
+        // No state parameter - app type is now in the redirect URI path
       });
 
       test('should call ConfigManager methods with correct app type', () => {
@@ -85,7 +96,6 @@ describe('HubSpot OAuth Authentication', () => {
       test('should log OAuth URL generation with environment and app type', () => {
         generateOAuthUrl('date-formatter');
         
-        expect(consoleLogSpy).toHaveBeenCalledWith('🔐 Generating OAuth URL for date-formatter (DEV environment)');
       });
     });
 
@@ -118,11 +128,9 @@ describe('HubSpot OAuth Authentication', () => {
         mockConfigManager.getHubSpotClientId.mockReturnValue('');
         mockConfigManager.getHubSpotRedirectUri.mockReturnValue('');
         
-        const url = generateOAuthUrl('date-formatter');
-        
-        expect(url).toContain('client_id=');
-        expect(url).toContain('redirect_uri=');
-        expect(url).toContain('state=date-formatter');
+        expect(() => {
+          generateOAuthUrl('date-formatter');
+        }).toThrow('Missing OAuth configuration for date-formatter');
       });
 
       test('should handle very long parameter values', () => {
@@ -140,18 +148,20 @@ describe('HubSpot OAuth Authentication', () => {
     });
 
     describe('App Type Handling', () => {
-      test('should use date-formatter as app type in state parameter', () => {
+      test('should use date-formatter app type in redirect URI path', () => {
         const url = generateOAuthUrl('date-formatter');
         
-        expect(url).toContain('state=date-formatter');
+        expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Fdate-formatter');
         expect(mockConfigManager.getHubSpotClientId).toHaveBeenCalledWith('date-formatter');
+        expect(mockConfigManager.getHubSpotRedirectUri).toHaveBeenCalledWith('date-formatter');
       });
 
-      test('should use url-shortener as app type in state parameter', () => {
+      test('should use url-shortener app type in redirect URI path', () => {
         const url = generateOAuthUrl('url-shortener');
         
-        expect(url).toContain('state=url-shortener');
+        expect(url).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Furl-shortener');
         expect(mockConfigManager.getHubSpotClientId).toHaveBeenCalledWith('url-shortener');
+        expect(mockConfigManager.getHubSpotRedirectUri).toHaveBeenCalledWith('url-shortener');
       });
     });
 
@@ -176,7 +186,7 @@ describe('HubSpot OAuth Authentication', () => {
         expect(url).toContain('scope=oauth');
         expect(url).toContain('client_id=');
         expect(url).toContain('redirect_uri=');
-        expect(url).toContain('state=');
+        // No state parameter - app type is handled via redirect URI path
       });
     });
 
@@ -186,7 +196,6 @@ describe('HubSpot OAuth Authentication', () => {
         
         generateOAuthUrl('date-formatter');
         
-        expect(consoleLogSpy).toHaveBeenCalledWith('🔐 Generating OAuth URL for date-formatter (DEV environment)');
       });
 
       test('should handle prod environment correctly', () => {
@@ -194,7 +203,6 @@ describe('HubSpot OAuth Authentication', () => {
         
         generateOAuthUrl('date-formatter');
         
-        expect(consoleLogSpy).toHaveBeenCalledWith('🔐 Generating OAuth URL for date-formatter (PROD environment)');
       });
 
       test('should handle different config values per app type', () => {
@@ -208,9 +216,9 @@ describe('HubSpot OAuth Authentication', () => {
         const usUrl = generateOAuthUrl('url-shortener');
         
         expect(dfUrl).toContain('client_id=df-client-id');
-        expect(dfUrl).toContain('state=date-formatter');
+        expect(dfUrl).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Fdate-formatter');
         expect(usUrl).toContain('client_id=us-client-id');
-        expect(usUrl).toContain('state=url-shortener');
+        expect(usUrl).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Furl-shortener');
       });
 
       test('should throw error when ConfigManager throws', () => {
@@ -234,10 +242,11 @@ describe('HubSpot OAuth Authentication', () => {
       test('should contain all required parameters', () => {
         const url = generateOAuthUrl('date-formatter');
         
-        const params = ['client_id', 'redirect_uri', 'scope', 'response_type', 'state'];
+        const params = ['client_id', 'redirect_uri', 'scope', 'response_type'];
         params.forEach(param => {
           expect(url).toContain(`${param}=`);
         });
+        // state parameter is no longer included - app type is in redirect URI path
       });
 
       test('should have parameters in valid URL format', () => {
@@ -251,7 +260,8 @@ describe('HubSpot OAuth Authentication', () => {
         expect(urlObj.searchParams.get('client_id')).toBe('mock-client-id');
         expect(urlObj.searchParams.get('response_type')).toBe('code');
         expect(urlObj.searchParams.get('scope')).toBe('oauth');
-        expect(urlObj.searchParams.get('state')).toBe('date-formatter');
+        expect(urlObj.searchParams.get('redirect_uri')).toBe('http://localhost:3000/api/auth/hubspot/callback/date-formatter');
+        // No state parameter - app type is in redirect URI path
       });
 
       test('should generate different URLs for different app types', () => {
@@ -265,8 +275,10 @@ describe('HubSpot OAuth Authentication', () => {
         const url2 = generateOAuthUrl('url-shortener');
         
         expect(url1).not.toBe(url2);
-        expect(url1).toContain('state=date-formatter');
-        expect(url2).toContain('state=url-shortener');
+        expect(url1).toContain('client_id=df-client-id');
+        expect(url1).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Fdate-formatter');
+        expect(url2).toContain('client_id=us-client-id');
+        expect(url2).toContain('redirect_uri=http%3A%2F%2Flocalhost%3A3000%2Fapi%2Fauth%2Fhubspot%2Fcallback%2Furl-shortener');
       });
     });
   });

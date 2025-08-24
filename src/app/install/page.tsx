@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Button } from '@/components/Button';
 import { Container } from '@/components/Container';
 
@@ -57,38 +58,17 @@ const apps: App[] = [
   }
 ];
 
-export default function InstallPage() {
-  const [installing, setInstalling] = useState<string | null>(null);
+function InstallPageContent() {
+  const searchParams = useSearchParams();
+  const [error, setError] = useState<string | null>(null);
 
-  const handleInstall = async (appId: string) => {
-    if (!apps.find(app => app.id === appId)?.available) {
-      return;
+  useEffect(() => {
+    // Check for error parameters from redirects
+    const errorParam = searchParams.get('error');
+    if (errorParam) {
+      setError(errorParam);
     }
-
-    setInstalling(appId);
-
-    try {
-      // Get the OAuth URL for this app type
-      const response = await fetch(`/api/hubspot/${appId}/install`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        // Redirect to HubSpot OAuth
-        window.location.href = data.authUrl;
-      } else {
-        throw new Error('Failed to initiate installation');
-      }
-    } catch (error) {
-      console.error('Installation failed:', error);
-      alert('Installation failed. Please try again.');
-      setInstalling(null);
-    }
-  };
+  }, [searchParams]);
 
   return (
     <div className="overflow-hidden bg-white">
@@ -114,6 +94,26 @@ export default function InstallPage() {
             Each app is designed to solve specific workflow challenges.
           </p>
         </div>
+
+        {/* Error Display */}
+        {error && (
+          <div className="mb-8 mx-auto max-w-2xl">
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4">
+              <div className="flex">
+                <div className="flex-shrink-0">
+                  <svg className="h-5 w-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.732-.833-2.5 0L4.268 19c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-red-800">Installation Error</h3>
+                  <p className="mt-1 text-sm text-red-700">{error}</p>
+                  <p className="mt-2 text-sm text-red-600">Please try again or contact support if the problem persists.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* App Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-16">
@@ -162,29 +162,21 @@ export default function InstallPage() {
               </ul>
 
               {/* Install Button */}
-              <Button
-                onClick={() => handleInstall(app.id)}
-                disabled={!app.available || installing === app.id}
-                className={`w-full ${
-                  app.available
-                    ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                    : 'bg-slate-300 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                {installing === app.id ? (
-                  <>
-                    <svg className="animate-spin -ml-1 mr-3 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                    </svg>
-                    Installing...
-                  </>
-                ) : app.available ? (
-                  'Install to HubSpot'
-                ) : (
-                  'Coming Soon'
-                )}
-              </Button>
+              {app.available ? (
+                <Button
+                  href={`/api/hubspot/${app.id}/install`}
+                  className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+                >
+                  Install to HubSpot
+                </Button>
+              ) : (
+                <Button
+                  disabled
+                  className="w-full bg-slate-300 text-slate-500 cursor-not-allowed"
+                >
+                  Coming Soon
+                </Button>
+              )}
             </div>
           ))}
         </div>
@@ -228,5 +220,13 @@ export default function InstallPage() {
         </div>
       </Container>
     </div>
+  );
+}
+
+export default function InstallPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <InstallPageContent />
+    </Suspense>
   );
 }

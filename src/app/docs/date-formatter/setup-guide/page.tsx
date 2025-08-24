@@ -125,7 +125,7 @@ export default function DateFormatterSetupGuide() {
                     Click the install button to connect the Date Formatter to your HubSpot account. This process is secure 
                     and won't access your contacts, deals, or customer data.
                   </p>
-                  <Button href="/api/auth/hubspot/install?app_type=date-formatter" color="blue" className="mb-4">
+                  <Button href="/api/hubspot/date-formatter/install" color="blue" className="mb-4">
                     Install Date Formatter
                   </Button>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">

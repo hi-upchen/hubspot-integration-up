@@ -131,7 +131,7 @@ export default function UrlShortenerSetupGuide() {
                     Click the install button to connect the URL Shortener to your HubSpot account. This process is secure 
                     and requires zero permissions to your HubSpot data.
                   </p>
-                  <Button href="/api/auth/hubspot/install?app_type=url-shortener" color="blue" className="mb-4">
+                  <Button href="/api/hubspot/url-shortener/install" color="blue" className="mb-4">
                     Install URL Shortener
                   </Button>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">

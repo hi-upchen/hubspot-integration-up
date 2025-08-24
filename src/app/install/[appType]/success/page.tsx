@@ -5,6 +5,7 @@
 
 import Link from 'next/link';
 import { Container } from '@/components/Container';
+import { Footer } from '@/components/Footer';
 
 interface SuccessPageProps {
   params: Promise<{
@@ -77,8 +78,9 @@ export default async function InstallSuccessPage({ params, searchParams }: Succe
   }
 
   return (
-    <Container>
-      <div className="min-h-screen flex items-center justify-center">
+    <div className="overflow-hidden bg-white">
+      <Container>
+        <div className="min-h-screen flex items-center justify-center">
         <div className="max-w-2xl mx-auto text-center">
           {/* Success Icon */}
           <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6">
@@ -128,47 +130,37 @@ export default async function InstallSuccessPage({ params, searchParams }: Succe
 
           {/* Action Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            {portalId ? (
-              <Link
-                href={`/dashboard?portalId=${portalId}`}
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-              >
-                Go to Dashboard
-              </Link>
-            ) : (
-              <Link
-                href="/dashboard"
-                className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors"
-              >
-                Go to Dashboard
-              </Link>
-            )}
-            
             <a
-              href="https://app.hubspot.com/workflows"
+              href="https://app.hubspot.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+              className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-orange-600 hover:bg-orange-700 transition-colors"
             >
-              Open HubSpot Workflows
+              Open your HubSpot
               <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
             </a>
+            
+            <Link
+              href={`/docs/${appType}/setup-guide`}
+              className="inline-flex items-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors"
+            >
+              Setup Guide
+              <svg className="ml-2 h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.746 0 3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+              </svg>
+            </Link>
           </div>
 
-          {/* Footer */}
-          <div className="mt-12 pt-6 border-t border-gray-200">
-            <p className="text-sm text-gray-500">
-              Need help getting started?{' '}
-              <a href="mailto:support@integrationup.com" className="text-blue-600 hover:text-blue-800">
-                Contact support
-              </a>
-            </p>
-          </div>
         </div>
       </div>
-    </Container>
+      </Container>
+
+      <div className="mt-16">
+        <Footer />
+      </div>
+    </div>
   );
 }
 

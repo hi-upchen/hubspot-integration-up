@@ -28,7 +28,7 @@
 ## Quick Integration
 
 ### 1. Install from HubSpot Marketplace
-[Install Date Formatter →](https://www.integration-up.com/api/auth/hubspot/install)
+[Install Date Formatter →](https://www.integration-up.com/install)
 
 ### 2. Add to Your Workflow
 1. Create or edit a HubSpot workflow
@@ -216,4 +216,4 @@ MIT License - Open source with commercial usage permitted.
 ---
 
 **Ready to streamline your international date formatting?**  
-[Install Date Formatter →](https://www.integration-up.com/api/auth/hubspot/install)
+[Install Date Formatter →](https://www.integration-up.com/install)

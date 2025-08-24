@@ -8,6 +8,10 @@ export interface AppConfig {
   hubspot: {
     shared: {
       redirectUri: string;
+      redirectUris?: {
+        'date-formatter'?: string;
+        'url-shortener'?: string;
+      };
       developerApiKey: string;
     };
     apps: {

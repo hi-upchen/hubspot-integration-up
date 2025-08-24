@@ -24,12 +24,12 @@ export function Footer() {
             <h3 className="text-sm font-semibold text-slate-900 tracking-wider uppercase mb-4">Product</h3>
             <ul className="space-y-3">
               <li>
-                <a href="/api/auth/hubspot/install?app_type=date-formatter" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+                <a href="/api/hubspot/date-formatter/install" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
                   Date Formatter
                 </a>
               </li>
               <li>
-                <a href="/api/auth/hubspot/install?app_type=url-shortener" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
+                <a href="/api/hubspot/url-shortener/install" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-600 hover:text-slate-900 transition-colors">
                   URL Shortener
                 </a>
               </li>

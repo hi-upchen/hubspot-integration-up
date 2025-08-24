@@ -73,10 +73,20 @@ export class ConfigManager {
 
   /**
    * Gets HubSpot redirect URI for current environment
+   * Supports both legacy single URI and new app-specific URIs
+   * @param appType - Optional app type for app-specific redirect URIs
    * @returns Redirect URI
    */
-  static getHubSpotRedirectUri(): string {
-    return this.getHubSpotConfig().shared.redirectUri;
+  static getHubSpotRedirectUri(appType?: 'date-formatter' | 'url-shortener'): string {
+    const config = this.getHubSpotConfig();
+    
+    // If app type is provided and app-specific URIs exist, use them
+    if (appType && config.shared.redirectUris && config.shared.redirectUris[appType]) {
+      return config.shared.redirectUris[appType];
+    }
+    
+    // Fallback to legacy single redirect URI
+    return config.shared.redirectUri;
   }
 
   /**

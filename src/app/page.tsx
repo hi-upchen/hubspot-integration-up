@@ -30,7 +30,7 @@ export default function HomePage() {
 
         {/* CTA Buttons */}
         <div className="mt-10 flex justify-center gap-x-6">
-          <Button href="/api/auth/hubspot/install?app_type=date-formatter" color="hubspot">Install to HubSpot</Button>
+          <Button href="/api/hubspot/date-formatter/install" color="hubspot">Install to HubSpot</Button>
           <Button 
             href="https://github.com/hi-upchen/hubspot-integration-up"
             variant="outline"
@@ -523,7 +523,7 @@ export default function HomePage() {
                 </li>
               </ul>
               
-              <Button href="/api/auth/hubspot/install?app_type=date-formatter" color="hubspot" className="mt-8 w-full">
+              <Button href="/api/hubspot/date-formatter/install" color="hubspot" className="mt-8 w-full">
                 Start Free Today
               </Button>
             </div>
@@ -666,7 +666,7 @@ export default function HomePage() {
             
             <div className="mt-10 flex items-center justify-center gap-x-6">
               <Button 
-                href="/api/auth/hubspot/install?app_type=date-formatter" 
+                href="/api/hubspot/date-formatter/install" 
                 color="white"
               >
                 Start Free Today

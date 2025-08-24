@@ -62,7 +62,7 @@
       "label": "Error Message"
     }
   ],
-  "objectTypes": ["CONTACT", "COMPANY", "DEAL", "TICKET"],
+  "objectTypes": [],
   "labels": {
     "en": {
       "actionName": "URL Shortener",
