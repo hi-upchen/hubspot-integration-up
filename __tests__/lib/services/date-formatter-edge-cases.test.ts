@@ -429,9 +429,9 @@ describe('Date Formatter Edge Cases', () => {
 
       test('should handle tokens within words', () => {
         const embeddedTests = [
-          { pattern: 'Year-YYYY-End', input: '01/01/2025', expected: 'Year-2025-End' },
-          { pattern: 'MMM-Month', input: '01/01/2025', expected: 'Jan-Month' },
-          { pattern: 'Day-DD-Date', input: '01/05/2025', expected: 'Day-05-Date' },
+          { pattern: '[Year]-YYYY-[End]', input: '01/01/2025', expected: 'Year-2025-End' },
+          { pattern: 'MMM-[Month]', input: '01/01/2025', expected: 'Jan-Month' },
+          { pattern: '[Day]-DD-[Date]', input: '01/05/2025', expected: 'Day-05-Date' },
         ]
 
         embeddedTests.forEach(({ pattern, input, expected }) => {
@@ -460,9 +460,9 @@ describe('Date Formatter Edge Cases', () => {
 
       test('should handle patterns with no tokens', () => {
         const noTokenTests = [
-          { pattern: 'No tokens here', input: '01/15/2025', expected: 'No tokens here' },
-          { pattern: '12345', input: '01/15/2025', expected: '12345' },
-          { pattern: '!@#$%', input: '01/15/2025', expected: '!@#$%' },
+          { pattern: '[No tokens here]', input: '01/15/2025', expected: 'No tokens here' },
+          { pattern: '[12345]', input: '01/15/2025', expected: '12345' },
+          { pattern: '[!@#$%]', input: '01/15/2025', expected: '!@#$%' },
         ]
 
         noTokenTests.forEach(({ pattern, input, expected }) => {

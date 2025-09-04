@@ -384,13 +384,173 @@ describe('Date Formatter Service', () => {
       })
 
       test('should handle patterns with literal text', () => {
-        const result = formatDate('07/25/2025', 'US_FORMAT', 'CUSTOM', 'Date: DD/MM/YYYY')
+        const result = formatDate('07/25/2025', 'US_FORMAT', 'CUSTOM', '[Date]: DD/MM/YYYY')
         expect(result).toBe('Date: 25/07/2025')
       })
 
       test('should handle patterns with multiple separators', () => {
         const result = formatDate('07/25/2025', 'US_FORMAT', 'CUSTOM', 'DD.MM.YYYY - MMMM')
         expect(result).toBe('25.07.2025 - July')
+      })
+
+      test('should handle ordinal dates with Do token', () => {
+        const result = formatDate('09/02/2025', 'US_FORMAT', 'CUSTOM', 'dddd Do [of] MMMM')
+        expect(result).toBe('Tuesday 2nd of September')
+      })
+
+      test('should handle various ordinal formats', () => {
+        const ordinalTests = [
+          { input: '09/01/2025', pattern: 'Do MMMM YYYY', expected: '1st September 2025' },
+          { input: '09/02/2025', pattern: 'dddd [the] Do', expected: 'Tuesday the 2nd' },
+          { input: '09/03/2025', pattern: 'MMMM Do, YYYY', expected: 'September 3rd, 2025' },
+          { input: '09/21/2025', pattern: '[The] Do [of] MMMM', expected: 'The 21st of September' },
+          { input: '12/25/2025', pattern: 'dddd, MMMM Do', expected: 'Thursday, December 25th' },
+        ]
+
+        ordinalTests.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
+      })
+
+      test('should handle day name formats', () => {
+        const dayNameTests = [
+          { input: '01/01/2025', pattern: 'dddd', expected: 'Wednesday' },
+          { input: '01/01/2025', pattern: 'ddd', expected: 'Wed' },
+          { input: '07/04/2025', pattern: 'dddd, MMMM DD', expected: 'Friday, July 04' },
+          { input: '12/31/2025', pattern: 'ddd DD/MM', expected: 'Wed 31/12' },
+        ]
+
+        dayNameTests.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
+      })
+
+      test('should handle all dayjs token types comprehensively', () => {
+        // Using July 4, 2025 (Friday) for comprehensive testing
+        const tokenTests = [
+          // Year tokens
+          { input: '07/04/2025', pattern: 'YY', expected: '25' },
+          { input: '07/04/2025', pattern: 'YYYY', expected: '2025' },
+          
+          // Month tokens
+          { input: '07/04/2025', pattern: 'M', expected: '7' },
+          { input: '07/04/2025', pattern: 'MM', expected: '07' },
+          { input: '07/04/2025', pattern: 'MMM', expected: 'Jul' },
+          { input: '07/04/2025', pattern: 'MMMM', expected: 'July' },
+          
+          // Day of month tokens
+          { input: '07/04/2025', pattern: 'D', expected: '4' },
+          { input: '07/04/2025', pattern: 'DD', expected: '04' },
+          { input: '07/04/2025', pattern: 'Do', expected: '4th' },
+          
+          // Day of week tokens (Friday = 5, Sun=0)
+          { input: '07/04/2025', pattern: 'd', expected: '5' },
+          { input: '07/04/2025', pattern: 'dd', expected: 'Fr' },
+          { input: '07/04/2025', pattern: 'ddd', expected: 'Fri' },
+          { input: '07/04/2025', pattern: 'dddd', expected: 'Friday' },
+          
+          // Quarter token (July = Q3)
+          { input: '07/04/2025', pattern: 'Q', expected: '3' },
+        ]
+
+        tokenTests.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
+      })
+
+      test('should handle edge cases for ordinal dates', () => {
+        const ordinalEdgeCases = [
+          // Test all ordinal suffixes
+          { input: '09/01/2025', pattern: 'Do', expected: '1st' },
+          { input: '09/02/2025', pattern: 'Do', expected: '2nd' },
+          { input: '09/03/2025', pattern: 'Do', expected: '3rd' },
+          { input: '09/04/2025', pattern: 'Do', expected: '4th' },
+          { input: '09/11/2025', pattern: 'Do', expected: '11th' }, // Special case: 11th not 11st
+          { input: '09/12/2025', pattern: 'Do', expected: '12th' }, // Special case: 12th not 12nd
+          { input: '09/13/2025', pattern: 'Do', expected: '13th' }, // Special case: 13th not 13rd
+          { input: '09/21/2025', pattern: 'Do', expected: '21st' },
+          { input: '09/22/2025', pattern: 'Do', expected: '22nd' },
+          { input: '09/23/2025', pattern: 'Do', expected: '23rd' },
+          { input: '08/31/2025', pattern: 'Do', expected: '31st' },
+        ]
+
+        ordinalEdgeCases.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
+      })
+
+      test('should handle day of week numbers correctly', () => {
+        // Test each day of the week (Sunday = 0)
+        const dayOfWeekTests = [
+          { input: '01/05/2025', pattern: 'd', expected: '0' }, // Sunday
+          { input: '01/06/2025', pattern: 'd', expected: '1' }, // Monday
+          { input: '01/07/2025', pattern: 'd', expected: '2' }, // Tuesday
+          { input: '01/08/2025', pattern: 'd', expected: '3' }, // Wednesday
+          { input: '01/09/2025', pattern: 'd', expected: '4' }, // Thursday
+          { input: '01/10/2025', pattern: 'd', expected: '5' }, // Friday
+          { input: '01/11/2025', pattern: 'd', expected: '6' }, // Saturday
+        ]
+
+        dayOfWeekTests.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
+      })
+
+      test('should handle quarter calculations correctly', () => {
+        const quarterTests = [
+          { input: '01/15/2025', pattern: 'Q', expected: '1' }, // Q1: Jan-Mar
+          { input: '02/15/2025', pattern: 'Q', expected: '1' },
+          { input: '03/15/2025', pattern: 'Q', expected: '1' },
+          { input: '04/15/2025', pattern: 'Q', expected: '2' }, // Q2: Apr-Jun
+          { input: '05/15/2025', pattern: 'Q', expected: '2' },
+          { input: '06/15/2025', pattern: 'Q', expected: '2' },
+          { input: '07/15/2025', pattern: 'Q', expected: '3' }, // Q3: Jul-Sep
+          { input: '08/15/2025', pattern: 'Q', expected: '3' },
+          { input: '09/15/2025', pattern: 'Q', expected: '3' },
+          { input: '10/15/2025', pattern: 'Q', expected: '4' }, // Q4: Oct-Dec
+          { input: '11/15/2025', pattern: 'Q', expected: '4' },
+          { input: '12/15/2025', pattern: 'Q', expected: '4' },
+        ]
+
+        quarterTests.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
+      })
+
+      test('should handle complex mixed token patterns', () => {
+        const complexTests = [
+          { 
+            input: '07/04/2025', 
+            pattern: 'dddd [the] Do [of] MMMM YYYY ([Q]Q)', 
+            expected: 'Friday the 4th of July 2025 (Q3)' 
+          },
+          { 
+            input: '12/25/2025', 
+            pattern: 'ddd, MMM Do YY', 
+            expected: 'Thu, Dec 25th 25' 
+          },
+          { 
+            input: '01/01/2025', 
+            pattern: 'dddd [is day] d [of the week]', 
+            expected: 'Wednesday is day 3 of the week' 
+          },
+          { 
+            input: '03/15/2025', 
+            pattern: 'YYYY-MM-DD (dd)', 
+            expected: '2025-03-15 (Sa)' 
+          },
+        ]
+
+        complexTests.forEach(({ input, pattern, expected }) => {
+          const result = formatDate(input, 'US_FORMAT', 'CUSTOM', pattern)
+          expect(result).toBe(expected)
+        })
       })
     })
 

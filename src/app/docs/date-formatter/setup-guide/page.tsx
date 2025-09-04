@@ -346,8 +346,8 @@ export default function DateFormatterSetupGuide() {
                   </tr>
                   <tr>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-slate-900">Custom Format</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-mono">Fri, Jan 24th</td>
-                    <td className="px-6 py-4 text-sm text-slate-700">Branded communications</td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-700 font-mono">Tuesday 2nd of September</td>
+                    <td className="px-6 py-4 text-sm text-slate-700">Branded communications with ordinals</td>
                   </tr>
                 </tbody>
               </table>
@@ -357,46 +357,126 @@ export default function DateFormatterSetupGuide() {
               <h3 className="font-semibold text-blue-900 mb-4">Custom Format Tokens</h3>
               <p className="text-blue-800 mb-4">Create your own format using these tokens:</p>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                <div>
-                  <h4 className="font-medium text-blue-900 mb-3">Year Tokens</h4>
-                  <div className="space-y-2 text-sm">
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">YYYY</code> - Full 4-digit year (2025)</div>
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">YY</code> - 2-digit year (25)</div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-blue-900 mb-3">Month Tokens</h4>
-                  <div className="space-y-2 text-sm">
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">MMMM</code> - Full month name (July)</div>
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">MMM</code> - Short month name (Jul)</div>
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">MM</code> - Zero-padded month (07)</div>
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">M</code> - Non-padded month (7)</div>
-                  </div>
-                </div>
-                
-                <div>
-                  <h4 className="font-medium text-blue-900 mb-3">Day Tokens</h4>
-                  <div className="space-y-2 text-sm">
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">DD</code> - Zero-padded day (25)</div>
-                    <div><code className="bg-blue-100 px-2 py-1 rounded">D</code> - Non-padded day (25)</div>
-                  </div>
-                </div>
+              <div className="overflow-x-auto mb-6">
+                <table className="min-w-full bg-white border border-blue-200 rounded-lg">
+                  <thead className="bg-blue-50">
+                    <tr>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Token</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Output Range</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-blue-700 uppercase tracking-wider">Description</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-blue-100">
+                    <tr className="bg-blue-25">
+                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Year Tokens</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">YY</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">18, 25, 99</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">Two-digit year</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">YYYY</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">2018, 2025, 1999</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">Four-digit year</td>
+                    </tr>
+                    <tr className="bg-blue-25">
+                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Month Tokens</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">M</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">1-12</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The month, beginning at 1</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">MM</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">01-12</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The month, 2-digits</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">MMM</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">Jan-Dec</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The abbreviated month name</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">MMMM</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">January-December</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The full month name</td>
+                    </tr>
+                    <tr className="bg-blue-25">
+                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Day of Month Tokens</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">D</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">1-31</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The day of the month</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">DD</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">01-31</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The day of the month, 2-digits</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">Do</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">1st, 2nd, 3rd...31st</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">Day of month with ordinal</td>
+                    </tr>
+                    <tr className="bg-blue-25">
+                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Day of Week Tokens</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">d</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">0-6</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The day of the week, with Sunday as 0</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">dd</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">Su-Sa</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The min name of the day of the week</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">ddd</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">Sun-Sat</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The short name of the day of the week</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">dddd</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">Sunday-Saturday</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">The name of the day of the week</td>
+                    </tr>
+                    <tr className="bg-blue-25">
+                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Special Tokens</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">Q</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">1-4</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">Quarter</td>
+                    </tr>
+                    <tr>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">[text]</td>
+                      <td className="px-4 py-3 whitespace-nowrap text-sm text-slate-700">text</td>
+                      <td className="px-4 py-3 text-sm text-slate-700">Literal text (wrap in square brackets)</td>
+                    </tr>
+                  </tbody>
+                </table>
               </div>
               
               <div className="bg-blue-100 border border-blue-300 rounded p-4">
                 <h4 className="font-medium text-blue-900 mb-2">Example Custom Formats</h4>
-                <p className="text-blue-800 text-sm mb-2">Using date July 25, 2025:</p>
+                <p className="text-blue-800 text-sm mb-2">Using date September 2, 2025 (Tuesday):</p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-xs font-mono">
-                  <div><code>YYYY-MM-DD</code> → 2025-07-25</div>
-                  <div><code>DD/MM/YYYY</code> → 25/07/2025</div>
-                  <div><code>MMM DD, YYYY</code> → Jul 25, 2025</div>
-                  <div><code>MMMM DD, YYYY</code> → July 25, 2025</div>
-                  <div><code>D/M/YYYY</code> → 25/7/2025</div>
-                  <div><code>YY-MM-DD</code> → 25-07-25</div>
-                  <div><code>DD MMM YYYY</code> → 25 Jul 2025</div>
-                  <div><code>YYYY年MM月DD日</code> → 2025年07月25日</div>
+                  <div><code>YYYY-MM-DD</code> → 2025-09-02</div>
+                  <div><code>DD/MM/YYYY</code> → 02/09/2025</div>
+                  <div><code>MMM DD, YYYY</code> → Sep 02, 2025</div>
+                  <div><code>MMMM DD, YYYY</code> → September 02, 2025</div>
+                  <div><code>dddd Do [of] MMMM</code> → Tuesday 2nd of September</div>
+                  <div><code>MMMM Do, YYYY</code> → September 2nd, 2025</div>
+                  <div><code>dddd, MMMM Do</code> → Tuesday, September 2nd</div>
+                  <div><code>[The] Do [of] MMMM</code> → The 2nd of September</div>
+                  <div><code>ddd, MMM Do</code> → Tue, Sep 2nd</div>
+                  <div><code>Do MMMM YYYY</code> → 2nd September 2025</div>
+                  <div><code>YYYY年MM月DD日</code> → 2025年09月02日</div>
+                  <div><code>dddd [at] Do [day]</code> → Tuesday at 2nd day</div>
                 </div>
               </div>
             </div>
@@ -452,9 +532,9 @@ export default function DateFormatterSetupGuide() {
                   with the token replacement order (longer tokens are processed before shorter ones).
                 </p>
                 <p className="text-slate-700">
-                  <strong>Solution:</strong> Verify you're using only supported tokens: YYYY, YY, MMMM, MMM, MM, M, DD, D. Check that 
-                  token casing is exact (all uppercase). Avoid conflicts like using both MM and M in the same pattern where they might 
-                  interfere with each other.
+                  <strong>Solution:</strong> Verify you're using only supported tokens: YYYY, YY, MMMM, MMM, MM, M, DD, Do, D, dddd, ddd, dd, d, Q, and literal text in [brackets]. Check that 
+                  token casing is exact (uppercase for date/month tokens, lowercase for day-of-week tokens). For literal text that might contain letters used as tokens, 
+                  wrap it in square brackets like <code>[The]</code> or <code>[of]</code>.
                 </p>
               </div>
 

@@ -151,7 +151,7 @@ describe('Date Formatter - Comprehensive Test Suite', () => {
     test('should handle complex custom patterns', () => {
       const complexPatterns = [
         {
-          pattern: 'Today is MMMM DD, YYYY (YY)',
+          pattern: '[Today is] MMMM DD, YYYY (YY)',
           expected: 'Today is July 25, 2025 (25)',
         },
         {

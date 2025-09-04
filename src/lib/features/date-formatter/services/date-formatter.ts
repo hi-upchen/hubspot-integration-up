@@ -1,4 +1,11 @@
 import type { DateFormat } from '../types';
+import dayjs from 'dayjs';
+import advancedFormat from 'dayjs/plugin/advancedFormat';
+import customParseFormat from 'dayjs/plugin/customParseFormat';
+
+// Extend dayjs with plugins
+dayjs.extend(advancedFormat);
+dayjs.extend(customParseFormat);
 
 /**
  * Date formatter service for converting dates between different formats
@@ -268,21 +275,7 @@ export function parseSourceDate(dateValue: string, sourceFormat: string): Date {
  * @returns Formatted date string
  */
 function applyCustomFormat(date: Date, pattern: string): string {
-  const year = date.getFullYear();
-  const month = date.getMonth() + 1;
-  const day = date.getDate();
-  
-  // Process tokens in order from longest to shortest to avoid conflicts
-  // This prevents 'D' from matching inside 'DD' or 'Date'
-  return pattern
-    .replace(/YYYY/g, year.toString())
-    .replace(/MMMM/g, DATE_CONSTANTS.MONTH_NAMES[month - 1])
-    .replace(/MMM/g, DATE_CONSTANTS.SHORT_MONTH_NAMES[month - 1])
-    .replace(/MM/g, month.toString().padStart(2, '0'))
-    .replace(/\bM\b/g, month.toString()) // Single M token (non-padded month)
-    .replace(/DD/g, day.toString().padStart(2, '0'))
-    .replace(/YY/g, year.toString().slice(-2))
-    .replace(/\bD\b/g, day.toString()); // Use word boundaries to avoid replacing 'D' in 'Date'
+  return dayjs(date).format(pattern);
 }
 
 /**
