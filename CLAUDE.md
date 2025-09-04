@@ -128,8 +128,8 @@ npm run hubspot:date-formatter:list      # Uses ConfigManager detection
 - **Webhook Handler**: Processes requests with correct environment context
 
 ### Action Naming Convention
-- **Development**: `Date Formatter v1.0.0 (Dev - 2025-01-26 14:30)` (with timestamp)
-- **Production**: `Date Formatter v1.0.0` (clean, professional)
+- **Development**: `Date Formatter v1.0.1 (Dev - 2025-01-26 14:30)` (with timestamp)
+- **Production**: `Date Formatter v1.0.1` (clean, professional)
 
 ## File Structure (Current - August 2025)
 

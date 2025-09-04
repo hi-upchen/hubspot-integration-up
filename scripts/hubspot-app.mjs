@@ -136,7 +136,7 @@ async function registerAction() {
 
   // Generate action name with version and conditional timestamp
   const baseActionName = workflowActionDefinition.labels.en.actionName;
-  const version = 'v1.0.0';
+  const version = 'v1.0.1';
   const isDevMode = hubspotConfig.nextjsUrl.includes('localhost') || 
                     hubspotConfig.nextjsUrl.includes('ngrok') || 
                     hubspotConfig.nextjsUrl.includes('127.0.0.1');
@@ -254,6 +254,60 @@ async function updateAction() {
 
   const actionDefinition = JSON.parse(fs.readFileSync(actionDefPath, 'utf8'));
   
+  // Version for action naming
+  const version = 'v1.0.1';
+  
+  // Helper function to log detailed action information
+  function logDetailedActionInfo(result, originalActionName, actionId, actionDefinition, method = 'PATCH') {
+    console.log(`✅ Workflow action updated successfully (${method})!`);
+    console.log('📋 Updated Action Details:');
+    console.log(`   Original Name: ${originalActionName}`);
+    console.log(`   Updated Name: ${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}`);
+    console.log(`   Action ID: ${result.id || result.actionDefinitionId || actionId}`);
+    console.log(`   Status: ${result.published ? 'Published' : 'Draft'}`);
+    console.log(`   Action URL: ${result.actionUrl || actionDefinition.actionUrl}`);
+    console.log('');
+    
+    // Input Fields Details
+    const inputFields = result.inputFields || actionDefinition.inputFields || [];
+    console.log('📥 Input Fields:');
+    inputFields.forEach((field, index) => {
+      console.log(`   ${index + 1}. ${field.label || field.typeDefinition?.name || 'Unnamed'}`);
+      console.log(`      Name: ${field.typeDefinition?.name || 'N/A'}`);
+      console.log(`      Type: ${field.typeDefinition?.type || 'N/A'}`);
+      console.log(`      Required: ${field.isRequired ? 'Yes' : 'No'}`);
+      if (field.typeDefinition?.type === 'enumeration' && field.typeDefinition?.options) {
+        console.log(`      Options: ${field.typeDefinition.options.length} choices`);
+        field.typeDefinition.options.forEach((option, optIndex) => {
+          console.log(`        ${optIndex + 1}. ${option.label} (${option.value})`);
+        });
+      }
+      if (field.helpText) {
+        console.log(`      Help: ${field.helpText}`);
+      }
+      console.log('');
+    });
+    
+    // Output Fields Details
+    const outputFields = result.outputFields || actionDefinition.outputFields || [];
+    console.log('📤 Output Fields:');
+    outputFields.forEach((field, index) => {
+      console.log(`   ${index + 1}. ${field.label || field.typeDefinition?.name || 'Unnamed'}`);
+      console.log(`      Name: ${field.typeDefinition?.name || 'N/A'}`);
+      console.log(`      Type: ${field.typeDefinition?.type || 'N/A'}`);
+      if (field.description) {
+        console.log(`      Description: ${field.description}`);
+      }
+    });
+    console.log('');
+    
+    console.log('🎯 Next Steps:');
+    console.log('1. Go to your HubSpot account');
+    console.log('2. Navigate to Automation → Workflows');
+    console.log('3. Create a new workflow or edit existing one');
+    console.log(`4. Look for "${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}" in Custom Actions`);
+  }
+  
   // Add runtime properties to the definition
   const now = new Date();
   const envLabel = environment.toUpperCase();
@@ -265,7 +319,7 @@ async function updateAction() {
   const originalActionName = actionDefinition.labels.en.actionName;
   const baseActionName = originalActionName.split(' v')[0];
   
-  actionDefinition.labels.en.actionName = `${baseActionName} v1.0.0${timestamp}`;
+  actionDefinition.labels.en.actionName = `${baseActionName} ${version}${timestamp}`;
   
   // Set or update the action URL
   if (actionDefinition.actionUrl) {
@@ -289,21 +343,7 @@ async function updateAction() {
 
     if (response.ok) {
       const result = JSON.parse(responseText);
-      console.log('✅ Workflow action updated successfully!');
-      console.log('📋 Updated Action Details:');
-      console.log(`   Original Name: ${originalActionName}`);
-      console.log(`   Action ID: ${result.id || result.actionDefinitionId || actionId}`);
-      console.log(`   Status: ${result.published ? 'Published' : 'Draft'}`);
-      console.log(`   Action URL: ${result.actionUrl || actionDefinition.actionUrl}`);
-      console.log(`   Input Fields: ${result.inputFields?.length || actionDefinition.inputFields?.length || 0}`);
-      console.log(`   Output Fields: ${result.outputFields?.length || actionDefinition.outputFields?.length || 0}`);
-      console.log(`   Updated Name: ${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}`);
-      console.log('');
-      console.log('🎯 Next Steps:');
-      console.log('1. Go to your HubSpot account');
-      console.log('2. Navigate to Automation → Workflows');
-      console.log('3. Create a new workflow or edit existing one');
-      console.log(`4. Look for "${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}" in Custom Actions`);
+      logDetailedActionInfo(result, originalActionName, actionId, actionDefinition, 'PATCH');
     } else if (response.status === 405 && !response.url.includes('PUT')) {
       // Method not allowed, try PUT instead
       console.log('🔄 PATCH not supported, trying PUT method...');
@@ -320,15 +360,7 @@ async function updateAction() {
 
       if (putResponse.ok) {
         const result = JSON.parse(putResponseText);
-        console.log('✅ Workflow action updated successfully (using PUT)!');
-        console.log('📋 Updated Action Details:');
-        console.log(`   Original Name: ${originalActionName}`);
-        console.log(`   Action ID: ${result.id || result.actionDefinitionId || actionId}`);
-        console.log(`   Status: ${result.published ? 'Published' : 'Draft'}`);
-        console.log(`   Action URL: ${result.actionUrl || actionDefinition.actionUrl}`);
-        console.log(`   Input Fields: ${result.inputFields?.length || actionDefinition.inputFields?.length || 0}`);
-        console.log(`   Output Fields: ${result.outputFields?.length || actionDefinition.outputFields?.length || 0}`);
-        console.log(`   Updated Name: ${result.labels?.en?.actionName || actionDefinition.labels.en.actionName}`);
+        logDetailedActionInfo(result, originalActionName, actionId, actionDefinition, 'PUT');
       } else {
         throw new Error(`PUT method also failed: ${putResponse.status} ${putResponse.statusText}\n${putResponseText}`);
       }

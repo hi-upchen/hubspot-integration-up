@@ -170,7 +170,7 @@ export default function DateFormatterSetupGuide() {
                     Select the Date Formatter action to add it to your workflow.
                   </p>
                   <div className="bg-slate-100 rounded-lg p-4 mb-4">
-                    <p className="text-sm font-mono">Search: "Date Formatter" → Select "Date Formatter v1.0.0"</p>
+                    <p className="text-sm font-mono">Search: "Date Formatter" → Select "Date Formatter v1.0.1"</p>
                   </div>
                   <div className="bg-green-50 border border-green-200 rounded-lg p-3">
                     <p className="text-green-800 text-sm">
@@ -240,12 +240,20 @@ export default function DateFormatterSetupGuide() {
                   <ul className="text-sm text-slate-700 space-y-1 ml-4 mb-4">
                     <li><strong>Auto-detect:</strong> Automatically identifies common formats (recommended)</li>
                     <li><strong>US Standard:</strong> MM/DD/YYYY or MM/DD/YY format</li>
-                    <li><strong>International:</strong> DD/MM/YYYY or DD/MM/YY format</li>
+                    <li><strong>UK/International:</strong> DD/MM/YYYY or DD/MM/YY format</li>
                     <li><strong>ISO Date:</strong> YYYY-MM-DD format</li>
                   </ul>
-                  <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                    <p className="text-blue-800 text-sm">
-                      <strong>Tip:</strong> Choose based on your HubSpot's Date, time, and number format settings. If you're not quite sure, then select <strong>Auto-detect</strong>. If you are in EU format, select <strong>International</strong>. If you are in US format, select <strong>US Standard</strong>.
+                  <div className="bg-green-50 border border-green-200 rounded-lg p-3 mb-3">
+                    <p className="text-green-800 text-sm">
+                      <strong>Quick Guide:</strong> Use <strong>Auto-detect</strong> if you're not sure what date format you're using. 
+                      The system will intelligently identify most common formats automatically.
+                    </p>
+                  </div>
+                  <div className="bg-amber-50 border border-amber-200 rounded-lg p-3">
+                    <p className="text-amber-800 text-sm">
+                      <strong>Important:</strong> If you find that the month and day are reversed in your output (e.g., 03/12/2025 
+                      shows as December 3rd instead of March 12th), choose <strong>UK/International format</strong> instead of Auto-detect. 
+                      This commonly happens with dates like 01/02/2025 where it's unclear if it means January 2nd (US) or February 1st (UK).
                     </p>
                   </div>
                 </div>

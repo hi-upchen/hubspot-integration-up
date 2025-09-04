@@ -114,7 +114,7 @@ workflowActionDefinition.actionUrl = `${NEXTJS_URL}${appConfig.webhookPath}`;
 
 // Generate action name with version and conditional timestamp
 const baseActionName = workflowActionDefinition.labels.en.actionName;
-const version = 'v1.0.0';
+const version = 'v1.0.1';
 const isDevMode = NEXTJS_URL.includes('localhost') || NEXTJS_URL.includes('ngrok') || NEXTJS_URL.includes('127.0.0.1');
 
 let finalActionName = `${baseActionName} ${version}`;
