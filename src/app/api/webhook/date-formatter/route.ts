@@ -59,10 +59,12 @@ export async function POST(request: NextRequest) {
     
     return NextResponse.json({
       outputFields: {
+        hs_execution_state: 'FAIL_CONTINUE',
+        errorCode: 'INTERNAL_ERROR',
+        errorMessage: 'Invalid JSON request body',
         formattedDate: '',
         originalDate: '',
-        format: 'ERROR',
-        error: 'Invalid JSON request body'
+        format: 'ERROR'
       }
     }, { status: 400 });
   }
@@ -81,10 +83,12 @@ export async function POST(request: NextRequest) {
     // Return workflow-compatible error response
     return NextResponse.json({
       outputFields: {
+        hs_execution_state: 'FAIL_CONTINUE',
+        errorCode: 'INTERNAL_ERROR',
+        errorMessage: 'Internal server error occurred during date formatting',
         formattedDate: '',
         originalDate: '',
-        format: 'ERROR',
-        error: 'Internal server error occurred during date formatting'
+        format: 'ERROR'
       }
     }, { status: 500 });
   }

@@ -1,7 +1,7 @@
 import { formatDate } from './date-formatter';
 import { trackUsage } from '@/lib/database/usage';
 import type { WorkflowRequest, WorkflowResponse } from '@/lib/hubspot/types';
-import type { DateFormat, DateFormatterUsageData } from '../types';
+import type { DateFormat, DateFormatterUsageData, DateFormatterErrorCode } from '../types';
 
 export interface WebhookResult {
   success: boolean;
@@ -73,9 +73,18 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       console.error('Validation error: Source date field is required', { portalId, inputFields });
       await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source date field is required'));
       return {
-        success: false,
-        status: 400,
-        data: { error: 'Source date field is required' }
+        success: true,
+        status: 200,
+        data: {
+          outputFields: {
+            hs_execution_state: 'FAIL_CONTINUE',
+            errorCode: 'MISSING_SOURCE_DATE',
+            errorMessage: 'Source date field is required',
+            formattedDate: '',
+            originalDate: '',
+            format: 'ERROR'
+          }
+        }
       };
     }
 
@@ -83,9 +92,18 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       console.error('Validation error: Source format is required', { portalId, inputFields });
       await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Source format is required'));
       return {
-        success: false,
-        status: 400,
-        data: { error: 'Source format is required' }
+        success: true,
+        status: 200,
+        data: {
+          outputFields: {
+            hs_execution_state: 'FAIL_CONTINUE',
+            errorCode: 'MISSING_SOURCE_FORMAT',
+            errorMessage: 'Source format is required',
+            formattedDate: '',
+            originalDate: '',
+            format: 'ERROR'
+          }
+        }
       };
     }
 
@@ -93,9 +111,18 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       console.error('Validation error: Target format is required', { portalId, inputFields });
       await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Target format is required'));
       return {
-        success: false,
-        status: 400,
-        data: { error: 'Target format is required' }
+        success: true,
+        status: 200,
+        data: {
+          outputFields: {
+            hs_execution_state: 'FAIL_CONTINUE',
+            errorCode: 'MISSING_TARGET_FORMAT',
+            errorMessage: 'Target format is required',
+            formattedDate: '',
+            originalDate: '',
+            format: 'ERROR'
+          }
+        }
       };
     }
 
@@ -104,9 +131,18 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       console.error('Validation error: Custom target format is required when target format is CUSTOM', { portalId, inputFields });
       await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, 'Custom target format is required when target format is CUSTOM'));
       return {
-        success: false,
-        status: 400,
-        data: { error: 'Custom target format is required when target format is CUSTOM' }
+        success: true,
+        status: 200,
+        data: {
+          outputFields: {
+            hs_execution_state: 'FAIL_CONTINUE',
+            errorCode: 'MISSING_CUSTOM_FORMAT',
+            errorMessage: 'Custom target format is required when target format is CUSTOM',
+            formattedDate: '',
+            originalDate: '',
+            format: 'ERROR'
+          }
+        }
       };
     }
 
@@ -125,10 +161,12 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         status: 200,
         data: {
           outputFields: {
+            hs_execution_state: 'FAIL_CONTINUE',
+            errorCode: 'EMPTY_DATE_FIELD',
+            errorMessage: 'Source date field is empty',
             formattedDate: '',
             originalDate: dateValue,
-            format: inputFields.targetFormat,
-            error: 'Source date field is empty'
+            format: inputFields.targetFormat
           }
         }
       };
@@ -161,10 +199,12 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
         status: 200,
         data: {
           outputFields: {
+            hs_execution_state: 'FAIL_CONTINUE',
+            errorCode: 'INVALID_DATE_FORMAT',
+            errorMessage: error instanceof Error ? error.message : 'Date formatting failed',
             formattedDate: dateValue, // Return original value on error
             originalDate: dateValue,
-            format: inputFields.targetFormat,
-            error: error instanceof Error ? error.message : 'Date formatting failed'
+            format: inputFields.targetFormat
           }
         }
       };
@@ -176,6 +216,7 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
     // Return successful response
     const response: WorkflowResponse = {
       outputFields: {
+        hs_execution_state: 'SUCCESS',
         formattedDate,
         originalDate: dateValue,
         format: inputFields.targetFormat
@@ -212,10 +253,12 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       status: 500,
       data: {
         outputFields: {
+          hs_execution_state: 'FAIL_CONTINUE',
+          errorCode: 'INTERNAL_ERROR',
+          errorMessage: 'Internal server error occurred during date formatting',
           formattedDate: '',
           originalDate: '',
-          format: 'ERROR',
-          error: 'Internal server error occurred during date formatting'
+          format: 'ERROR'
         }
       }
     };

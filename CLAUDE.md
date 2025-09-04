@@ -30,6 +30,7 @@ Next.js application with HubSpot workflow actions for date formatting and other 
 - **Debug comprehensively**: Add detailed logging for troubleshooting
 - **Handle edge cases**: Support 2-digit years, empty values, format variations
 - **User-friendly UX**: Clear labels, helpful descriptions, logical field ordering
+- **Response format**: Follow HubSpot's official webhook response standards (see Response Format Requirements)
 
 ### Project Management
 - **Multi-app architecture**: Design for scalability (date-formatter, url-shortener, etc.)
@@ -130,6 +131,91 @@ npm run hubspot:date-formatter:list      # Uses ConfigManager detection
 ### Action Naming Convention
 - **Development**: `Date Formatter v1.0.1 (Dev - 2025-01-26 14:30)` (with timestamp)
 - **Production**: `Date Formatter v1.0.1` (clean, professional)
+
+## HubSpot Webhook Response Format Requirements
+
+### Official HubSpot Standards
+All custom workflow action responses must follow HubSpot's official format to maintain "Connected Apps" green status and ensure workflows don't break.
+
+### Required Response Structure
+```json
+{
+  "outputFields": {
+    "hs_execution_state": "SUCCESS|FAIL_CONTINUE|BLOCK|ASYNC",
+    "errorCode": "ERROR_CODE_CONSTANT",
+    "errorMessage": "User-friendly error description",
+    // ... other app-specific fields
+  }
+}
+```
+
+### Execution States
+- **SUCCESS**: Action completed successfully, workflow continues
+- **FAIL_CONTINUE**: Action failed but workflow continues (recommended for most errors)
+- **BLOCK**: Pause workflow execution (requires manual intervention)
+- **ASYNC**: Asynchronous processing mode
+
+### Success Response Format
+```json
+{
+  "outputFields": {
+    "hs_execution_state": "SUCCESS",
+    "formattedDate": "2025-01-15",
+    "originalDate": "01/15/2025",
+    "format": "ISO_DATE"
+  }
+}
+```
+
+### Error Response Format (FAIL_CONTINUE)
+```json
+{
+  "outputFields": {
+    "hs_execution_state": "FAIL_CONTINUE",
+    "errorCode": "INVALID_DATE_FORMAT",
+    "errorMessage": "Unable to parse date format",
+    "formattedDate": "01/15/2025", // Return original value
+    "originalDate": "01/15/2025",
+    "format": "ERROR"
+  }
+}
+```
+
+### HTTP Status Code Rules
+- **Always return HTTP 200** for business logic errors
+- **Use 4xx/5xx only** for actual HTTP/security errors
+- **HubSpot interprets status codes**:
+  - `2xx`: SUCCESS (if no hs_execution_state specified)
+  - `4xx`: FAIL_CONTINUE (except 429 which retries)
+  - `5xx`: Automatic retry with exponential backoff
+
+### Error Code Standards
+Define consistent error codes for different failure scenarios:
+```typescript
+enum DateFormatterErrorCode {
+  MISSING_SOURCE_DATE = 'MISSING_SOURCE_DATE',
+  MISSING_SOURCE_FORMAT = 'MISSING_SOURCE_FORMAT',
+  MISSING_TARGET_FORMAT = 'MISSING_TARGET_FORMAT',
+  MISSING_CUSTOM_FORMAT = 'MISSING_CUSTOM_FORMAT',
+  INVALID_DATE_FORMAT = 'INVALID_DATE_FORMAT',
+  EMPTY_DATE_FIELD = 'EMPTY_DATE_FIELD',
+  INTERNAL_ERROR = 'INTERNAL_ERROR'
+}
+```
+
+### Key Guidelines
+1. **Never break workflows**: Use FAIL_CONTINUE for non-critical errors
+2. **Provide context**: Include specific error codes and messages  
+3. **Return useful data**: Original values when processing fails
+4. **5-second timeout**: Respond within 5 seconds to avoid HubSpot retries
+5. **Consistent format**: All apps should follow the same response pattern
+
+### Benefits
+- ✅ Maintains "Connected Apps" green status indicator
+- ✅ Workflows continue despite individual record errors
+- ✅ Clear error categorization for debugging
+- ✅ User-friendly error messages in workflow logs
+- ✅ Future-proof for HubSpot platform changes
 
 ## File Structure (Current - August 2025)
 

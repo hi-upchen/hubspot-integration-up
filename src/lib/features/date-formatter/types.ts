@@ -40,9 +40,22 @@ export interface DateFormatterRequest {
   customTargetFormat?: string;
 }
 
+// Error codes for date formatting failures
+export enum DateFormatterErrorCode {
+  MISSING_SOURCE_DATE = 'MISSING_SOURCE_DATE',
+  MISSING_SOURCE_FORMAT = 'MISSING_SOURCE_FORMAT',
+  MISSING_TARGET_FORMAT = 'MISSING_TARGET_FORMAT', 
+  MISSING_CUSTOM_FORMAT = 'MISSING_CUSTOM_FORMAT',
+  INVALID_DATE_FORMAT = 'INVALID_DATE_FORMAT',
+  EMPTY_DATE_FIELD = 'EMPTY_DATE_FIELD',
+  INTERNAL_ERROR = 'INTERNAL_ERROR'
+}
+
 export interface DateFormatterResponse {
+  hs_execution_state: 'SUCCESS' | 'FAIL_CONTINUE';
   formattedDate: string;
   originalDate: string;
   format: string;
-  error?: string;
+  errorCode?: DateFormatterErrorCode;
+  errorMessage?: string;
 }
