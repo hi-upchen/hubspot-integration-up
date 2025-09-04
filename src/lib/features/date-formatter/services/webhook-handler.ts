@@ -1,7 +1,7 @@
 import { formatDate } from './date-formatter';
 import { trackUsage } from '@/lib/database/usage';
 import type { WorkflowRequest, WorkflowResponse } from '@/lib/hubspot/types';
-import type { DateFormat, DateFormatterUsageData, DateFormatterErrorCode } from '../types';
+import type { DateFormat, DateFormatterUsageData } from '../types';
 
 export interface WebhookResult {
   success: boolean;

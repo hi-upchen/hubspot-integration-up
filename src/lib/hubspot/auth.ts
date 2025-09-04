@@ -21,7 +21,7 @@ export const HUBSPOT_OAUTH_SCOPES = [
 export function generateOAuthUrl(appType: 'date-formatter' | 'url-shortener'): string {
   const clientId = ConfigManager.getHubSpotClientId(appType);
   const redirectUri = ConfigManager.getHubSpotRedirectUri(appType); // Now app-specific
-  const environment = ConfigManager.getCurrentEnvironment();
+  // Environment configuration handled by ConfigManager
   
   // Validate required configuration
   if (!clientId || !redirectUri) {

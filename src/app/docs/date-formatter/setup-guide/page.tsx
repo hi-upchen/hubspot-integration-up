@@ -376,7 +376,7 @@ export default function DateFormatterSetupGuide() {
                   </thead>
                   <tbody className="divide-y divide-blue-100">
                     <tr className="bg-blue-25">
-                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Year Tokens</td>
+                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Year Tokens</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">YY</td>
@@ -389,7 +389,7 @@ export default function DateFormatterSetupGuide() {
                       <td className="px-4 py-3 text-sm text-slate-700">Four-digit year</td>
                     </tr>
                     <tr className="bg-blue-25">
-                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Month Tokens</td>
+                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Month Tokens</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">M</td>
@@ -412,7 +412,7 @@ export default function DateFormatterSetupGuide() {
                       <td className="px-4 py-3 text-sm text-slate-700">The full month name</td>
                     </tr>
                     <tr className="bg-blue-25">
-                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Day of Month Tokens</td>
+                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Day of Month Tokens</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">D</td>
@@ -430,7 +430,7 @@ export default function DateFormatterSetupGuide() {
                       <td className="px-4 py-3 text-sm text-slate-700">Day of month with ordinal</td>
                     </tr>
                     <tr className="bg-blue-25">
-                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Day of Week Tokens</td>
+                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Day of Week Tokens</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">d</td>
@@ -453,7 +453,7 @@ export default function DateFormatterSetupGuide() {
                       <td className="px-4 py-3 text-sm text-slate-700">The name of the day of the week</td>
                     </tr>
                     <tr className="bg-blue-25">
-                      <td colSpan="3" className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Special Tokens</td>
+                      <td colSpan={3} className="px-4 py-2 text-sm font-semibold text-blue-900 bg-blue-75">Special Tokens</td>
                     </tr>
                     <tr>
                       <td className="px-4 py-3 whitespace-nowrap text-sm font-mono bg-blue-50">Q</td>
