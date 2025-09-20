@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@hubspot/api-client": "^13.0.0",
+    "@next/third-parties": "^15.5.3",
     "@supabase/supabase-js": "^2.52.1",
     "@types/pg": "^8.15.5",
     "clsx": "^2.1.1",

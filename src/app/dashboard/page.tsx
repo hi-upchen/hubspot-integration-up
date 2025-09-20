@@ -6,6 +6,7 @@ import { Suspense } from 'react';
 import Dashboard from './components/Dashboard';
 import ErrorMessage from './components/ErrorMessage';
 import { fetchDashboardData } from './lib/dashboard-api';
+import DashboardTracker from './components/DashboardTracker';
 
 interface DashboardPageProps {
   searchParams: Promise<{ 
@@ -78,9 +79,12 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
   const dashboardData = await fetchDashboardData(portalId);
 
   return (
-    <Suspense fallback={<DashboardLoading />}>
-      <Dashboard data={dashboardData} />
-    </Suspense>
+    <>
+      <DashboardTracker portalId={portalId} />
+      <Suspense fallback={<DashboardLoading />}>
+        <Dashboard data={dashboardData} />
+      </Suspense>
+    </>
   );
 }
 

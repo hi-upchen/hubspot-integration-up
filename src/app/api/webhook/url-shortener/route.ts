@@ -7,9 +7,10 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getUrlShortenerService } from '@/lib/features/url-shortener/services/url-shortener';
 import { trackUrlShortenerUsage } from '@/lib/features/url-shortener/services/usage-tracker';
 import { validateHubSpotWebhook, createSecurityErrorResponse } from '@/lib/shared/webhook-security';
-import { 
-  classifyError, 
-  createErrorResponse, 
+import { trackWebhookUsage, trackError } from '@/lib/analytics/gtm';
+import {
+  classifyError,
+  createErrorResponse,
   createSuccessResponse
 } from '@/lib/features/url-shortener/utils/error-handling';
 
@@ -165,7 +166,16 @@ export async function POST(request: NextRequest) {
       errorMessage: result.error,
       responseTimeMs: Date.now() - startTime
     });
-    
+
+    // Track to GTM
+    trackWebhookUsage(portalId!, 'url-shortener', result.success, Date.now() - startTime);
+    if (!result.success && result.error) {
+      trackError('URL_SHORTENER_ERROR', result.error, {
+        portal_id: portalId,
+        app_type: 'url-shortener'
+      });
+    }
+
     // Return appropriate response
     if (result.success) {
       const successResponse = createSuccessResponse(

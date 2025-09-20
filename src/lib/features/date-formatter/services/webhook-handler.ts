@@ -1,5 +1,6 @@
 import { formatDate } from './date-formatter';
 import { trackUsage } from '@/lib/database/usage';
+import { trackWebhookUsage, trackError } from '@/lib/analytics/gtm';
 import type { WorkflowRequest, WorkflowResponse } from '@/lib/hubspot/types';
 import type { DateFormat, DateFormatterUsageData } from '../types';
 
@@ -192,7 +193,14 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
       });
       
       await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, false, error instanceof Error ? error.message : 'Date formatting failed', dateValue));
-      
+
+      // Track error to GTM
+      trackWebhookUsage(portalId, 'date-formatter', false);
+      trackError('INVALID_DATE_FORMAT', error instanceof Error ? error.message : 'Date formatting failed', {
+        portal_id: portalId,
+        app_type: 'date-formatter'
+      });
+
       // Return error in output fields so workflow can continue
       return {
         success: true,
@@ -212,6 +220,9 @@ export async function processDateFormatterWebhook(workflowRequest: WorkflowReque
 
     // Track successful processing with the formatted date
     await trackUsageWithErrorHandling(buildTrackingData(portalId, inputFields, true, undefined, formattedDate));
+
+    // Track to GTM
+    trackWebhookUsage(portalId, 'date-formatter', true);
 
     // Return successful response
     const response: WorkflowResponse = {
