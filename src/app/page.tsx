@@ -147,6 +147,54 @@ export default function HomePage() {
         </Container>
       </section>
 
+      {/* Video Demo Section */}
+      <section className="py-12 bg-gradient-to-r from-green-500 to-blue-600 relative">
+        <Container>
+          {/* See the Complete Solution Header */}
+          <div className="mx-auto max-w-3xl text-center mb-12">
+            <h2 className="font-display text-3xl font-bold text-white mb-6">
+              <strong>See Your Date Problems Disappear in 2 Minutes</strong>
+            </h2>
+            <div className="space-y-3 max-w-2xl mx-auto">
+              <div className="flex items-start">
+                <span className="text-2xl mr-3">❌</span>
+                <span className="text-white">The problem: Date mix-ups (03/05/25 vs 05/03/25) losing you deals</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-2xl mr-3">⚡</span>
+                <span className="text-white">The fix: Before &quot;03/05/2025&quot; → After: &quot;5th March, 2025&quot;</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-2xl mr-3">✨</span>
+                <span className="text-white">Your international clients finally get the right dates</span>
+              </div>
+              <div className="flex items-start">
+                <span className="text-2xl mr-3">🛡️</span>
+                <span className="text-white">Completely secure - we never see your data</span>
+              </div>
+            </div>
+            <svg className="mx-auto mt-6 h-12 w-12 text-white animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </div>
+
+          <div className="mx-auto max-w-4xl">
+            {/* Video */}
+            <div className="relative mx-auto max-w-3xl">
+              <video
+                controls
+                className="rounded-lg shadow-2xl w-full"
+                style={{ aspectRatio: '3324 / 2494' }}
+                preload="metadata"
+              >
+                <source src="/videos/date-formatter-demo.mp4" type="video/mp4" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          </div>
+        </Container>
+      </section>
+
       {/* Security Features */}
       <section className="py-20 sm:py-32">
         <Container>
@@ -155,7 +203,7 @@ export default function HomePage() {
               Enterprise security. Startup simplicity.
             </h2>
             <p className="mt-4 text-lg tracking-tight text-slate-700">
-              Built with privacy-by-design principles. We can&apos;t see, store, or access 
+              Built with privacy-by-design principles. We can&apos;t see, store, or access
               your data—even if we wanted to.
             </p>
           </div>
