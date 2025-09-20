@@ -1,11 +1,14 @@
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
 import { Footer } from '@/components/Footer'
+import { Header } from '@/components/Header'
 import FAQAccordion from '@/components/FAQAccordion'
 
 export default function HomePage() {
   return (
     <div className="overflow-hidden bg-white">
+      <Header currentPage="home" />
+
       {/* Hero Section */}
       <Container className="pt-20 pb-16 text-center lg:pt-32">
         <h1 className="mx-auto max-w-4xl font-display text-5xl font-medium tracking-tight text-slate-900 sm:text-7xl">
@@ -65,32 +68,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Trust Banner */}
-        <div className="mt-36 lg:mt-44">
-          <p className="font-display text-base text-slate-900">
-            Built for teams who value security and transparency
-          </p>
-          <div className="mt-8 flex flex-wrap justify-center gap-8 text-sm text-slate-700">
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              30-second setup
-            </div>
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              99.99% uptime
-            </div>
-            <div className="flex items-center">
-              <svg className="h-5 w-5 text-green-600 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-              </svg>
-              47ms avg response
-            </div>
-          </div>
-        </div>
       </Container>
 
 

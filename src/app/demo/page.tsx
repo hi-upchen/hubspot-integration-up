@@ -1,6 +1,7 @@
 import { Button } from '@/components/Button'
 import { Container } from '@/components/Container'
 import { Footer } from '@/components/Footer'
+import { Header } from '@/components/Header'
 
 export const metadata = {
   title: 'HubSpot Date Formatter Demo - See the Solution in Action',
@@ -10,21 +11,7 @@ export const metadata = {
 export default function DemoPage() {
   return (
     <div className="overflow-hidden bg-white">
-      {/* Header Navigation */}
-      <nav className="border-b border-slate-200">
-        <Container className="py-6">
-          <div className="flex justify-between items-center">
-            <div className="font-display text-xl font-semibold text-slate-900">
-              Integration Up
-            </div>
-            <div className="flex gap-6 text-sm">
-              <a href="/" className="text-slate-600 hover:text-slate-900">Home</a>
-              <a href="/demo" className="text-slate-900 font-semibold">Demo</a>
-              <a href="mailto:up@integration-up.com" className="text-slate-600 hover:text-slate-900">Contact</a>
-            </div>
-          </div>
-        </Container>
-      </nav>
+      <Header currentPage="demo" />
 
       {/* Hero Section */}
       <Container className="pt-20 pb-16 text-center lg:pt-24">
@@ -176,7 +163,7 @@ export default function DemoPage() {
             <strong>Why This Solves Your International Client Problem</strong>
           </h2>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-4xl mx-auto">
+          <div className="grid grid-cols-2 gap-6 sm:gap-8 max-w-4xl mx-auto">
 
             <div className="text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-blue-100">

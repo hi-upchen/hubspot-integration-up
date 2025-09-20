@@ -1,10 +1,13 @@
 import { Container } from '@/components/Container'
 import { Button } from '@/components/Button'
 import { Footer } from '@/components/Footer'
+import { Header } from '@/components/Header'
 
 export default function UrlShortenerSetupGuide() {
   return (
     <div className="overflow-hidden bg-white">
+      <Header currentPage="setup-url-shortener" />
+
       {/* Header */}
       <Container className="pt-20 pb-16 lg:pt-32">
         <div className="mx-auto max-w-4xl">

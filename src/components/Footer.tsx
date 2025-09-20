@@ -18,7 +18,7 @@ export function Footer() {
         </div>
 
         {/* Footer Navigation */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8">
           {/* Product Section */}
           <div>
             <h3 className="text-sm font-semibold text-slate-900 tracking-wider uppercase mb-4">Product</h3>
