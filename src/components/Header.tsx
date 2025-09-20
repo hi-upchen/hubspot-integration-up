@@ -2,6 +2,7 @@
 
 import { Container } from '@/components/Container'
 import { useState } from 'react'
+import Link from 'next/link'
 
 interface HeaderProps {
   currentPage?: string
@@ -15,15 +16,15 @@ export function Header({ currentPage }: HeaderProps) {
       <Container className="py-6">
         <div className="flex justify-between items-center">
           <div className="font-display text-xl font-semibold text-slate-900 flex items-center">
-            <a href="/" className="hover:text-slate-700">Integration Up</a>
+            <Link href="/" className="hover:text-slate-700">Integration Up</Link>
           </div>
           <div className="flex gap-6 text-sm items-center">
-            <a
+            <Link
               href="/"
               className={`${currentPage === 'home' ? 'text-slate-900 font-semibold' : 'text-slate-600 hover:text-slate-900'}`}
             >
               Home
-            </a>
+            </Link>
 
             {/* Only show Demo link on demo page */}
             {currentPage === 'demo' && (
