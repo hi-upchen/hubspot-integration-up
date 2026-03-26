@@ -36,6 +36,9 @@ interface GTMEventParams {
 
 export function trackEvent(params: GTMEventParams): void {
   try {
+    // sendGTMEvent is client-only — skip silently on server (webhook routes)
+    if (typeof window === 'undefined') return;
+
     const { event, category, action, label, value, portal_id, app_type, error_code, ...rest } = params;
     sendGTMEvent({
       event: event || 'custom_event',
