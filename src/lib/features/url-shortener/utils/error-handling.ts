@@ -27,16 +27,6 @@ export interface ErrorResponseResult {
   headers?: Record<string, string>;
 }
 
-// HTTP status codes for different error types (controls HubSpot retry behavior)
-export const ERROR_HTTP_MAPPING = {
-  VALIDATION_ERROR: 400,     // Bad Request - User fix needed
-  AUTHORIZATION_ERROR: 401,  // Unauthorized - User fix needed  
-  API_KEY_ERROR: 400,        // Bad Request - User fix needed
-  RATE_LIMIT_ERROR: 429,     // Rate Limited - System will retry
-  SERVICE_ERROR: 502,        // Bad Gateway - System will retry
-  SERVER_ERROR: 500          // Server Error - System will retry
-} as const;
-
 const ERROR_HANDLING_MAP = {
   VALIDATION_ERROR: { 
     httpStatus: 400, 
@@ -89,44 +79,53 @@ function generateRandomRateLimitDelay(): number {
 }
 
 /**
- * Classifies errors based on error message content
+ * Classifies errors using Bitly HTTP status code first, falling back to string matching
  */
-export function classifyError(errorMessage: string): ErrorType {
+export function classifyError(errorMessage: string, statusCode?: number): ErrorType {
+  // Primary: classify by HTTP status code (structured data, reliable)
+  if (statusCode !== undefined) {
+    if (statusCode === 429) return 'RATE_LIMIT_ERROR';
+    if (statusCode === 401 || statusCode === 403) return 'API_KEY_ERROR';
+    if (statusCode === 400) return 'VALIDATION_ERROR';
+    if (statusCode >= 500) return 'SERVICE_ERROR';
+  }
+
+  // Fallback: classify by error message (for non-Bitly errors)
   const message = errorMessage.toLowerCase();
-  
+
   // Rate limiting errors (system should retry)
   if (message.includes('rate limit') || message.includes('too many requests')) {
     return 'RATE_LIMIT_ERROR';
   }
-  
+
   // API key errors (user configuration)
   if (message.includes('unauthorized') || message.includes('invalid api key') || message.includes('api key')) {
     return 'API_KEY_ERROR';
   }
-  
+
   // Authorization errors (user needs to reinstall)
   if (message.includes('portal not authorized') || message.includes('not authorized')) {
     return 'AUTHORIZATION_ERROR';
   }
-  
+
   // Validation errors (user configuration - including domain errors)
-  if (message.includes('required') || 
-      message.includes('invalid url') || 
+  if (message.includes('required') ||
+      message.includes('invalid url') ||
       message.includes('invalid domain') ||
       message.includes('domain') ||
       message.includes('check your') ||
       message.includes('please ')) {
     return 'VALIDATION_ERROR';
   }
-  
+
   // External service errors (system should retry)
-  if (message.includes('service unavailable') || 
-      message.includes('bitly') || 
+  if (message.includes('service unavailable') ||
+      message.includes('bitly') ||
       message.includes('timeout') ||
       message.includes('connection')) {
     return 'SERVICE_ERROR';
   }
-  
+
   // Default to server error (system should retry)
   return 'SERVER_ERROR';
 }
@@ -137,9 +136,8 @@ export function classifyError(errorMessage: string): ErrorType {
  * Implements smart default behavior without user configuration options
  */
 export function createErrorResponse(
-  errorType: ErrorType, 
-  errorMessage: string, 
-  shouldContinue: boolean, // Kept for API compatibility, but ignored
+  errorType: ErrorType,
+  errorMessage: string,
   longUrl?: string
 ): ErrorResponseResult {
   

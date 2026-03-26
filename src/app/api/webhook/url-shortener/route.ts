@@ -86,17 +86,6 @@ export async function POST(request: NextRequest) {
         userAgent: request.headers.get('user-agent')
       });
       
-      // Track security failure for monitoring
-      if (portalId) {
-        await trackUrlShortenerUsage({
-          portalId,
-          longUrl: urlToShorten,
-          success: false,
-          errorMessage: `Security validation failed: ${securityValidation.error}`,
-          responseTimeMs: Date.now() - startTime
-        });
-      }
-      
       return createSecurityErrorResponse(
         securityValidation.error || 'Unauthorized request',
         true // Include details in dev mode
@@ -137,7 +126,6 @@ export async function POST(request: NextRequest) {
       const { response, httpStatus, headers } = createErrorResponse(
         'VALIDATION_ERROR',
         validation.error!,
-        false, // Smart default: Always stop workflow for user config errors
         urlToShorten
       );
       
@@ -187,13 +175,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(successResponse);
     } else {
       // Classify the error and create appropriate response
-      const errorType = classifyError(result.error || 'Unknown error');
-      const shouldContinue = false; // Smart default: Always stop workflow for errors
-      
+      const errorType = classifyError(result.error || 'Unknown error', result.statusCode);
+
       const { response, httpStatus, headers } = createErrorResponse(
         errorType,
         result.error || 'URL shortening failed',
-        shouldContinue,
         urlToShorten
       );
       
@@ -223,8 +209,7 @@ export async function POST(request: NextRequest) {
     // Always treat unexpected errors as server errors
     const { response, httpStatus } = createErrorResponse(
       'SERVER_ERROR',
-      'An unexpected error occurred. Please try again later.',
-      false
+      'An unexpected error occurred. Please try again later.'
     );
     
     return NextResponse.json(response, { status: httpStatus });

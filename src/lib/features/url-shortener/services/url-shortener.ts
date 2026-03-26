@@ -5,7 +5,7 @@
 
 import { supabaseAdmin } from '@/lib/database/supabase';
 import { decryptApiKey } from '@/lib/features/url-shortener/utils/encryption';
-import { createBitlyService } from './bitly-service';
+import { createBitlyService, BitlyApiError } from './bitly-service';
 import { isValidUrl, isValidDomain, isAlreadyShortened } from './url-validator';
 
 export interface UrlShortenerConfig {
@@ -21,6 +21,7 @@ export interface UrlShortenerResult {
   domain?: string;
   createdAt?: string;
   error?: string;
+  statusCode?: number;
 }
 
 export interface ApiKeyRecord {
@@ -104,35 +105,22 @@ export class UrlShortenerService {
       
     } catch (error) {
       console.error('URL shortening failed:', error);
-      
-      // Extract user-friendly error message
-      const errorMessage = (error as Error).message;
-      
-      // Return appropriate error message
-      if (errorMessage.includes('Rate limit')) {
-        return {
-          success: false,
-          error: 'Bitly rate limit exceeded. Please try again in a few moments.'
-        };
-      }
-      
-      if (errorMessage.includes('Invalid Bitly API key')) {
-        return {
-          success: false,
-          error: 'Invalid Bitly API key. Please check your API key in the dashboard settings.'
-        };
-      }
-      
-      if (errorMessage.includes('Invalid domain')) {
-        return {
-          success: false,
-          error: errorMessage
-        };
-      }
-      
+
+      // Preserve Bitly HTTP status code if available
+      const isBitlyError = error instanceof BitlyApiError;
+      const statusCode = isBitlyError ? (error as BitlyApiError).statusCode : undefined;
+      const rawMessage = (error as Error).message;
+
+      // Pass through Bitly's original error message directly
+      // Non-Bitly errors (network failures etc.) get a generic message
+      const errorMessage = isBitlyError
+        ? rawMessage
+        : 'Unable to connect to URL shortening service. The system will retry automatically.';
+
       return {
         success: false,
-        error: errorMessage || 'An unexpected error occurred while shortening the URL.'
+        error: errorMessage,
+        statusCode
       };
     }
   }

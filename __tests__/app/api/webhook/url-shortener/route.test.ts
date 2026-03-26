@@ -314,6 +314,73 @@ describe('/api/webhook/url-shortener', () => {
       expect(responseData.message).toBe('Invalid webhook request');
     });
 
+    it('should return 429 when Bitly returns rate limit error', async () => {
+      mockService.shortenUrl.mockResolvedValue({
+        success: false,
+        error: 'Bitly rate limit exceeded. Please try again in a few moments.',
+        statusCode: 429
+      });
+
+      const requestBody = {
+        origin: { portalId: 123456 },
+        inputFields: {
+          urlToShorten: 'https://example.com/test',
+          customDomain: ''
+        }
+      };
+
+      const request = createMockRequest(requestBody);
+      const response = await POST(request);
+      const responseData = await response.json();
+
+      expect(response.status).toBe(429);
+      expect(responseData.outputFields.hs_execution_state).toBe('ERROR');
+      expect(response.headers.get('Retry-After')).toBeDefined();
+    });
+
+    it('should return 502 when Bitly returns 500 server error', async () => {
+      mockService.shortenUrl.mockResolvedValue({
+        success: false,
+        error: 'Internal server error',
+        statusCode: 500
+      });
+
+      const requestBody = {
+        origin: { portalId: 123456 },
+        inputFields: {
+          urlToShorten: 'https://example.com/test',
+          customDomain: ''
+        }
+      };
+
+      const request = createMockRequest(requestBody);
+      const response = await POST(request);
+
+      expect(response.status).toBe(502);
+    });
+
+    it('should return 400 when Bitly returns 401 auth error', async () => {
+      mockService.shortenUrl.mockResolvedValue({
+        success: false,
+        error: 'Invalid Bitly API key. Please check your API key in the dashboard settings.',
+        statusCode: 401
+      });
+
+      const requestBody = {
+        origin: { portalId: 123456 },
+        inputFields: {
+          urlToShorten: 'https://example.com/test',
+          customDomain: ''
+        }
+      };
+
+      const request = createMockRequest(requestBody);
+      const response = await POST(request);
+
+      // 401 from Bitly → API_KEY_ERROR → HTTP 400 to HubSpot
+      expect(response.status).toBe(400);
+    });
+
     it('should validate security with correct parameters', async () => {
       const requestBody = {
         origin: { portalId: 123456 },

@@ -63,6 +63,7 @@ export interface UrlShortenerResult {
   domain?: string;
   createdAt?: string;
   error?: string;
+  statusCode?: number;
 }
 
 // URL Shortener specific usage tracking
