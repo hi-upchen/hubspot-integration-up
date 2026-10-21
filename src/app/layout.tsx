@@ -14,19 +14,19 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "HubSpot Date Formatter - Security-First Workflow Integration",
-  description: "Professional date formatting for HubSpot workflows. Zero permissions required, open source, and your data stays totally safe. Convert dates to US, UK, ISO, and custom formats instantly.",
-  keywords: "HubSpot, date formatting, workflow actions, security, open source, automation, CRM",
+  title: "Integration Up - HubSpot Date Formatter and URL Shortener Workflow Actions",
+  description: "Integration Up adds two workflow actions to HubSpot. The Date Formatter converts dates to US, EU, ISO, Asian and custom formats. The URL Shortener turns long links into Bitly short links, with custom domain support.",
+  keywords: "HubSpot, workflow actions, date formatting, URL shortener, Bitly, automation, CRM",
   openGraph: {
-    title: "HubSpot Date Formatter - It Just Works",
-    description: "Give your customers the right date format. Secure, simple, reliable date formatting for HubSpot workflows.",
+    title: "Integration Up - Date Formatter and URL Shortener for HubSpot",
+    description: "Two HubSpot workflow actions: format dates the way your customers expect, and shorten links with Bitly.",
     type: "website",
     locale: "en_US",
   },
   twitter: {
     card: "summary_large_image",
-    title: "HubSpot Date Formatter - Security-First",
-    description: "Professional date formatting for HubSpot workflows. Zero permissions, open source, totally secure.",
+    title: "Integration Up - Date Formatter and URL Shortener for HubSpot",
+    description: "HubSpot workflow actions to format dates in US, EU, ISO and custom formats, and to shorten links with Bitly.",
   },
   robots: {
     index: true,
